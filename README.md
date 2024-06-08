@@ -25,7 +25,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 ### Nginx 配置完成之后，需要配置 Nginx 反代
 1.下载仓库下的nginx配置文件到你的nginx服务下，并修改配置里面注释的部分为你的实际配置 <br>
 2.在你的DNS服务提供商将相应的访问域名解析到部署docker proxy服务的机器IP上 <br>
-3.修改需要拉镜像的docker配置文件，使用自建的proxy服务地址来加速镜像拉取
+3.修改需要拉镜像的docker配置文件，使用自建的proxy服务地址来加速镜像拉取.修改后重启docker
 ```shell
 ~]# vim /etc/docker/daemon.json
 {
