@@ -676,12 +676,12 @@ INTERNAL_IP=$(echo "$ALL_IPS" | awk '$1!="127.0.0.1" && $1!="::1" && $1!="docker
 INFO "=================感谢您的耐心等待，安装已经完成=================="
 INFO
 INFO "请用浏览器访问UI面板: "
-INFO "公网访问地址: http://$PUBLIC_IP"
-INFO "内网访问地址: http://$INTERNAL_IP"
+INFO "公网访问地址: http://$PUBLIC_IP:50000"
+INFO "内网访问地址: http://$INTERNAL_IP:50000"
 INFO
 INFO "作者博客: https://dqzboy.com"
 INFO "技术交流: https://t.me/dqzboyblog"
-INFO "代码仓库: https://github.com/dqzboy"
+INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
 INFO  
 INFO "如果使用的是云服务器，且配置了域名与证书，请至安全组开放80、443端口；否则开放对应服务的监听端口"
 INFO
