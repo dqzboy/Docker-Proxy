@@ -721,7 +721,6 @@ case $user_choice in
 
         INSTALL_NGINX
         INSTALL_DOCKER
-        INSTALL_COMPOSE
         INSTALL_DOCKER_PROXY
         PROMPT
         ;;
