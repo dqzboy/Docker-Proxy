@@ -53,6 +53,14 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
     }
 }
 ```
+4. 使用代理地址拉取镜像
+```shell
+# 比如我们要下载镜像：gcr.io/google-containers/pause:3.1
+ 
+# 可以通过镜像代理仓库地址下载：
+docker pull gcr.xxx.com/google-containers/pause:3.1
+```
+
 > 详细教程：[构建Docker镜像仓库代理：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
 
 ## 📚 展示
