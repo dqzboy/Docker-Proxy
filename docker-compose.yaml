@@ -1,0 +1,84 @@
+services:
+  ## docker hub
+  docker-hub:
+    container_name: reg-docker-hub
+    image: registry:2.8.2
+    restart: always
+    environment:
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./docker-hub.yml:/etc/docker/registry/config.yml
+    ports:
+      - 51000:5000
+    networks:
+      - registry-net
+
+
+  ## ghcr.io
+  ghcr:
+    container_name: reg-ghcr
+    image: registry:2.8.2
+    restart: always
+    environment:
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./ghcr.yml:/etc/docker/registry/config.yml
+    ports:
+      - 52000:5000
+    networks:
+      - registry-net
+
+
+## k8s.gcr.io
+  k8s-gcr:
+    container_name: reg-k8s-gcr
+    image: registry:2.8.2
+    restart: always
+    environment:
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./k8s-ghcr.yml:/etc/docker/registry/config.yml
+    ports:
+      - 53000:5000
+    networks:
+      - registry-net
+
+## UI
+  registry-ui:
+    container_name: registry-ui
+    image: joxit/docker-registry-ui:main
+    restart: always
+    ports:
+      - 50000:80
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_TITLE=Docker Registry UI
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - NGINX_PROXY_PASS_URL=http://reg-docker-hub:5000
+      - SHOW_CATALOG_NB_TAGS=true
+      - CATALOG_MIN_BRANCHES=1
+      - CATALOG_MAX_BRANCHES=1
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
+    networks:
+      - registry-net
+
+networks:
+  registry-net:
