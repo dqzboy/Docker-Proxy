@@ -1,0 +1,24 @@
+name: CloseIssue
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+
+jobs:
+  run-python-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run close_issue.py Script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/close_issue.py
