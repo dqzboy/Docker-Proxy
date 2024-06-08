@@ -1,5 +1,22 @@
-# Docker-Proxy
-自建Docker镜像代理，基于官方registry一键部署Docker镜像代理服务
+<div style="text-align: center"></div>
+  <p align="center">
+  <img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c187d66f-152e-4172-8268-e54bd77d48bb" width="230px" height="200px">
+      <br>
+      <i>自建Docker镜像代理，基于官方registry一键部署Docker镜像代理服务.</i>
+  </p>
+</div>
+
+---
+
+[Telegram Group](https://t.me/+ghs_XDp1vwxkMGU9) 
+<details>
+<summary>Click here to join the WeChat group</summary>
+<div align="center">
+<img src="https://github.com/dqzboy/ChatGPT-Proxy/assets/42825450/09211fb0-70bd-4ac7-bb99-2ead29561142" width="400px">
+</div>
+</details>
+
+---
 
 ## 📝 准备工作
 ⚠️  **重要**：一台国外的服务器，并且未被墙。
@@ -36,6 +53,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
     }
 }
 ```
+> 详细教程：[构建Docker镜像仓库代理：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
 
 ## 📚 展示
 <br/>
