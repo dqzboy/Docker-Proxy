@@ -21,7 +21,7 @@
 ## 📝 准备工作
 ⚠️  **重要**：一台国外的服务器，并且未被墙。
 
-## 📦 部署 | Deployment
+## 📦 部署
 ```shell
 # CentOS
 yum -y install wget curl
@@ -31,7 +31,7 @@ apt -y install wget curl
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
 
-## 🔨 功能 | Functionality
+## 🔨 功能
 - 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
 - 脚本支持多个Docker镜像仓库的代理，包括Docker Hub、GitHub Container Registry (ghcr.io)和 Kubernetes Container Registry (k8s.gcr.io) 
 - 自动检查并安装所需的依赖软件，如Docker、Nginx等，并确保系统环境满足运行要求. 
