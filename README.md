@@ -79,5 +79,7 @@ docker pull gcr.xxx.com/google-containers/pause:3.1
 
 ## ❤ 鸣谢
 感谢以下项目的开源的付出：
-[CNCF Distribution](https://distribution.github.io/distribution/)
+
+[CNCF Distribution](https://distribution.github.io/distribution/) 
+
 [Joxit/docker-registry-ui](https://github.com/Joxit/docker-registry-ui)
