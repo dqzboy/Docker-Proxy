@@ -39,7 +39,7 @@ services:
       - registry-net
 
 
-## k8s.gcr.io
+  ## k8s.gcr.io
   k8s-gcr:
     container_name: reg-k8s-gcr
     image: registry:2.8.2
@@ -58,10 +58,10 @@ services:
     networks:
       - registry-net
 
-## UI
+  ## UI
   registry-ui:
     container_name: registry-ui
-    image: dqzboy/docker-registry-ui:2.5.7
+    image: joxit/docker-registry-ui:main
     restart: always
     ports:
       - 50000:80
