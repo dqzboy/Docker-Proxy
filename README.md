@@ -61,7 +61,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 docker pull gcr.xxx.com/google-containers/pause:3.1
 ```
 
-> 详细教程：[构建Docker镜像仓库代理：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
+> 详细教程：[自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
 
 ## 📚 展示
 <br/>
