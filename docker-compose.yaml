@@ -64,7 +64,7 @@ services:
   ## UI
   registry-ui:
     container_name: registry-ui
-    image: dqzboy/docker-registry-ui:2.5.7
+    image: dqzboy/docker-registry-ui:latest
     restart: always
     ports:
       - 50000:80
