@@ -10,7 +10,7 @@
 
 [Telegram Group](https://t.me/+ghs_XDp1vwxkMGU9) 
 <details>
-<summary>Click here to join the WeChat group</summary>
+<summary>扫描下方二维码加入微信群</summary>
 <div align="center">
 <img src="https://github.com/dqzboy/ChatGPT-Proxy/assets/42825450/09211fb0-70bd-4ac7-bb99-2ead29561142" width="400px">
 </div>
