@@ -80,7 +80,6 @@ else
     exit 1
 fi
 
-
 # 根据发行版选择存储库类型
 case "$ID" in
     "centos")
@@ -107,12 +106,10 @@ case "$ID" in
         ;;
 esac
 
-
 INFO "System release:: $NAME"
 INFO "System version: $VERSION"
 INFO "System ID: $ID"
 INFO "System ID Like: $ID_LIKE"
-
 }
 
 function CHECK_PACKAGE_MANAGER() {
@@ -142,7 +139,6 @@ function CHECK_PKG_MANAGER() {
         exit 1
     fi
 }
-
 
 function CHECKMEM() {
 # 获取内存使用率，并保留两位小数
@@ -287,7 +283,6 @@ else
 fi
 }
 
-
 if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
     # 检查是否已安装Nginx
     if which nginx &>/dev/null; then
@@ -344,7 +339,6 @@ else
     exit 1
 fi
 }
-
 
 function INSTALL_DOCKER() {
 INFO "====================== 安装Docker ======================"
@@ -472,7 +466,6 @@ services:
     networks:
       - registry-net
 
-
   ## ghcr.io
   ghcr:
     container_name: reg-ghcr
@@ -492,8 +485,7 @@ services:
     networks:
       - registry-net
 
-
-## k8s.gcr.io
+  ## k8s.gcr.io
   k8s-gcr:
     container_name: reg-k8s-gcr
     image: registry:2.8.2
