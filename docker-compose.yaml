@@ -18,7 +18,6 @@ services:
     networks:
       - registry-net
 
-
   ## ghcr.io
   ghcr:
     container_name: reg-ghcr
@@ -37,7 +36,6 @@ services:
       - 52000:5000
     networks:
       - registry-net
-
 
   ## k8s.gcr.io
   k8s-gcr:
