@@ -450,7 +450,7 @@ services:
   ## docker hub
   docker-hub:
     container_name: reg-docker-hub
-    image: registry:2.8.2
+    image: registry:latest
     restart: always
     environment:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
@@ -469,7 +469,7 @@ services:
   ## ghcr.io
   ghcr:
     container_name: reg-ghcr
-    image: registry:2.8.2
+    image: registry:latest
     restart: always
     environment:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
@@ -488,7 +488,7 @@ services:
   ## k8s.gcr.io
   k8s-gcr:
     container_name: reg-k8s-gcr
-    image: registry:2.8.2
+    image: registry:latest
     restart: always
     environment:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
