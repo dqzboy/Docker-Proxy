@@ -512,10 +512,10 @@ services:
     networks:
       - registry-net
 
-## UI
+  ## UI
   registry-ui:
     container_name: registry-ui
-    image: dqzboy/docker-registry-ui:2.5.7
+    image: joxit/docker-registry-ui:main
     restart: always
     ports:
       - 50000:80
