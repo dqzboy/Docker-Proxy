@@ -57,10 +57,14 @@ PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
 
+# 项目RAW地址
+GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
+
 # 部署的容器名称和镜像版本
 CONTAINER_NAME_LIST=("reg-docker-hub" "reg-ghcr" "reg-k8s-gcr")
-IMAGE_NAME="registry:latest"
-DOCKER_COMPOSE_FILE="docker-compose.yml"
+IMAGE_NAME="registry"
+UI_IMAGE_NAME="dqzboy/docker-registry-ui"
+DOCKER_COMPOSE_FILE="docker-compose.yaml"
 
 
 # 定义安装重试次数
@@ -445,196 +449,29 @@ fi
 
 function INSTALL_DOCKER_PROXY() {
 INFO "======================= 开始安装 ======================="
-cat > ${PROXY_DIR}/docker-compose.yaml <<\EOF
-services:
-  ## docker hub
-  docker-hub:
-    container_name: reg-docker-hub
-    image: registry:latest
-    restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
-    volumes:
-      - ./registry/data:/var/lib/registry
-      - ./docker-hub.yml:/etc/docker/registry/config.yml
-    ports:
-      - 51000:5000
-    networks:
-      - registry-net
+wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 
-  ## ghcr.io
-  ghcr:
-    container_name: reg-ghcr
-    image: registry:latest
-    restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
-    volumes:
-      - ./registry/data:/var/lib/registry
-      - ./ghcr.yml:/etc/docker/registry/config.yml
-    ports:
-      - 52000:5000
-    networks:
-      - registry-net
-
-  ## k8s.gcr.io
-  k8s-gcr:
-    container_name: reg-k8s-gcr
-    image: registry:latest
-    restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
-    volumes:
-      - ./registry/data:/var/lib/registry
-      - ./k8s-ghcr.yml:/etc/docker/registry/config.yml
-    ports:
-      - 53000:5000
-    networks:
-      - registry-net
-
-  ## UI
-  registry-ui:
-    container_name: registry-ui
-    image: joxit/docker-registry-ui:main
-    restart: always
-    ports:
-      - 50000:80
-    environment:
-      - SINGLE_REGISTRY=true
-      - REGISTRY_TITLE=Docker Registry UI
-      - DELETE_IMAGES=true
-      - SHOW_CONTENT_DIGEST=true
-      - NGINX_PROXY_PASS_URL=http://reg-docker-hub:5000
-      - SHOW_CATALOG_NB_TAGS=true
-      - CATALOG_MIN_BRANCHES=1
-      - CATALOG_MAX_BRANCHES=1
-      - TAGLIST_PAGE_SIZE=100
-      - REGISTRY_SECURED=false
-      - CATALOG_ELEMENTS_LIMIT=1000
-    networks:
-      - registry-net
-
-networks:
-  registry-net:
-EOF
-
-# config配置文件
-cat > ${PROXY_DIR}/docker-hub.yml <<\EOF
-version: 0.1
-log:
-  fields:
-    service: registry
-storage:
-  cache:
-    blobdescriptor: inmemory
-  filesystem:
-    rootdirectory: /var/lib/registry
-http:
-  addr: :5000
-  headers:
-    Access-Control-Expose-Headers: ['Docker-Content-Digest']
-    Access-Control-Allow-Methods: ['HEAD', 'GET', 'OPTIONS', 'DELETE']
-    Access-Control-Allow-Origin: ['*']
-    X-Content-Type-Options: [nosniff]
-health:
-  storagedriver:
-    enabled: true
-    interval: 10s
-    threshold: 3
-
-proxy:
-  remoteurl: https://registry-1.docker.io
-  username: 
-  password:
-EOF
+# config
+wget -P ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
+wget -P ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
+wget -P ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
 
 
-cat > ${PROXY_DIR}/ghcr.yml <<\EOF
-version: 0.1
-log:
-  fields:
-    service: registry
-storage:
-  cache:
-    blobdescriptor: inmemory
-  filesystem:
-    rootdirectory: /var/lib/registry
-http:
-  addr: :5000
-  headers:
-    Access-Control-Expose-Headers: ['Docker-Content-Digest']
-    Access-Control-Allow-Methods: ['HEAD', 'GET', 'OPTIONS', 'DELETE']
-    Access-Control-Allow-Origin: ['*']
-    X-Content-Type-Options: [nosniff]
-health:
-  storagedriver:
-    enabled: true
-    interval: 10s
-    threshold: 3
-
-proxy:
-  remoteurl: https://gcr.io
-  username: 
-  password:
-EOF
-
-
-cat > ${PROXY_DIR}/k8s-ghcr.yml <<\EOF
-version: 0.1
-log:
-  fields:
-    service: registry
-storage:
-  cache:
-    blobdescriptor: inmemory
-  filesystem:
-    rootdirectory: /var/lib/registry
-http:
-  addr: :5000
-  headers:
-    Access-Control-Expose-Headers: ['Docker-Content-Digest']
-    Access-Control-Allow-Methods: ['HEAD', 'GET', 'OPTIONS', 'DELETE']
-    Access-Control-Allow-Origin: ['*']
-    X-Content-Type-Options: [nosniff]
-health:
-  storagedriver:
-    enabled: true
-    interval: 10s
-    threshold: 3
-
-proxy:
-  remoteurl: https://k8s.gcr.io
-  username: 
-  password:
-EOF
 
 # 安装服务
 docker compose pull
 docker compose up -d --force-recreate
 }
 
+
 function STOP_REMOVE_CONTAINER() {
-    for container_name in "${CONTAINER_NAME_LIST[@]}"; do
-        #检查容器是否存在并停止并移除
-        if docker ps -a --format '{{.Names}}' | grep -Eq "^${container_name}$"; then
-            INFO "停止和移除容器: ${container_name}"
-            docker compose down --remove-orphans
-        else
-            WARN "容器: ${container_name} 未找到或已停止。."
-        fi
-    done
+    if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
+        INFO "停止和移除所有容器"
+        docker compose -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
+    else 
+        WARN "容器未运行，无需删除"
+        exit 1
+    fi
 }
 
 function REMOVE_NONE_TAG() {
@@ -665,6 +502,7 @@ ALL_IPS=$(hostname -I)
 # 排除不需要的地址（127.0.0.1和docker0）
 INTERNAL_IP=$(echo "$ALL_IPS" | awk '$1!="127.0.0.1" && $1!="::1" && $1!="docker0" {print $1}')
 
+echo
 INFO "=================感谢您的耐心等待，安装已经完成=================="
 INFO
 INFO "请用浏览器访问UI面板: "
@@ -728,10 +566,26 @@ case $user_choice in
         PROMPT
         ;;
     4)
-        eINFO "======================= 卸载服务 ======================="
-        STOP_REMOVE_CONTAINER
-        REMOVE_NONE_TAG
-        docker rmi $(docker images -q ${IMAGE_NAME}) &>/dev/null
+        INFO "======================= 卸载服务 ======================="
+        WARN "注意: 卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件"
+        while true; do
+            read -e -p "$(INFO '本人已知晓后果,确认卸载服务? [y/n]: ')" uninstall
+            case "$uninstall" in
+                y|Y )
+                    STOP_REMOVE_CONTAINER
+                    REMOVE_NONE_TAG
+                    docker rmi --force $(docker images -q ${IMAGE_NAME}) &>/dev/null
+                    docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
+                    rm -rf ${PROXY_DIR} &>/dev/null
+                    INFO "服务已经卸载,感谢你的使用!"
+                    break;;
+                n|N )
+                    WARN "退出卸载服务."
+                    break;;
+                * )
+                    INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+            esac
+        done
         ;;
     *)
         WARN "输入了无效的选择。请重新运行脚本并选择1-4的选项。"
