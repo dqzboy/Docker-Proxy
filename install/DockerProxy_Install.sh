@@ -515,7 +515,7 @@ services:
 ## UI
   registry-ui:
     container_name: registry-ui
-    image: joxit/docker-registry-ui:main
+    image: dqzboy/docker-registry-ui:2.5.7
     restart: always
     ports:
       - 50000:80
