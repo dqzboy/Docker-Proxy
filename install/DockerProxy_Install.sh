@@ -738,3 +738,4 @@ case $user_choice in
         ;;
 esac
 }
+main
