@@ -13,10 +13,12 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./docker-hub.yml:/etc/docker/registry/config.yml
+      #- ./auth:/auth
     ports:
       - 51000:5000
     networks:
       - registry-net
+
 
   ## ghcr.io
   ghcr:
@@ -32,10 +34,12 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./ghcr.yml:/etc/docker/registry/config.yml
+      #- ./auth:/auth
     ports:
       - 52000:5000
     networks:
       - registry-net
+
 
   ## k8s.gcr.io
   k8s-gcr:
@@ -51,6 +55,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./k8s-ghcr.yml:/etc/docker/registry/config.yml
+      #- ./auth:/auth
     ports:
       - 53000:5000
     networks:
