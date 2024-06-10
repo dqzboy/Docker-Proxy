@@ -3,8 +3,19 @@ log:
   fields:
     service: registry
 storage:
+  delete:
+    enabled: true
   cache:
-    blobdescriptor: inmemory
+    blobdescriptor: inmemory   
+    blobdescriptorsize: 10000
+  maintenance:
+    uploadpurging:
+      enabled: true
+      age: 168h
+      interval: 24h
+      dryrun: false
+    readonly:
+      enabled: false
   filesystem:
     rootdirectory: /var/lib/registry
 http:
