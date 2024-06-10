@@ -31,7 +31,7 @@ http:
 health:
   storagedriver:
     enabled: true
-    interval: 10秒
+    interval: 10s
     threshold: 3
 
 proxy:
