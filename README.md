@@ -33,10 +33,11 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 
 ## 🔨 功能
 - 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
-- 脚本支持多个Docker镜像仓库的代理，包括Docker Hub、GitHub Container Registry (ghcr.io)和 Kubernetes Container Registry (k8s.gcr.io) 
+- 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry (ghcr.io)和 Kubernetes Container Registry (k8s.gcr.io) 
 - 自动检查并安装所需的依赖软件，如Docker、Nginx等，并确保系统环境满足运行要求. 
-- 脚本提供了重启、更新和卸载服务的功能，方便用户进行日常管理和维护
-- 支持主流Linux发行版操作系统,例如centos、Ubuntu、rocky等
+- 提供了重启、更新和卸载服务的功能，方便用户进行日常管理和维护
+- 支持主流Linux发行版操作系统,例如centos、Ubuntu、Rocky、Debian、Rhel等
+- 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64(v6/v7)、linux/ppc64le、linux/s390x
 
 ## ✨ 教程
 ### 代理程序部署完成之后，需自行配置 Nginx 反代
