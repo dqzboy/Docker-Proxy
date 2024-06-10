@@ -5,7 +5,7 @@
 # 
 #         USAGE: ./DockerProxy_Install.sh
 #
-#   DESCRIPTION: 自建Docker镜像代理，基于官方registry一键部署Docker镜像代理服务
+#   DESCRIPTION: 建Docker镜像加速服务，基于官方 registry 一键部署Docker、K8s、ghcr镜像加速\管理服务.
 # 
 #  ORGANIZATION: DingQz dqzboy.com 浅时光博客
 #===============================================================================
@@ -472,6 +472,28 @@ function STOP_REMOVE_CONTAINER() {
     fi
 }
 
+# 更新配置
+function UPDATE_CONFIG() {
+while true; do
+    read -e -p "$(WARN '是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? [y/n]: ')" update_conf
+    case "$update_conf" in
+        y|Y )
+            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
+            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
+            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
+            # 重启服务
+            docker compose restart
+            break;;
+        n|N )
+            WARN "退出配置更新操作。"
+            break;;
+        * )
+            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+    esac
+done
+
+}
+
 function REMOVE_NONE_TAG() {
     #删除标记为<none>的${IMAGE_NAME}镜像
     docker images | grep "^${IMAGE_NAME}.*<none>" | awk '{print $3}' | xargs -r docker rmi
@@ -520,10 +542,11 @@ INFO "================================================================"
 function main() {
 
 INFO "====================== 请选择操作 ======================"
-echo "1) 新装"
-echo "2) 重启"
-echo "3) 更新"
-echo "4) 卸载"
+echo "1) 新装服务"
+echo "2) 重启服务"
+echo "3) 更新服务"
+echo "4) 更新配置"
+echo "5) 卸载服务"
 read -e -p "$(INFO '输入对应数字并按 Enter 键: ')" user_choice
 case $user_choice in
     1)
@@ -555,15 +578,20 @@ case $user_choice in
     2)
         INFO "======================= 重启服务 ======================="
         docker compose restart
-        PROMPT
+        INFO "======================= 重启完成 ======================="
         ;;
     3)
         INFO "======================= 更新服务 ======================="
         docker compose pull
         docker compose up -d --force-recreate
-        PROMPT
+        INFO "======================= 更新完成 ======================="
         ;;
     4)
+        INFO "======================= 更新配置 ======================="
+        UPDATE_CONFIG
+        INFO "======================= 更新完成 ======================="
+        ;;
+    5)
         INFO "======================= 卸载服务 ======================="
         WARN "注意: 卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件"
         while true; do
