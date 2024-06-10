@@ -2,7 +2,7 @@
   <p align="center">
   <img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c187d66f-152e-4172-8268-e54bd77d48bb" width="230px" height="200px">
       <br>
-      <i>自建Docker镜像代理，基于官方registry一键部署Docker镜像代理服务.</i>
+      <i>自建Docker镜像加速服务，基于官方 registry 一键部署Docker、K8s、ghcr镜像加速\管理服务.</i>
   </p>
 </div>
 
