@@ -77,6 +77,10 @@ docker pull gcr.xxx.com/google-containers/pause:3.1
     </tr>
 </table>
 
+## 💻 UI
+![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/09cc663c-1ff3-40ac-9d6e-61cfe256498a)
+
+
 ## 🫶 赞助
 如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊
 
