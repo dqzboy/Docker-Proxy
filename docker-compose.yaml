@@ -4,13 +4,6 @@ services:
     container_name: reg-docker-hub
     image: registry:latest
     restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://localhost]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - ./registry/data:/var/lib/registry
       - ./docker-hub.yml:/etc/docker/registry/config.yml
