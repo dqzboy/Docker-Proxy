@@ -75,7 +75,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | docker.io   | hub.your_domain_name   |  docker hub 
 | gcr.io      | gcr.your_domain_name   |  Google Container Registry
 | ghcr.io     | ghcr.your_domain_name  |  GitHub Container Registry
-| ghcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
+| k8s.gcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
 | quay.io     | quay.your_domain_name  | Quay Container Registry
 
 > 详细教程：[自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
