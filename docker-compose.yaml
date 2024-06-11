@@ -58,7 +58,7 @@ services:
       - registry-net
 
   ## quay.io
-  k8s-gcr:
+  quay:
     container_name: reg-quay
     image: registry:latest
     restart: always
