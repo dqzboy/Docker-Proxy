@@ -38,7 +38,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 - 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
 - 提供了重启服务、更新服务、更新配置和卸载服务的功能，方便用户进行日常管理和维护
 - 支持主流Linux发行版操作系统,例如centos、Ubuntu、Rocky、Debian、Rhel等
-- 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64(v6/v7)、linux/ppc64le、linux/s390x
+- 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
 
 ## ✨ 教程
 ### 代理程序部署完成之后，需自行配置 Nginx 反代
@@ -79,7 +79,7 @@ docker pull gcr.xxx.com/google-containers/pause:3.1
 </table>
 
 ## 💻 UI
-![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/09cc663c-1ff3-40ac-9d6e-61cfe256498a)
+![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/5194cfc0-1108-4c99-bf87-31e90b9154a1)
 
 
 ## 🫶 赞助
@@ -101,4 +101,4 @@ docker pull gcr.xxx.com/google-containers/pause:3.1
 
 [CNCF Distribution](https://distribution.github.io/distribution/) 
 
-[Joxit/docker-registry-ui](https://github.com/Joxit/docker-registry-ui)
+[docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)

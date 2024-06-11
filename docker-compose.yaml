@@ -61,21 +61,16 @@ services:
   registry-ui:
     container_name: registry-ui
     image: dqzboy/docker-registry-ui:latest
+    environment:
+      - DOCKER_REGISTRY_URL=http://reg-docker-hub:5000
+      # [必须]使用 openssl rand -hex 16 生成唯一值
+      - SECRET_KEY_BASE=9f18244a1e1179fa5aa4a06a335d01b2
+      # 启用Image TAG 的删除按钮
+      - ENABLE_DELETE_IMAGES=true
+      - NO_SSL_VERIFICATION=true
     restart: always
     ports:
-      - 50000:80
-    environment:
-      - SINGLE_REGISTRY=true
-      - REGISTRY_TITLE=Docker Registry UI
-      - DELETE_IMAGES=true
-      - SHOW_CONTENT_DIGEST=true
-      - NGINX_PROXY_PASS_URL=http://reg-docker-hub:5000
-      - SHOW_CATALOG_NB_TAGS=true
-      - CATALOG_MIN_BRANCHES=1
-      - CATALOG_MAX_BRANCHES=1
-      - TAGLIST_PAGE_SIZE=100
-      - REGISTRY_SECURED=false
-      - CATALOG_ELEMENTS_LIMIT=1000
+      - 50000:8080
     networks:
       - registry-net
 

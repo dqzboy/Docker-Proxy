@@ -3,6 +3,8 @@ log:
   fields:
     service: registry
 storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
   delete:
     enabled: true
   cache:
@@ -16,8 +18,6 @@ storage:
       dryrun: false
     readonly:
       enabled: false
-  filesystem:
-    rootdirectory: /var/lib/registry
 http:
   addr: :5000
   headers:
