@@ -452,6 +452,7 @@ wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 # config
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
+wget -P ${PROXY_DIR}/ ${GITRAW}/config/gcr.yml &>/dev/null
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/quay.yml &>/dev/null
 
@@ -480,7 +481,9 @@ while true; do
         y|Y )
             wget -NP ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
             wget -NP ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
+            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/gcr.yml &>/dev/null
             wget -NP ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
+            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/quay.yml &>/dev/null
             # 重启服务
             docker compose restart
             break;;

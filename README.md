@@ -37,7 +37,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 - 自动检查并安装所需的依赖软件，如Docker、Nginx等，并确保系统环境满足运行要求.
 - 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
 - 提供了重启服务、更新服务、更新配置和卸载服务的功能，方便用户进行日常管理和维护
-- 支持主流Linux发行版操作系统,例如centos、Ubuntu、Rocky、Debian、Rhel等
+- 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
 - 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
 
 ## ✨ 教程
