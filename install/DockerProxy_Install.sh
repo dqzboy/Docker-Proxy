@@ -453,7 +453,7 @@ wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
 wget -P ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
-
+wget -P ${PROXY_DIR}/ ${GITRAW}/config/quay.yml &>/dev/null
 
 
 # 安装服务
