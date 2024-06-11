@@ -251,6 +251,166 @@ else
 fi
 }
 
+
+function INSTALL_CADDY() {
+INFO "====================== 安装Caddy ======================"
+# 定义一个函数来启动 Caddy
+start_caddy() {
+    systemctl enable caddy.service &>/dev/null
+    systemctl restart caddy.service
+}
+
+check_caddy() {
+# 检查 caddy 是否正在运行
+if pgrep "caddy" > /dev/null; then
+    INFO "Caddy 已在运行."
+else
+    WARN "Caddy 未运行。尝试启动 Caddy..."
+    start_attempts=3
+
+    # 最多尝试启动 3 次
+    for ((i=1; i<=$start_attempts; i++)); do
+        start_caddy
+        if pgrep "caddy" > /dev/null; then
+            INFO "Caddy已成功启动."
+            break
+        else
+            if [ $i -eq $start_attempts ]; then
+                ERROR "Caddy 在尝试 $start_attempts 后无法启动。请检查配置"
+                exit 1
+            else
+                WARN "在 $i 时间内启动 Caddy 失败。重试..."
+            fi
+        fi
+    done
+fi
+}
+
+if [ "$package_manager" = "dnf" ]; then
+    # 检查是否已安装Caddy
+    if which caddy &>/dev/null; then
+        INFO "Caddy 已经安装."
+    else
+        INFO "正在安装Caddy程序，请稍候..."
+
+        $package_manager -y install 'dnf-command(copr)' &>/dev/null
+        $package_manager -y copr enable @caddy/caddy &>/dev/null
+        while [ $attempts -lt $maxAttempts ]; do
+            $package_manager -y install caddy &>/dev/null
+
+            if [ $? -ne 0 ]; then
+                ((attempts++))
+                WARN "正在尝试安装Caddy >>> (Attempt: $attempts)"
+
+                if [ $attempts -eq $maxAttempts ]; then
+                    ERROR "Caddy installation failed. Please try installing manually."
+                    echo "命令: $package_manager -y install 'dnf-command(copr)' && $package_manager -y copr enable @caddy/caddy && $package_manager -y install caddy"
+                    exit 1
+                fi
+            else
+                INFO "已安装 Caddy."
+                break
+            fi
+        done
+    fi
+
+    # 启动caddy
+    check_caddy
+
+elif [ "$package_manager" = "yum" ]; then
+    # 检查是否已安装Caddy
+    if which caddy &>/dev/null; then
+        INFO "Caddy 已经安装."
+    else
+        INFO "正在安装Caddy程序，请稍候..."
+
+        $package_manager -y install yum-plugin-copr &>/dev/null
+        $package_manager -y copr enable @caddy/caddy &>/dev/null
+        while [ $attempts -lt $maxAttempts ]; do
+            $package_manager -y install caddy &>/dev/null
+            if [ $? -ne 0 ]; then
+                ((attempts++))
+                WARN "正在尝试安装Caddy >>> (Attempt: $attempts)"
+
+                if [ $attempts -eq $maxAttempts ]; then
+                    ERROR "Caddy installation failed. Please try installing manually."
+                    echo "命令: $package_manager -y install 'dnf-command(copr)' && $package_manager -y copr enable @caddy/caddy && $package_manager -y install caddy"
+                    exit 1
+                fi
+            else
+                INFO "已安装 Caddy."
+                break
+            fi
+        done
+    fi
+
+    # 启动caddy
+    check_caddy
+
+elif [ "$package_manager" = "apt" ] || [ "$package_manager" = "apt-get" ];then
+    dpkg --configure -a &>/dev/null
+    $package_manager update &>/dev/null
+    if $pkg_manager -s "caddy" &>/dev/null; then
+        INFO "Caddy 已安装，跳过..."
+    else
+        INFO "安装 Caddy 请稍等 ..."
+        $package_manager install -y debian-keyring debian-archive-keyring apt-transport-https &>/dev/null
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg &>/dev/null
+        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list &>/dev/null
+        $package_manager update &>/dev/null
+        $package_manager install -y caddy &>/dev/null
+        if [ $? -ne 0 ]; then
+            ERROR "安装 Caddy 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install caddy"
+            exit 1
+        fi
+    fi
+
+    # 启动Caddy
+    check_caddy
+else
+    WARN "无法确定包管理系统."
+    exit 1
+fi
+
+
+INFO "====================== 配置Caddy ======================"
+while true; do
+    read -e -p "$(WARN '是否配置Caddy,实现自动HTTPS? 执行前必须提前在DNS服务商解析A记录ui、hub、gcr、ghcr、k8s-gcr、quay[y/n]: ')" caddy_conf
+    case "$caddy_conf" in
+        y|Y )
+            read -e -p "$(INFO '请输入你的域名[例: baidu.com],不可为空: ')" caddy_domain
+            wget -NP /etc/caddy/ ${GITRAW}/caddy/Caddyfile &>/dev/null
+            sed -i "s#your_domain_name#$caddy_domain#g" /etc/caddy/Caddyfile
+            # 重启服务
+            start_attempts=3
+            # 最多尝试启动 3 次
+            for ((i=1; i<=$start_attempts; i++)); do
+                start_caddy
+                if pgrep "caddy" > /dev/null; then
+                    INFO "重新载入配置成功.Caddy启动完成,现在你可以将不需要的A记录从DNS解析中删除了"
+                    break
+                else
+                    if [ $i -eq $start_attempts ]; then
+                        ERROR "Caddy 在尝试 $start_attempts 后无法启动。请检查配置"
+                        exit 1
+                    else
+                        WARN "在 $i 时间内启动 Caddy 失败。重试..."
+                    fi
+                fi
+            done
+
+            break;;
+        n|N )
+            WARN "退出配置 Caddy 操作。"
+            break;;
+        * )
+            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+    esac
+done
+
+}
+
+
 function INSTALL_NGINX() {
 INFO "====================== 安装Nginx ======================"
 # 定义一个函数来启动 Nginx
@@ -329,7 +489,7 @@ elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
         INFO "安装 nginx 请稍等 ..."
         $package_manager install -y nginx > /dev/null 2>&1
         if [ $? -ne 0 ]; then
-            ERROR "安装 nginx 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install $package"
+            ERROR "安装 nginx 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install nginx"
             exit 1
         fi
     fi
@@ -573,7 +733,20 @@ case $user_choice in
             esac
         done
 
-        INSTALL_NGINX
+        while true; do
+            read -e -p "$(INFO '选择安装的WEB服务。安装Caddy可自动开启HTTPS [Nginx/Caddy]: ')" web_service
+            case "$web_service" in
+                nginx|Nginx )
+                    INSTALL_NGINX
+                    break;;
+                caddy|Caddy )
+                    INSTALL_CADDY
+                    break;;
+                * )
+                    INFO "请输入'nginx' 或者 'caddy'";;
+            esac
+        done
+
         INSTALL_DOCKER
         INSTALL_DOCKER_PROXY
         PROMPT
