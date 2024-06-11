@@ -39,6 +39,6 @@ health:
     threshold: 3
 
 proxy:
-  remoteurl: https://ghcr.io
+  remoteurl: https://gcr.io
   username: 
   password:

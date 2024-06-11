@@ -33,7 +33,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 
 ## 🔨 功能
 - 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
-- 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry (ghcr.io)和 Kubernetes Container Registry (k8s.gcr.io) 
+- 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry (ghcr.io)、Quay Container Registry (quay.io)和 Kubernetes Container Registry (k8s.gcr.io) 
 - 自动检查并安装所需的依赖软件，如Docker、Nginx等，并确保系统环境满足运行要求.
 - 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
 - 提供了重启服务、更新服务、更新配置和卸载服务的功能，方便用户进行日常管理和维护
@@ -48,7 +48,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 ```shell
 ~]# vim /etc/docker/daemon.json
 {
-    "registry-mirrors": [ "https://hub.xxx.com" ],
+    "registry-mirrors": [ "https://hub.your_domain_name" ],
     "log-opts": {
       "max-size": "100m",
       "max-file": "5"
@@ -57,11 +57,26 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 ```
 4. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像
 ```shell
-# 比如我们要下载镜像：gcr.io/google-containers/pause:3.1
- 
-# 可以通过镜像代理仓库地址下载：
-docker pull gcr.xxx.com/google-containers/pause:3.1
+# docker hub Registry
+## 源：nginx:latest
+## 替换
+docker pull hub.your_domain_name/library/nginx:latest
+
+# K8s Registry
+## 源：gcr.io/google-containers/pause:3.1
+## 替换：
+docker pull gcr.your_domain_name/google-containers/pause:3.1
 ```
+
+5. 前缀替换的 Registry 的参考
+
+| 源站 | 替换为 | 平台 |
+|-------|---------------|----------|
+| docker.io   | hub.your_domain_name   |  docker hub 
+| gcr.io      | gcr.your_domain_name   |  Google Container Registry
+| ghcr.io     | ghcr.your_domain_name  |  GitHub Container Registry
+| ghcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
+| quay.io     | quay.your_domain_name  | Quay Container Registry
 
 > 详细教程：[自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
 
@@ -74,7 +89,7 @@ docker pull gcr.xxx.com/google-containers/pause:3.1
     </tr>
     <tr>
         <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/55df7f6f-c788-4200-9bcd-631998dc53ef?raw=true"></td>
-        <td width="50%" align="center"><img src=https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118"?raw=true"></td>
+        <td width="50%" align="center"><img src=https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
     </tr>
 </table>
 
