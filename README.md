@@ -44,7 +44,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 ### 代理程序部署完成之后，需自行配置 Nginx 反代
 1.下载仓库下的nginx配置文件 [registry-proxy.conf](https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/nginx/registry-proxy.conf) 到你的nginx服务下，并修改配置里的域名和证书部分 <br>
 2.在你的DNS服务提供商将相应的访问域名解析到部署docker proxy服务的机器IP上 <br>
-3.修改需要拉镜像的docker配置文件，使用自建的proxy服务地址来加速镜像拉取.修改后重启docker
+3.修改Docker的daemon.json配置，配置你自建的Registry地址。修改后重启docker
 ```shell
 ~]# vim /etc/docker/daemon.json
 {
@@ -55,7 +55,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
     }
 }
 ```
-4. 使用代理地址拉取镜像
+4. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像
 ```shell
 # 比如我们要下载镜像：gcr.io/google-containers/pause:3.1
  

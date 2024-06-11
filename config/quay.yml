@@ -39,6 +39,6 @@ health:
     threshold: 3
 
 proxy:
-  remoteurl: https://gcr.io
+  remoteurl: https://quay.io
   username: 
   password:
