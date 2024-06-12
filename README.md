@@ -23,6 +23,7 @@
 如果部署的是Nginx服务，那么你需要申请一个免费的SSL证书或通过[Acme.sh自动生成和续订Lets Encrypt免费SSL证书](https://www.dqzboy.com/16437.html)还可以把域名托管到[Cloudflare 开启免费SSL证书](https://www.cloudflare.com/zh-cn/application-services/products/ssl/)
 
 ## 📦 部署
+#### 通过项目脚本部署
 ```shell
 # CentOS
 yum -y install wget curl
@@ -31,6 +32,13 @@ apt -y install wget curl
 
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
+
+#### 使用Render部署
+<details>
+<summary><strong>部署到 Render</strong></summary>
+<div>
+[使用Render快速部署](Render/README.md)
+</details>
 
 ## 🔨 功能
 - 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
