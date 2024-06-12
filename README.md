@@ -22,6 +22,8 @@
 ⚠️  **重要**：一台国外的服务器，并且未被墙。一个域名，无需国内备案，便宜的就行！选择部署Caddy可自动实现HTTPS。
 如果部署的是Nginx服务，那么你需要申请一个免费的SSL证书或通过[Acme.sh自动生成和续订Lets Encrypt免费SSL证书](https://www.dqzboy.com/16437.html)还可以把域名托管到[Cloudflare 开启免费SSL证书](https://www.cloudflare.com/zh-cn/application-services/products/ssl/)
 
+🚀 如果你身边没有上面提到的这些东西，那么你也可以部署到Render，详细操作查看下面教程
+
 ## 📦 部署
 #### 通过项目脚本部署
 ```shell
@@ -33,7 +35,7 @@ apt -y install wget curl
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
 
-#### 使用Render部署
+#### 使用 Render 部署
 <details>
 <summary><strong>部署到 Render</strong></summary>
 <div>
@@ -55,9 +57,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 ### 配置Nginx反向代理
 **注意**： 如果你选择部署的是Nginx，那么代理程序部署完成之后，需自行配置 Nginx <br>
 
-1.下载仓库下的nginx配置文件 [registry-proxy.conf](https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/nginx/registry-proxy.conf) 到你的nginx服务下，并修改配置里的域名和证书部分 <br>
-2.在你的DNS服务提供商将相应的访问域名解析到部署docker proxy服务的机器IP上 <br>
-3.修改Docker的daemon.json配置，配置你自建的Registry地址。修改后重启docker
+**1.下载仓库下的nginx配置文件 [registry-proxy.conf](https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/nginx/registry-proxy.conf) 到你的nginx服务下，并修改配置里的域名和证书部分** <br>
+**2.在你的DNS服务提供商将相应的访问域名解析到部署docker proxy服务的机器IP上** <br>
+**3.修改Docker的daemon.json配置，配置你自建的Registry地址。修改后重启docker**
 ```shell
 ~]# vim /etc/docker/daemon.json
 {
@@ -68,7 +70,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
     }
 }
 ```
-4. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像
+**4. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像**
 ```shell
 # docker hub Registry
 ## 源：nginx:latest
@@ -81,7 +83,7 @@ docker pull hub.your_domain_name/library/nginx:latest
 docker pull gcr.your_domain_name/google-containers/pause:3.1
 ```
 
-5. 前缀替换的 Registry 的参考
+**5. 前缀替换的 Registry 的参考**
 
 | 源站 | 替换为 | 平台 |
 |-------|---------------|----------|
