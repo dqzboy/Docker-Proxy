@@ -45,7 +45,7 @@
     </tr>
 </table>
 
-**4. 实例类型选择免费即可(免费实例需要保活,可使用 [uptime-kuma](https://uptime.kuma.pet/) 实现)**
+**4. 实例类型选择免费即可(免费实例需要保活,可使用 [uptime-kuma](https://uptime.kuma.pet/) 或 [D监控](https://www.dnspod.cn/Products/Monitor) 实现)**
 
 <table>
     <tr>
@@ -100,3 +100,11 @@ docker pull your_render_url/library/nginx:latest
 | ghcr.io     | your_render_url  |  GitHub Container Registry
 | k8s.gcr.io     | your_render_url  | Kubernetes Container Registry
 | quay.io     | your_render_url  | Quay Container Registry
+
+## ⚠️ 注意
+**1.** 免费实例如果15分钟内未收到入站流量，Render会关闭实例的网络服务。Render 会在下次收到处理请求时重新启动该服务。
+**2.** Render每月为每个用户和团队提供 750 小时的免费实例时间：
+   - 免费网络服务在运行期间会消耗这些时间（停止服务不要消耗免费实例
+   - 小时数）。
+   - 如果您在某个月内用完了所有免费实例小时数，Render将暂停您的所有免费网络服务，直到下个月开始。
+   - 每个月开始时，您的免费实例小时数将重置为 750 小时（剩余小时数不会结转）。
