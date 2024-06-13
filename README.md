@@ -48,7 +48,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 <details>
 <summary><strong>手动部署容器</strong></summary>
 <div>
-**1.** 下载[config](https://github.com/dqzboy/Docker-Proxy/tree/main/config)目录下对应的 yml 文件到你本地机器上
+
+**1.** 下载[config](https://github.com/dqzboy/Docker-Proxy/tree/main/config)目录下对应的`yml`文件到你本地机器上
 
 **2.** 下载[docker-compose.yaml](https://github.com/dqzboy/Docker-Proxy/blob/main/docker-compose.yaml)文件到你本地机器上，并且与配置文件同级目录下
 
