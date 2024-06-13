@@ -42,3 +42,4 @@ proxy:
   remoteurl: https://gcr.io
   username: 
   password:
+  ttl:
