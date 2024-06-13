@@ -1,6 +1,6 @@
 services:
   ## docker hub
-  docker-hub:
+  dockerhub:
     container_name: reg-docker-hub
     image: registry:latest
     restart: always
@@ -19,13 +19,6 @@ services:
     container_name: reg-ghcr
     image: registry:latest
     restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://localhost]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - ./registry/data:/var/lib/registry
       - ./ghcr.yml:/etc/docker/registry/config.yml
@@ -40,13 +33,6 @@ services:
     container_name: reg-gcr
     image: registry:latest
     restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://localhost]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - ./registry/data:/var/lib/registry
       - ./gcr.yml:/etc/docker/registry/config.yml
@@ -57,17 +43,10 @@ services:
       - registry-net
 
   ## k8s.gcr.io
-  k8s-gcr:
+  k8sgcr:
     container_name: reg-k8s-gcr
     image: registry:latest
     restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://localhost]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - ./registry/data:/var/lib/registry
       - ./k8s-ghcr.yml:/etc/docker/registry/config.yml
@@ -82,13 +61,6 @@ services:
     container_name: reg-quay
     image: registry:latest
     restart: always
-    environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://localhost]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials: '[true]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers: '[Authorization,Accept,Cache-Control]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
-      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
       - ./registry/data:/var/lib/registry
       - ./quay.yml:/etc/docker/registry/config.yml

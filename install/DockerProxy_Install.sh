@@ -46,11 +46,7 @@ function WARN() {
     echo -e "${WARN} ${1}"
 }
 
-
-# 定义Docker保存和解压的路径
-save_path="$PWD"
-
-# 服务部署配置存储路径
+# 服务部署和配置持久华存储路径
 PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
@@ -435,10 +431,10 @@ else
             break
         else
             if [ $i -eq $start_attempts ]; then
-                ERROR "Nginx 在尝试 $start_attempts 后无法启动。请检查配置"
+                ERROR "Nginx 在尝试 $start_attempts 次后无法启动。请检查配置"
                 exit 1
             else
-                WARN "在 $i 时间内启动 Nginx 失败。重试..."
+                WARN "第 $i 次启动 Nginx 失败。重试..."
             fi
         fi
     done
@@ -605,21 +601,80 @@ fi
 }
 
 
+function DOWN_CONFIG() {
+    files=(
+        "dockerhub ${GITRAW}/config/docker-hub.yml"
+        "gcr ${GITRAW}/config/gcr.yml"
+        "ghcr ${GITRAW}/config/ghcr.yml"
+        "quay ${GITRAW}/config/quay.yml"
+        "k8sgcr ${GITRAW}/config/k8s-ghcr.yml"
+    )
+
+    selected_names=()
+
+    echo "-------------------------------------------------"
+    echo "1) docker hub"
+    echo "2) gcr"
+    echo "3) ghcr"
+    echo "4) quay"
+    echo "5) k8s-gcr"
+    echo "6) all"
+    echo "7) exit"
+    echo "-------------------------------------------------"
+
+    read -e -p "$(INFO '输入序号下载对应配置文件,空格分隔多个选项. all下载所有: ')" choices_reg
+
+    if [[ "$choices_reg" == "all" ]]; then
+        for file in "${files[@]}"; do
+            file_name=$(echo "$file" | cut -d' ' -f1)
+            file_url=$(echo "$file" | cut -d' ' -f2-)
+            selected_names+=("$file_name")
+            wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
+        done
+        selected_all=true
+    elif [[ "$choices_reg" == "exit" ]]; then
+        INFO "退出下载"
+        return
+    else
+        for choice in ${choices_reg}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+                file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
+                file_url=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2-)
+                selected_names+=("$file_name")
+                wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
+            else
+                ERROR "无效的选择: $choice"
+            fi
+        done
+        selected_all=false
+    fi
+}
+
+function START_CONTAINER() {
+    if [ "$selected_all" = true ]; then
+        docker compose up -d --force-recreate
+    else
+        docker compose up -d "${selected_names[@]}" registry-ui
+    fi
+}
+
+function RESTART_CONTAINER() {
+    if [ "$selected_all" = true ]; then
+        docker compose restart
+    else
+        docker compose restart "${selected_names[@]}"
+    fi
+}
+
 function INSTALL_DOCKER_PROXY() {
 INFO "======================= 开始安装 ======================="
 wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 
 # config
-wget -P ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
-wget -P ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
-wget -P ${PROXY_DIR}/ ${GITRAW}/config/gcr.yml &>/dev/null
-wget -P ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
-wget -P ${PROXY_DIR}/ ${GITRAW}/config/quay.yml &>/dev/null
-
+DOWN_CONFIG
 
 # 安装服务
-docker compose pull
-docker compose up -d --force-recreate
+START_CONTAINER
 }
 
 
@@ -633,19 +688,17 @@ function STOP_REMOVE_CONTAINER() {
     fi
 }
 
+
+
+
 # 更新配置
 function UPDATE_CONFIG() {
 while true; do
     read -e -p "$(WARN '是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? [y/n]: ')" update_conf
     case "$update_conf" in
         y|Y )
-            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/docker-hub.yml &>/dev/null
-            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/ghcr.yml &>/dev/null
-            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/gcr.yml &>/dev/null
-            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/k8s-ghcr.yml &>/dev/null
-            wget -NP ${PROXY_DIR}/ ${GITRAW}/config/quay.yml &>/dev/null
-            # 重启服务
-            docker compose restart
+            DOWN_CONFIG
+            RESTART_CONTAINER
             break;;
         n|N )
             WARN "退出配置更新操作。"
@@ -658,21 +711,64 @@ done
 }
 
 function REMOVE_NONE_TAG() {
-    #删除标记为<none>的${IMAGE_NAME}镜像
     docker images | grep "^${IMAGE_NAME}.*<none>" | awk '{print $3}' | xargs -r docker rmi
     images=$(docker images ${IMAGE_NAME} --format '{{.Repository}}:{{.Tag}}')
-    #获取最新的镜像版本
     latest=$(echo "$images" | sort -V | tail -n1)
-    #遍历所有的镜像
     for image in $images
     do
-      #如果镜像不是最新的版本，就删除它
       if [ "$image" != "$latest" ];then
         docker rmi $image
       fi
     done
 }
 
+
+function PACKAGE() {
+while true; do
+    read -e -p "$(INFO '是否执行软件包安装? [y/n]: ')" choice_package
+    case "$choice_package" in
+        y|Y )
+            INSTALL_PACKAGE
+            break;;
+        n|N )
+            WARN "跳过软件包安装步骤。"
+            break;;
+        * )
+            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+    esac
+done
+}
+
+
+function INSTALL_WEB() {
+while true; do
+    read -e -p "$(INFO "是否安装WEB服务？[y/n]: ")" choice_service
+    if [[ "$choice_service" =~ ^[YyNn]$ ]]; then
+        if [[ "$choice_service" == "Y" || "$choice_service" == "y" ]]; then
+            while true; do
+                read -e -p "$(INFO "选择安装的WEB服务。安装Caddy可自动开启HTTPS [Nginx/Caddy]: ")" web_service
+                if [[ "$web_service" =~ ^(nginx|Nginx|caddy|Caddy)$ ]]; then
+                    if [[ "$web_service" == "nginx" || "$web_service" == "Nginx" ]]; then
+                        INSTALL_NGINX
+                        break
+                    elif [[ "$web_service" == "caddy" || "$web_service" == "Caddy" ]]; then
+                        INSTALL_CADDY
+                        break
+                    fi
+                else
+                    WARN "请输入'nginx' 或者 'caddy'"
+                fi
+            done
+            break
+        else
+            WARN "跳过WEB服务的安装。"
+            break
+        fi
+    else
+        INFO "请输入 'y' 表示是，或者 'n' 表示否。"
+    fi
+done
+}
 
 
 function PROMPT(){
@@ -688,7 +784,7 @@ INTERNAL_IP=$(echo "$ALL_IPS" | awk '$1!="127.0.0.1" && $1!="::1" && $1!="docker
 echo
 INFO "=================感谢您的耐心等待，安装已经完成=================="
 INFO
-INFO "请用浏览器访问UI面板: "
+INFO "请用浏览器访问 UI 面板: "
 INFO "公网访问地址: http://$PUBLIC_IP:50000"
 INFO "内网访问地址: http://$INTERNAL_IP:50000"
 INFO
@@ -718,35 +814,8 @@ case $user_choice in
         CHECK_PKG_MANAGER
         CHECKMEM
         CHECKFIRE
-        
-        while true; do
-            read -e -p "$(INFO '是否执行软件包安装? [y/n]: ')" choice_package
-            case "$choice_package" in
-                y|Y )
-                    INSTALL_PACKAGE
-                    break;;
-                n|N )
-                    WARN "跳过软件包安装步骤。"
-                    break;;
-                * )
-                    INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
-            esac
-        done
-
-        while true; do
-            read -e -p "$(INFO '选择安装的WEB服务。安装Caddy可自动开启HTTPS [Nginx/Caddy]: ')" web_service
-            case "$web_service" in
-                nginx|Nginx )
-                    INSTALL_NGINX
-                    break;;
-                caddy|Caddy )
-                    INSTALL_CADDY
-                    break;;
-                * )
-                    INFO "请输入'nginx' 或者 'caddy'";;
-            esac
-        done
-
+        PACKAGE
+        INSTALL_WEB
         INSTALL_DOCKER
         INSTALL_DOCKER_PROXY
         PROMPT
