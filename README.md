@@ -93,6 +93,31 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | k8s.gcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
 | quay.io     | quay.your_domain_name  | Quay Container Registry
 
+
+**6. 关于使用镜像加速拉取docker hub公共空间下的镜像时如何不添加library的方案**
+
+- 此方案来自交流群里大佬提供，通过nginx实现并实测
+```shell
+location ^~ / {
+    if ($request_uri ~  ^/v2/([^/]+)/(manifests|blobs)/(.*)$) {
+            # 重写路径并添加 library/
+            rewrite ^/v2/(.*)$ /v2/library/$1 break;
+    }
+
+    proxy_pass http://127.0.0.1:51000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header REMOTE-HOST $remote_addr;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_http_version 1.1;
+    add_header X-Cache $upstream_cache_status;
+}
+```
+
+
+
 > 详细教程：[自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
 
 ## 📚 展示
