@@ -44,6 +44,27 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 
 </details>
 
+#### Docker Compose 部署
+<details>
+<summary><strong>手动部署容器</strong></summary>
+<div>
+**1.** 下载[config](https://github.com/dqzboy/Docker-Proxy/tree/main/config)目录下对应的 yml 文件到你本地机器上
+
+**2.** 下载[docker-compose.yaml](https://github.com/dqzboy/Docker-Proxy/blob/main/docker-compose.yaml)文件到你本地机器上，并且与配置文件同级目录下
+
+**3.** 执行 `docker compose` 命令启动容器服务
+```shell
+docker compose up -d
+
+# 查看容器日志
+docker logs -f [容器ID或名称]
+```
+
+**4.** 如果你对Nginx或Caddy不熟悉,那么你可以使用你熟悉的服务进行代理。也可以直接通过IP+端口的方式访问
+
+</details>
+
+
 ## 🔨 功能
 - 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
 - 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry (ghcr.io)、Quay Container Registry (quay.io)和 Kubernetes Container Registry (k8s.gcr.io) 
