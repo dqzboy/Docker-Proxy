@@ -624,7 +624,7 @@ function DOWN_CONFIG() {
 
     read -e -p "$(INFO '输入序号下载对应配置文件,空格分隔多个选项. all下载所有: ')" choices_reg
 
-    if [[ "$choices_reg" == "all" ]]; then
+    if [[ "$choices_reg" == "6" ]]; then
         for file in "${files[@]}"; do
             file_name=$(echo "$file" | cut -d' ' -f1)
             file_url=$(echo "$file" | cut -d' ' -f2-)
@@ -632,8 +632,8 @@ function DOWN_CONFIG() {
             wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
         done
         selected_all=true
-    elif [[ "$choices_reg" == "exit" ]]; then
-        INFO "退出下载"
+    elif [[ "$choices_reg" == "7" ]]; then
+        WARN "退出下载配置! 首次安装如果没有配置无法启动服务,只能启动UI服务"
         return
     else
         for choice in ${choices_reg}; do
@@ -644,6 +644,7 @@ function DOWN_CONFIG() {
                 wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
             else
                 ERROR "无效的选择: $choice"
+                exit 1
             fi
         done
         selected_all=false
@@ -771,6 +772,69 @@ done
 }
 
 
+
+function UPDATE_SERVICE() {
+    services=(
+        "dockerhub"
+        "gcr"
+        "ghcr"
+        "quay"
+        "k8sgcr"
+    )
+
+    selected_services=()
+
+    WARN "更新服务请在docker compose文件存储目录下执行脚本.默认存储路径: ${PROXY_DIR}"
+    echo "-------------------------------------------------"
+    echo "1) docker hub"
+    echo "2) gcr"
+    echo "3) ghcr"
+    echo "4) quay"
+    echo "5) k8s-gcr"
+    echo "6) all"
+    echo "7) exit"
+    echo "-------------------------------------------------"
+
+    read -e -p "$(INFO '输入序号选择对应服务,空格分隔多个选项. all选择所有: ')" choices_service
+
+    if [[ "$choices_service" == "6" ]]; then
+        for choice in ${choices_service}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+                service_name="${services[$((choice -1))]}"
+                #检查服务是否正在运行
+                if docker compose ps --services | grep -q "^${service_name}$"; then
+                    selected_services+=("$service_name")
+                    echo "更新的服务: ${selected_services[*]}"
+                else
+                    WARN "服务 ${service_name}未运行，跳过更新。"
+                fi
+            else
+                ERROR "无效的选择: $choice"
+                exit 2
+            fi
+        done
+    elif [[ "$choices_service" == "7" ]]; then
+        WARN "退出更新服务!"
+        exit 1
+    else
+        for choice in ${choices_service}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+                service_name="${services[$((choice -1))]}"
+                #检查服务是否正在运行
+                if docker compose ps --services | grep -q "^${service_name}$"; then
+                    selected_services+=("$service_name")
+                else
+                    WARN "服务 ${service_name} 未运行，跳过更新。"
+                fi
+            else
+                ERROR "无效的选择: $choice"
+                exit 2
+            fi
+        done
+    fi
+}
+
+
 function PROMPT(){
 # 获取公网IP
 PUBLIC_IP=$(curl -s https://ifconfig.me)
@@ -827,8 +891,9 @@ case $user_choice in
         ;;
     3)
         INFO "======================= 更新服务 ======================="
-        docker compose pull
-        docker compose up -d --force-recreate
+        UPDATE_SERVICE
+        docker compose pull ${selected_services[*]}
+        docker compose up -d --force-recreate ${selected_services[*]}
         INFO "======================= 更新完成 ======================="
         ;;
     4)
@@ -849,6 +914,7 @@ case $user_choice in
                     docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
                     rm -rf ${PROXY_DIR} &>/dev/null
                     INFO "服务已经卸载,感谢你的使用!"
+                    INFO "========================================================"
                     break;;
                 n|N )
                     WARN "退出卸载服务."
