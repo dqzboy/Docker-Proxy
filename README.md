@@ -8,7 +8,7 @@
 
 ---
 
-[Telegram Group](https://t.me/+ghs_XDp1vwxkMGU9) 
+[Telegram Group](https://t.me/+ghs_XDp1vwxkMGU9) ｜ [QQ 交流频道](https://pd.qq.com/s/9q92s709c)
 <details>
 <summary>扫描下方二维码加入微信群</summary>
 <div align="center">
