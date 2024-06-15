@@ -93,7 +93,7 @@ docker logs -f [容器ID或名称]
 ## 替换
 docker pull hub.your_domain_name/library/nginx:latest
 
-# K8s Registry
+# Google Registry
 ## 源：gcr.io/google-containers/pause:3.1
 ## 替换：
 docker pull gcr.your_domain_name/google-containers/pause:3.1
