@@ -33,11 +33,11 @@
   
 | 镜像 | 平台 |
 |-------|---------------|
-| dqzboy/registry-docker-hub:latest   | docker hub
-| dqzboy/registry-gcr:latest      | Google Container Registry
-| dqzboy/registry-ghcr:latest     | GitHub Container Registry
-| dqzboy/registry-k8s-gcr:latest  | Kubernetes Container Registry
-| dqzboy/registry-quay:latest     | Quay Container Registry
+| dqzboy/hub:latest   | docker hub
+| dqzboy/gcr:latest      | Google Container Registry
+| dqzboy/ghcr:latest     | GitHub Container Registry
+| dqzboy/k8sgcr:latest  | Kubernetes Container Registry
+| dqzboy/quay:latest     | Quay Container Registry
 
 <table>
     <tr>
