@@ -180,10 +180,10 @@ INFO "======================= 安装依赖 ======================="
 # 每个软件包的安装超时时间（秒）
 TIMEOUT=300
 PACKAGES_APT=(
-    lsof jq wget tar mailutils
+    lsof jq wget
 )
 PACKAGES_YUM=(
-    epel-release lsof jq wget tar yum-utils
+    epel-release lsof jq wget yum-utils
 )
 
 if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
