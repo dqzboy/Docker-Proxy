@@ -30,6 +30,12 @@
     </tr>
 </table>
 
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/e5bb8e70-2bba-4b3f-a29f-fcf56ac2b82a?raw=true"></td>
+    </tr>
+</table>
+
 **3. 选择以docker容器的方式部署，输入下面任一镜像地址**
   
 | 镜像 | 平台 |
@@ -42,7 +48,13 @@
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Blog-Image/assets/42825450/620181c4-f6e8-4411-9045-d1429cf9da49?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/3f84c551-bef4-4e00-a3b4-b85e34a7eb7e?raw=true"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/907ba8da-9c1d-4cfb-9951-b843fabe47a9?raw=true"></td>
     </tr>
 </table>
 
@@ -64,7 +76,7 @@
 **6. 等待服务运行完成之后，使用分配的外网域名即可愉快的使用了**
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Blog-Image/assets/42825450/e597f257-9ca8-41c8-afa2-3f5e43100954?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/95793a23-5831-4565-9c23-03130b81e8be?raw=true"></td>
     </tr>
 </table>
 
@@ -84,10 +96,12 @@
 **2. 使用Render服务地址替换官方的 Registry 地址拉取镜像**
 ```shell
 # docker hub Registry
-## 源：nginx:latest
+## 源：redis:latest
 ## 替换
-docker pull your_render_url/library/nginx:latest
+docker pull your_render_url/library/redis:latest
 ```
+
+> **说明**：如果上面配置了docker的daemon.json，那么拉取镜像的时候就不需要在镜像前面加Render_URL了。【只针对Docker生效】
 
 **3. 拉取速度测试，效果还是可以的，主要是免费**
 ![image](https://github.com/dqzboy/Blog-Image/assets/42825450/06ad14d4-cb0f-4924-ab41-5c3f001261a2)
