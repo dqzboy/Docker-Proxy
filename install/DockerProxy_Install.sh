@@ -606,11 +606,11 @@ fi
 
 function DOWN_CONFIG() {
     files=(
-        "dockerhub ${GITRAW}/config/docker-hub.yml"
-        "gcr ${GITRAW}/config/gcr.yml"
-        "ghcr ${GITRAW}/config/ghcr.yml"
-        "quay ${GITRAW}/config/quay.yml"
-        "k8sgcr ${GITRAW}/config/k8s-ghcr.yml"
+        "dockerhub ${GITRAW}/config/registry-hub.yml"
+        "gcr ${GITRAW}/config/registry-gcr.yml"
+        "ghcr ${GITRAW}/config/registry-ghcr.yml"
+        "quay ${GITRAW}/config/registry-quay.yml"
+        "k8sgcr ${GITRAW}/config/registry-k8sgcr.yml"
     )
 
     selected_names=()
