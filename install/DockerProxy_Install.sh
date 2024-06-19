@@ -57,8 +57,6 @@ cd "${PROXY_DIR}"
 # 项目RAW地址
 GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
 
-# 部署的容器名称和镜像版本
-CONTAINER_NAME_LIST=("reg-docker-hub" "reg-ghcr" "reg-k8s-gcr")
 IMAGE_NAME="registry"
 UI_IMAGE_NAME="dqzboy/docker-registry-ui"
 DOCKER_COMPOSE_FILE="docker-compose.yaml"
