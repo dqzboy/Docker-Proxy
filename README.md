@@ -22,7 +22,11 @@
 ## 📝 准备工作
 ⚠️  **重要**：一台国外的服务器，并且未被墙。一个域名，无需国内备案，便宜的就行！一键部署时选择安装Caddy可自动实现HTTPS。如果部署的是Nginx服务，那么你需要申请一个免费的SSL证书或通过[Acme.sh自动生成和续订Lets Encrypt免费SSL证书](https://www.dqzboy.com/16437.html)还可以把域名托管到[Cloudflare 开启免费SSL证书](https://www.cloudflare.com/zh-cn/application-services/products/ssl/)
 
+
 > 如果没有域名，只有公网IP，那么你可以尝试通过 **[zerossl](https://zerossl.com)** 给IP申请SSL证书
+> 
+> 如果你只有一台服务器，不想搞域名也不想配置TLS，那么你可以配置Docker的配置文件daemon.json，指定insecure-registries配置你的镜像加速地址
+
 
 🚀 如果你身边没有上面提到的这些东西，那么你也可以部署到Render，详细操作查看下面教程
 
