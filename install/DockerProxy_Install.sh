@@ -234,9 +234,9 @@ elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
     $package_manager update &>/dev/null
     for package in "${PACKAGES_APT[@]}"; do
         if $pkg_manager -s "$package" &>/dev/null; then
-            INFO "$package 已安装，跳过..."
+            INFO "已经安装 $package ..."
         else
-            INFO "安装 $package ..."
+            INFO "正在安装 $package ..."
             $package_manager install -y $package > /dev/null 2>&1
             if [ $? -ne 0 ]; then
                 ERROR "安装 $package 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install $package"
