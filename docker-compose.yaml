@@ -57,7 +57,7 @@ services:
       - registry-net
 
  ## registry.k8s.io
-  k8sgcr:
+  k8s:
     container_name: reg-k8s
     image: registry:latest
     restart: always
