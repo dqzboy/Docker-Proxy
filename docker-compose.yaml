@@ -56,6 +56,20 @@ services:
     networks:
       - registry-net
 
+ ## registry.k8s.io
+  k8sgcr:
+    container_name: reg-k8s
+    image: registry:latest
+    restart: always
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./registry-k8s.yml:/etc/docker/registry/config.yml
+      #- ./auth:/auth
+    ports:
+      - 55000:5000
+    networks:
+      - registry-net
+  
   ## quay.io
   quay:
     container_name: reg-quay
@@ -66,9 +80,10 @@ services:
       - ./registry-quay.yml:/etc/docker/registry/config.yml
       #- ./auth:/auth
     ports:
-      - 55000:5000
+      - 56000:5000
     networks:
       - registry-net
+
 
   ## UI
   registry-ui:

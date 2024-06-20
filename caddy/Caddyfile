@@ -46,8 +46,17 @@ k8s-gcr.your_domain_name {
     }
 }
 
-quay.your_domain_name {
+k8s.your_domain_name {
     reverse_proxy localhost:55000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_addr}
+        header_up X-Forwarded-For {remote_addr}
+        header_up X-Nginx-Proxy true
+    }
+}
+
+quay.your_domain_name {
+    reverse_proxy localhost:56000 {
         header_up Host {host}
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}

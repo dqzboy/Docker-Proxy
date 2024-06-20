@@ -609,6 +609,7 @@ function DOWN_CONFIG() {
         "ghcr ${GITRAW}/config/registry-ghcr.yml"
         "quay ${GITRAW}/config/registry-quay.yml"
         "k8sgcr ${GITRAW}/config/registry-k8sgcr.yml"
+        "k8s ${GITRAW}/config/registry-k8s.yml"
     )
 
     selected_names=()
@@ -619,13 +620,14 @@ function DOWN_CONFIG() {
     echo "3) ghcr"
     echo "4) quay"
     echo "5) k8s-gcr"
-    echo "6) all"
-    echo "7) exit"
+    echo "6) k8s"
+    echo "7) all"
+    echo "8) exit"
     echo "-------------------------------------------------"
 
     read -e -p "$(INFO '输入序号下载对应配置文件,空格分隔多个选项. all下载所有: ')" choices_reg
 
-    if [[ "$choices_reg" == "6" ]]; then
+    if [[ "$choices_reg" == "7" ]]; then
         for file in "${files[@]}"; do
             file_name=$(echo "$file" | cut -d' ' -f1)
             file_url=$(echo "$file" | cut -d' ' -f2-)
@@ -633,7 +635,7 @@ function DOWN_CONFIG() {
             wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
         done
         selected_all=true
-    elif [[ "$choices_reg" == "7" ]]; then
+    elif [[ "$choices_reg" == "8" ]]; then
         WARN "退出下载配置! 首次安装如果没有配置无法启动服务,只能启动UI服务"
         return
     else
@@ -671,11 +673,7 @@ function RESTART_CONTAINER() {
 function INSTALL_DOCKER_PROXY() {
 INFO "======================= 开始安装 ======================="
 wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
-
-# config
 DOWN_CONFIG
-
-# 安装服务
 START_CONTAINER
 }
 
@@ -781,6 +779,7 @@ function UPDATE_SERVICE() {
         "ghcr"
         "quay"
         "k8sgcr"
+        "k8s"
     )
 
     selected_services=()
@@ -792,13 +791,14 @@ function UPDATE_SERVICE() {
     echo "3) ghcr"
     echo "4) quay"
     echo "5) k8s-gcr"
-    echo "6) all"
-    echo "7) exit"
+    echo "6) k8s"
+    echo "7) all"
+    echo "8) exit"
     echo "-------------------------------------------------"
 
     read -e -p "$(INFO '输入序号选择对应服务,空格分隔多个选项. all选择所有: ')" choices_service
 
-    if [[ "$choices_service" == "6" ]]; then
+    if [[ "$choices_service" == "7" ]]; then
         for choice in ${choices_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
@@ -814,7 +814,7 @@ function UPDATE_SERVICE() {
                 exit 2
             fi
         done
-    elif [[ "$choices_service" == "7" ]]; then
+    elif [[ "$choices_service" == "8" ]]; then
         WARN "退出更新服务!"
         exit 1
     else
