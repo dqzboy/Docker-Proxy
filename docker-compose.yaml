@@ -7,7 +7,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-hub.yml:/etc/docker/registry/config.yml
-      #- ./auth:/auth
+      #- ./htpasswd:/auth/htpasswd
     ports:
       - 51000:5000
     networks:
@@ -22,7 +22,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-ghcr.yml:/etc/docker/registry/config.yml
-      #- ./auth:/auth
+      #- ./htpasswd:/auth/htpasswd
     ports:
       - 52000:5000
     networks:
@@ -36,7 +36,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-gcr.yml:/etc/docker/registry/config.yml
-      #- ./auth:/auth
+      #- ./htpasswd:/auth/htpasswd
     ports:
       - 53000:5000
     networks:
@@ -50,7 +50,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-k8sgcr.yml:/etc/docker/registry/config.yml
-      #- ./auth:/auth
+      #- ./htpasswd:/auth/htpasswd
     ports:
       - 54000:5000
     networks:
@@ -64,7 +64,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-k8s.yml:/etc/docker/registry/config.yml
-      #- ./auth:/auth
+      #- ./htpasswd:/auth/htpasswd
     ports:
       - 55000:5000
     networks:
@@ -78,7 +78,7 @@ services:
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-quay.yml:/etc/docker/registry/config.yml
-      #- ./auth:/auth
+      #- ./htpasswd:/auth/htpasswd
     ports:
       - 56000:5000
     networks:
