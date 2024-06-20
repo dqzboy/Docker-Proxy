@@ -181,10 +181,10 @@ INFO "======================= 安装依赖 ======================="
 # 每个软件包的安装超时时间（秒）
 TIMEOUT=300
 PACKAGES_APT=(
-    lsof jq wget
+    lsof jq wget apache2-utils
 )
 PACKAGES_YUM=(
-    epel-release lsof jq wget yum-utils
+    epel-release lsof jq wget yum-utils httpd-tools
 )
 
 if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
@@ -602,6 +602,23 @@ else
 fi
 }
 
+
+function append_auth_config() {
+local file=$1
+local auth_config="\
+
+auth:
+  htpasswd:
+    realm: basic-realm
+    path: /auth/htpasswd"
+
+    echo -e "$auth_config" | sudo tee -a "$file" > /dev/null
+
+
+sed -ri "s@#- ./htpasswd:/auth/htpasswd@- ./htpasswd:/auth/htpasswd@g" ${PROXY_DIR}/docker-compose.yaml &>/dev/null
+}
+
+
 function DOWN_CONFIG() {
     files=(
         "dockerhub ${GITRAW}/config/registry-hub.yml"
@@ -631,6 +648,7 @@ function DOWN_CONFIG() {
         for file in "${files[@]}"; do
             file_name=$(echo "$file" | cut -d' ' -f1)
             file_url=$(echo "$file" | cut -d' ' -f2-)
+            yml_name=$(basename "$file_url")
             selected_names+=("$file_name")
             wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
         done
@@ -643,6 +661,7 @@ function DOWN_CONFIG() {
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
                 file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
                 file_url=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2-)
+                yml_name=$(basename "$file_url")
                 selected_names+=("$file_name")
                 wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
             else
@@ -651,6 +670,34 @@ function DOWN_CONFIG() {
             fi
         done
         selected_all=false
+    fi
+
+
+    read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
+    if [[ "$config_auth" == "y" ]]; then
+        while true; do
+            read -e -p "$(echo -e ${INFO} ${GREEN}"请输入账号名称: "${RESET})" username
+            if [[ -z "$username" ]]; then
+                ERROR "用户名不能为空。请重新输入"
+            else
+                break
+            fi
+        done
+
+        while true; do
+            read -e -p "$(echo -e ${INFO} ${GREEN}"请输入账号密码: "${RESET})" password
+            if [[ -z "$password" ]]; then
+                ERROR "密码不能为空。请重新输入"
+            else
+                break
+            fi
+        done
+
+        htpasswd -Bbn "$username" "$password" > ${PROXY_DIR}/htpasswd
+
+        for file_name in "${selected_names[@]}"; do
+            append_auth_config "${PROXY_DIR}/${yml_name}"
+        done
     fi
 }
 

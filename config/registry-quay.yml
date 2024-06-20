@@ -28,10 +28,7 @@ http:
     Access-Control-Max-Age: [1728000]
     Access-Control-Allow-Credentials: [true]
     Access-Control-Expose-Headers: ['Docker-Content-Digest']
-#auth:
-#  htpasswd:
-#    realm: basic-realm
-#    path: /auth/htpasswd
+
 health:
   storagedriver:
     enabled: true
