@@ -372,7 +372,8 @@ fi
 
 INFO "====================== 配置Caddy ======================"
 while true; do
-    read -e -p "$(WARN '是否配置Caddy,实现自动HTTPS? 执行前必须提前在DNS服务商解析A记录ui、hub、gcr、ghcr、k8s-gcr、quay[y/n]: ')" caddy_conf
+    INFO ">>> 域名解析主机记录(即域名前缀)：ui、hub、gcr、ghcr、k8s-gcr、k8s、quay <<<"
+    read -e -p "$(WARN '是否配置Caddy,实现自动HTTPS? 执行前需提前在DNS服务商选择部署的服务进行解析主机记录[y/n]: ')" caddy_conf
     case "$caddy_conf" in
         y|Y )
             read -e -p "$(INFO '请输入你的域名[例: baidu.com],不可为空: ')" caddy_domain
@@ -384,7 +385,7 @@ while true; do
             for ((i=1; i<=$start_attempts; i++)); do
                 start_caddy
                 if pgrep "caddy" > /dev/null; then
-                    INFO "重新载入配置成功.Caddy启动完成,现在你可以将不需要的A记录从DNS解析中删除了"
+                    INFO "重新载入配置成功. Caddy服务启动完成"
                     break
                 else
                     if [ $i -eq $start_attempts ]; then
@@ -515,7 +516,7 @@ if [ "$repo_type" = "centos" ] || [ "$repo_type" = "rhel" ]; then
     if ! command -v docker &> /dev/null;then
       while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
         attempt=$((attempt + 1))
-        WARN "docker 未安装，正在进行安装..."
+        WARN "Docker 未安装，正在进行安装..."
         yum-config-manager --add-repo $url/$repo_file &>/dev/null
         $package_manager -y install docker-ce &>/dev/null
         # 检查命令的返回值
@@ -523,26 +524,26 @@ if [ "$repo_type" = "centos" ] || [ "$repo_type" = "rhel" ]; then
             success=true
             break
         fi
-        ERROR "docker安装失败，正在尝试重新下载 (尝试次数: $attempt)"
+        ERROR "Docker 安装失败，正在尝试重新下载 (尝试次数: $attempt)"
       done
 
       if $success; then
-         INFO "docker 安装版本为：$(docker --version)"
+         INFO "Docker 安装成功，版本为：$(docker --version)"
          systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
          systemctl enable docker &>/dev/null
       else
-         ERROR "docker安装失败，请尝试手动安装"
+         ERROR "Docker 安装失败，请尝试手动安装"
          exit 1
       fi
     else
-      INFO "docker 已安装，安装版本为：$(docker --version)"
+      INFO "Docker 已安装，安装版本为：$(docker --version)"
       systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
     fi
 elif [ "$repo_type" == "ubuntu" ]; then
     if ! command -v docker &> /dev/null;then
       while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
         attempt=$((attempt + 1))
-        WARN "docker 未安装，正在进行安装..."
+        WARN "Docker 未安装，正在进行安装..."
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
@@ -551,19 +552,19 @@ elif [ "$repo_type" == "ubuntu" ]; then
             success=true
             break
         fi
-        ERROR "docker 安装失败，正在尝试重新下载 (尝试次数: $attempt)"
+        ERROR "Docker 安装失败，正在尝试重新下载 (尝试次数: $attempt)"
       done
 
       if $success; then
-         INFO "docker 安装版本为：$(docker --version)"
+         INFO "Docker 安装成功，版本为：$(docker --version)"
          systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
          systemctl enable docker &>/dev/null
       else
-         ERROR "docker 安装失败，请尝试手动安装"
+         ERROR "Docker 安装失败，请尝试手动安装"
          exit 1
       fi
     else
-      INFO "docker 已安装，安装版本为：$(docker --version)"
+      INFO "Docker 已安装，安装版本为：$(docker --version)"
       systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
     fi
 elif [ "$repo_type" == "debian" ]; then
@@ -571,7 +572,7 @@ elif [ "$repo_type" == "debian" ]; then
       while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
         attempt=$((attempt + 1))
 
-        WARN "docker 未安装，正在进行安装..."
+        WARN "Docker 未安装，正在进行安装..."
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
@@ -580,19 +581,19 @@ elif [ "$repo_type" == "debian" ]; then
             success=true
             break
         fi
-        ERROR "docker 安装失败，正在尝试重新下载 (尝试次数: $attempt)"
+        ERROR "Docker 安装失败，正在尝试重新下载 (尝试次数: $attempt)"
       done
 
       if $success; then
-         INFO "docker 安装版本为：$(docker --version)"
+         INFO "Docker 安装成功，版本为：$(docker --version)"
          systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
          systemctl enable docker &>/dev/null
       else
-         ERROR "docker 安装失败，请尝试手动安装"
+         ERROR "Docker 安装失败，请尝试手动安装"
          exit 1
       fi
     else
-      INFO "docker 已安装，安装版本为：$(docker --version)"
+      INFO "Docker 已安装，安装版本为：$(docker --version)"
       systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
     fi
 else
@@ -600,7 +601,6 @@ else
     exit 1
 fi
 }
-
 
 function DOWN_CONFIG() {
     files=(
@@ -614,16 +614,16 @@ function DOWN_CONFIG() {
 
     selected_names=()
 
-    echo "-------------------------------------------------"
-    echo "1) docker hub"
-    echo "2) gcr"
-    echo "3) ghcr"
-    echo "4) quay"
-    echo "5) k8s-gcr"
-    echo "6) k8s"
-    echo "7) all"
-    echo "8) exit"
-    echo "-------------------------------------------------"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1) ${RESET}docker hub"
+    echo -e "${GREEN}2) ${RESET}gcr"
+    echo -e "${GREEN}3) ${RESET}ghcr"
+    echo -e "${GREEN}4) ${RESET}quay"
+    echo -e "${GREEN}5) ${RESET}k8s-gcr"
+    echo -e "${GREEN}6) ${RESET}k8s"
+    echo -e "${GREEN}7) ${RESET}all"
+    echo -e "${GREEN}8) ${RESET}exit"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO '输入序号下载对应配置文件,空格分隔多个选项. all下载所有: ')" choices_reg
 
@@ -688,10 +688,6 @@ function STOP_REMOVE_CONTAINER() {
     fi
 }
 
-
-
-
-# 更新配置
 function UPDATE_CONFIG() {
 while true; do
     read -e -p "$(WARN '是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? [y/n]: ')" update_conf
@@ -785,35 +781,29 @@ function UPDATE_SERVICE() {
     selected_services=()
 
     WARN "更新服务请在docker compose文件存储目录下执行脚本.默认存储路径: ${PROXY_DIR}"
-    echo "-------------------------------------------------"
-    echo "1) docker hub"
-    echo "2) gcr"
-    echo "3) ghcr"
-    echo "4) quay"
-    echo "5) k8s-gcr"
-    echo "6) k8s"
-    echo "7) all"
-    echo "8) exit"
-    echo "-------------------------------------------------"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1) ${RESET}docker hub"
+    echo -e "${GREEN}2) ${RESET}gcr"
+    echo -e "${GREEN}3) ${RESET}ghcr"
+    echo -e "${GREEN}4) ${RESET}quay"
+    echo -e "${GREEN}5) ${RESET}k8s-gcr"
+    echo -e "${GREEN}6) ${RESET}k8s"
+    echo -e "${GREEN}7) ${RESET}all"
+    echo -e "${GREEN}8) ${RESET}exit"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO '输入序号选择对应服务,空格分隔多个选项. all选择所有: ')" choices_service
 
     if [[ "$choices_service" == "7" ]]; then
-        for choice in ${choices_service}; do
-            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
-                service_name="${services[$((choice -1))]}"
-                #检查服务是否正在运行
-                if docker compose ps --services | grep -q "^${service_name}$"; then
-                    selected_services+=("$service_name")
-                    echo "更新的服务: ${selected_services[*]}"
-                else
-                    WARN "服务 ${service_name}未运行，跳过更新。"
-                fi
+        for service_name in "${services[@]}"; do
+            #检查服务是否正在运行
+            if docker compose ps --services | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")               
             else
-                ERROR "无效的选择: $choice"
-                exit 2
+                WARN "服务 ${service_name}未运行，跳过更新。"
             fi
         done
+        INFO "更新的服务: ${selected_services[*]}"
     elif [[ "$choices_service" == "8" ]]; then
         WARN "退出更新服务!"
         exit 1
@@ -824,12 +814,14 @@ function UPDATE_SERVICE() {
                 #检查服务是否正在运行
                 if docker compose ps --services | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
+                    INFO "更新的服务: ${selected_services[*]}"
                 else
                     WARN "服务 ${service_name} 未运行，跳过更新。"
+                    
                 fi
             else
                 ERROR "无效的选择: $choice"
-                exit 2
+                exit 3
             fi
         done
     fi
@@ -893,8 +885,12 @@ case $user_choice in
     3)
         INFO "======================= 更新服务 ======================="
         UPDATE_SERVICE
-        docker compose pull ${selected_services[*]}
-        docker compose up -d --force-recreate ${selected_services[*]}
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "没有需要更新的服务。"
+        else
+            docker compose pull ${selected_services[*]}
+            docker compose up -d --force-recreate ${selected_services[*]}
+        fi
         INFO "======================= 更新完成 ======================="
         ;;
     4)
