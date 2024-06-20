@@ -44,6 +44,7 @@
 | dqzboy/gcr:latest      | Google Container Registry
 | dqzboy/ghcr:latest     | GitHub Container Registry
 | dqzboy/k8sgcr:latest  | Kubernetes Container Registry
+| dqzboy/k8sreg:latest      | Kubernetes's container image registry
 | dqzboy/quay:latest     | Quay Container Registry
 
 <table>

@@ -119,6 +119,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | gcr.io      | gcr.your_domain_name   |  Google Container Registry
 | ghcr.io     | ghcr.your_domain_name  |  GitHub Container Registry
 | k8s.gcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
+| registry.k8s.io     | k8s.your_domain_name  | Kubernetes's container image registry
 | quay.io     | quay.your_domain_name  | Quay Container Registry
 
 
