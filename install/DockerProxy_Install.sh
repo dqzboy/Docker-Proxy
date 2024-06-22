@@ -745,9 +745,9 @@ case $modify_config in
       read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
     done
 
-    sed -i "s@#- proxy=http://host:port@- proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yml
-    sed -i 's/#- http=$proxy/- http_proxy=$proxy/g' ${PROXY_DIR}/docker-compose.yml
-    sed -i 's/#- https=$proxy/- https_proxy=$proxy/g' ${PROXY_DIR}/docker-compose.yml
+    sed -i "s@#- proxy=http://host:port@- proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
+    sed -i 's/#- http=$proxy/- http_proxy=$proxy/g' ${PROXY_DIR}/docker-compose.yaml
+    sed -i 's/#- https=$proxy/- https_proxy=$proxy/g' ${PROXY_DIR}/docker-compose.yaml
 
     INFO "你配置代理地址为: http://${url}."
     ;;
