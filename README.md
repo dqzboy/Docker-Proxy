@@ -92,7 +92,7 @@ docker logs -f [容器ID或名称]
 - 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
 - 提供了重启服务、更新服务、更新配置和卸载服务的功能，方便用户进行日常管理和维护
 - 支持用户在部署时选择是否提供身份验证
-- 支持配置代理(HTTP_PROXY)，仅支持http和https
+- 支持配置代理(HTTP_PROXY)，仅支持http
 - 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
 - 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
 
