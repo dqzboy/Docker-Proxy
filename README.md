@@ -110,7 +110,12 @@ docker logs -f [容器ID或名称]
     }
 }
 ```
-**4. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像**
+
+> **说明：** 配置了daemon.json之后，现在拉取镜像无需指定你的加速地址，直接执行docker pull 拉取你需要的镜像即可。下面的步骤是你在没有配置daemon.json的时候，拉取镜像需要加上你的加速地址才可以正常拉取。
+
+---
+
+**1. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像**
 ```shell
 # docker hub Registry
 ## 源：nginx:latest
@@ -123,7 +128,7 @@ docker pull hub.your_domain_name/library/nginx:latest
 docker pull gcr.your_domain_name/google-containers/pause:3.1
 ```
 
-**5. 前缀替换的 Registry 的参考**
+**2. 前缀替换的 Registry 的参考**
 
 | 源站 | 替换为 | 平台 |
 |-------|---------------|----------|
@@ -134,8 +139,9 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | registry.k8s.io     | k8s.your_domain_name  | Kubernetes's container image registry
 | quay.io     | quay.your_domain_name  | Quay Container Registry
 
+---
 
-**6. 关于使用镜像加速拉取docker hub公共空间下的镜像时如何不添加library的方案**
+**关于使用镜像加速拉取docker hub公共空间下的镜像时如何不添加library的方案**
 
 - 此方案来自交流群里大佬提供，通过nginx实现并实测
 ```shell
