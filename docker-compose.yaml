@@ -4,6 +4,10 @@ services:
     container_name: reg-docker-hub
     image: registry:latest
     restart: always
+    environment:
+      #- proxy=http://host:port
+      #- http=$proxy
+      #- https=$proxy
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-hub.yml:/etc/docker/registry/config.yml
@@ -19,6 +23,10 @@ services:
     container_name: reg-ghcr
     image: registry:latest
     restart: always
+    environment:
+      #- proxy=http://host:port
+      #- http=$proxy
+      #- https=$proxy
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-ghcr.yml:/etc/docker/registry/config.yml
@@ -33,6 +41,10 @@ services:
     container_name: reg-gcr
     image: registry:latest
     restart: always
+    environment:
+      #- proxy=http://host:port
+      #- http=$proxy
+      #- https=$proxy
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-gcr.yml:/etc/docker/registry/config.yml
@@ -47,6 +59,10 @@ services:
     container_name: reg-k8s-gcr
     image: registry:latest
     restart: always
+    environment:
+      #- proxy=http://host:port
+      #- http=$proxy
+      #- https=$proxy
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-k8sgcr.yml:/etc/docker/registry/config.yml
@@ -61,6 +77,10 @@ services:
     container_name: reg-k8s
     image: registry:latest
     restart: always
+    environment:
+      #- proxy=http://host:port
+      #- http=$proxy
+      #- https=$proxy
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-k8s.yml:/etc/docker/registry/config.yml
@@ -75,6 +95,10 @@ services:
     container_name: reg-quay
     image: registry:latest
     restart: always
+    environment:
+      #- proxy=http://host:port
+      #- http=$proxy
+      #- https=$proxy
     volumes:
       - ./registry/data:/var/lib/registry
       - ./registry-quay.yml:/etc/docker/registry/config.yml

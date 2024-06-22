@@ -734,10 +734,38 @@ function RESTART_CONTAINER() {
     fi
 }
 
+
+function PROXY_HTTP() {
+read -e -p "$(INFO "是否添加代理? [y/n]: ")" modify_config
+case $modify_config in
+  [Yy]* )
+    read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+    while [[ -z "$url" ]]; do
+      WARN "代理地址不能为空，请重新输入。"
+      read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+    done
+
+    sed -i "s@#- proxy=http://host:port@- proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yml
+    sed -i 's/#- http=$proxy/- http_proxy=$proxy/g' ${PROXY_DIR}/docker-compose.yml
+    sed -i 's/#- https=$proxy/- https_proxy=$proxy/g' ${PROXY_DIR}/docker-compose.yml
+
+    INFO "你配置代理地址为: http://${url}."
+    ;;
+  [Nn]* )
+    WARN "Skipping configuration modification."
+    ;;
+  * )
+    ERROR "无效的输入。跳过配置修改"
+    ;;
+esac
+}
+
+
 function INSTALL_DOCKER_PROXY() {
 INFO "======================= 开始安装 ======================="
 wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 DOWN_CONFIG
+PROXY_HTTP
 START_CONTAINER
 }
 
