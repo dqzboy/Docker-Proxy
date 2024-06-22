@@ -604,8 +604,8 @@ fi
 
 
 function append_auth_config() {
-local file=$1
-local auth_config="\
+    local file=$1
+    local auth_config="
 
 auth:
   htpasswd:
@@ -614,22 +614,27 @@ auth:
 
     echo -e "$auth_config" | sudo tee -a "$file" > /dev/null
 
-
-sed -ri "s@#- ./htpasswd:/auth/htpasswd@- ./htpasswd:/auth/htpasswd@g" ${PROXY_DIR}/docker-compose.yaml &>/dev/null
+    sed -ri "s@#- ./htpasswd:/auth/htpasswd@- ./htpasswd:/auth/htpasswd@g" ${PROXY_DIR}/docker-compose.yaml &>/dev/null
 }
 
+function update_docker_registry_url() {
+    local container_name=$1
+    sed -ri "s@- DOCKER_REGISTRY_URL=http://reg-docker-hub:5000@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/docker-compose.yaml
+}
 
 function DOWN_CONFIG() {
     files=(
-        "dockerhub ${GITRAW}/config/registry-hub.yml"
-        "gcr ${GITRAW}/config/registry-gcr.yml"
-        "ghcr ${GITRAW}/config/registry-ghcr.yml"
-        "quay ${GITRAW}/config/registry-quay.yml"
-        "k8sgcr ${GITRAW}/config/registry-k8sgcr.yml"
-        "k8s ${GITRAW}/config/registry-k8s.yml"
+        "dockerhub reg-docker-hub ${GITRAW}/config/registry-hub.yml"
+        "gcr reg-gcr ${GITRAW}/config/registry-gcr.yml"
+        "ghcr reg-ghcr ${GITRAW}/config/registry-ghcr.yml"
+        "quay reg-quay ${GITRAW}/config/registry-quay.yml"
+        "k8sgcr reg-k8s-gcr ${GITRAW}/config/registry-k8sgcr.yml"
+        "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
     )
 
     selected_names=()
+    selected_files=()
+    selected_containers=()
 
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
     echo -e "${GREEN}1) ${RESET}docker hub"
@@ -647,9 +652,11 @@ function DOWN_CONFIG() {
     if [[ "$choices_reg" == "7" ]]; then
         for file in "${files[@]}"; do
             file_name=$(echo "$file" | cut -d' ' -f1)
-            file_url=$(echo "$file" | cut -d' ' -f2-)
-            yml_name=$(basename "$file_url")
+            container_name=$(echo "$file" | cut -d' ' -f2)
+            file_url=$(echo "$file" | cut -d' ' -f3-)
             selected_names+=("$file_name")
+            selected_containers+=("$container_name")
+            selected_files+=("$file_url")
             wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
         done
         selected_all=true
@@ -660,18 +667,26 @@ function DOWN_CONFIG() {
         for choice in ${choices_reg}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
                 file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
-                file_url=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2-)
-                yml_name=$(basename "$file_url")
+                container_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
+                file_url=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f3-)
                 selected_names+=("$file_name")
+                selected_containers+=("$container_name")
+                selected_files+=("$file_url")
                 wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
             else
                 ERROR "无效的选择: $choice"
                 exit 1
             fi
         done
-        selected_all=false
-    fi
 
+        selected_all=false
+
+
+        if [[ "$user_choice" != "4" ]]; then
+            first_selected_container=${selected_containers[0]}
+            update_docker_registry_url "$first_selected_container"
+        fi
+    fi
 
     read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
     if [[ "$config_auth" == "y" ]]; then
@@ -695,11 +710,13 @@ function DOWN_CONFIG() {
 
         htpasswd -Bbn "$username" "$password" > ${PROXY_DIR}/htpasswd
 
-        for file_name in "${selected_names[@]}"; do
+        for file_url in "${selected_files[@]}"; do
+            yml_name=$(basename "$file_url")
             append_auth_config "${PROXY_DIR}/${yml_name}"
         done
     fi
 }
+
 
 function START_CONTAINER() {
     if [ "$selected_all" = true ]; then
@@ -735,6 +752,7 @@ function STOP_REMOVE_CONTAINER() {
     fi
 }
 
+
 function UPDATE_CONFIG() {
 while true; do
     read -e -p "$(WARN '是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? [y/n]: ')" update_conf
@@ -750,7 +768,6 @@ while true; do
             INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
     esac
 done
-
 }
 
 function REMOVE_NONE_TAG() {
