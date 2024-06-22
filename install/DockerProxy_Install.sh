@@ -736,7 +736,7 @@ function RESTART_CONTAINER() {
 
 
 function PROXY_HTTP() {
-read -e -p "$(INFO "是否添加代理? [y/n]: ")" modify_config
+read -e -p "$(echo -e ${INFO} ${GREEN}"是否添加代理? (y/n): "${RESET})" modify_config
 case $modify_config in
   [Yy]* )
     read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
