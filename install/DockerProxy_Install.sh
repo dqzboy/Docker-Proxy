@@ -744,7 +744,7 @@ case $modify_config in
       WARN "代理地址不能为空，请重新输入。"
       read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
     done
-
+    sed -i "s@#environment:@environment:@g" ${PROXY_DIR}/docker-compose.yaml
     sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
     sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
 

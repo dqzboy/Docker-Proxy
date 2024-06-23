@@ -4,7 +4,7 @@ services:
     container_name: reg-docker-hub
     image: registry:latest
     restart: always
-    environment:
+    #environment:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -22,7 +22,7 @@ services:
     container_name: reg-ghcr
     image: registry:latest
     restart: always
-    environment:
+    #environment:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -39,7 +39,7 @@ services:
     container_name: reg-gcr
     image: registry:latest
     restart: always
-    environment:
+    #environment:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -56,7 +56,7 @@ services:
     container_name: reg-k8s-gcr
     image: registry:latest
     restart: always
-    environment:
+    #environment:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -73,7 +73,7 @@ services:
     container_name: reg-k8s
     image: registry:latest
     restart: always
-    environment:
+    #environment:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -90,7 +90,7 @@ services:
     container_name: reg-quay
     image: registry:latest
     restart: always
-    environment:
+    #environment:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -107,7 +107,7 @@ services:
   registry-ui:
     container_name: registry-ui
     image: dqzboy/docker-registry-ui:latest
-    environment:
+    #environment:
       - DOCKER_REGISTRY_URL=http://reg-docker-hub:5000
       # [必须]使用 openssl rand -hex 16 生成唯一值
       - SECRET_KEY_BASE=9f18244a1e1179fa5aa4a06a335d01b2
