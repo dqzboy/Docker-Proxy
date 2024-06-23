@@ -176,6 +176,77 @@ if [[ "$repo_type" == "centos" || "$repo_type" == "rhel" ]]; then
 fi
 }
 
+
+function CHECKBBR() {
+kernel_version=$(uname -r | awk -F "-" '{print $1}')
+
+read -e -p "$(WARN '是否开启BBR,优化网络带宽提高网络性能？ [y/n]: ')" choice_bbr
+case $choice_bbr in
+    y | Y)
+        version_compare=$(echo "${kernel_version} 4.9" | awk '{if ($1 >= $2) print "yes"; else print "no"}')
+        if [ "$version_compare" != "yes" ]; then
+            WARN "你的内核版本小于4.9，无法启动BBR，需要你手动升级内核"
+            exit 0
+        fi
+        sysctl net.ipv4.tcp_available_congestion_control | grep -q "bbr"
+        if [ $? -eq 0 ]; then
+            INFO "你的服务器已经启动BBR"
+        else
+            INFO "开启BBR中..."
+
+            modprobe tcp_bbr
+            if [ $? -eq 0 ]; then
+                INFO "BBR模块添加成功."
+            else 
+                ERROR "BBR模块添加失败，请执行 sysctl -p 检查."
+                exit 1
+            fi
+
+            if [ ! -d /etc/modules-load.d/ ]; then
+                mkdir -p /etc/modules-load.d/
+            fi
+
+            if [ ! -f /etc/modules-load.d/tcp_bbr.conf ]; then
+                touch /etc/modules-load.d/tcp_bbr.conf
+            fi
+
+            if ! grep -q "tcp_bbr" /etc/modules-load.d/tcp_bbr.conf ; then
+                echo 'tcp_bbr' >> /etc/modules-load.d/tcp_bbr.conf
+            fi
+
+            for setting in "net.core.default_qdisc=fq" "net.ipv4.tcp_congestion_control=bbr"; do
+                if ! grep -q "$setting" /etc/sysctl.conf; then
+                    echo "$setting" >> /etc/sysctl.conf
+                fi
+            done       
+
+            sysctl -p &> /dev/null
+            if [ $? -ne 0 ]; then
+                ERROR "应用sysctl设置过程中发生了一个错误，请执行 sysctl -p 检查."
+                exit 2
+            fi
+
+            lsmod | grep tcp_bbr
+            if [ $? -eq 0 ]; then
+                INFO "BBR已经成功开启。"
+            else
+                ERROR "BBR开启失败，请执行 sysctl -p 检查."
+                exit 3
+            fi
+
+            WARN "如果BBR开启后未生效，请执行 reboot 重启服务器使其BBR模块生效"
+        fi
+    ;;
+    n | N)
+        INFO "不开启BBR"
+    ;;
+    *)
+        ERROR "输入错误！请输入 y 或 n"
+    ;;
+esac
+}
+
+
 function INSTALL_PACKAGE(){
 INFO "======================= 安装依赖 ======================="
 # 每个软件包的安装超时时间（秒）
@@ -962,6 +1033,7 @@ case $user_choice in
         CHECK_PKG_MANAGER
         CHECKMEM
         CHECKFIRE
+        CHECKBBR
         PACKAGE
         INSTALL_WEB
         INSTALL_DOCKER
