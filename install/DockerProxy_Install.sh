@@ -751,7 +751,7 @@ case $modify_config in
     INFO "你配置代理地址为: http://${url}."
     ;;
   [Nn]* )
-    WARN "Skipping configuration modification."
+    WARN "跳过代理配置"
     ;;
   * )
     ERROR "无效的输入。跳过配置修改"
