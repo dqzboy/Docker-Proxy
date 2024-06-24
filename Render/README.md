@@ -38,7 +38,7 @@
 
 **3. 选择以docker容器的方式部署，输入下面任一镜像地址**
 
-> **⚠️ 特别说明：目前作者账号已被Render特殊对待了,建议大家把下面的镜像下载到自己本地，然后上传到自己的Docker hub仓库。下面的镜像地址也会随时被Render限制使用**
+> **⚠️ 特别说明：目前作者账号已被Render特殊对待了,建议大家把下面的镜像下载到自己本地，然后上传到自己的Docker hub仓库。下面的镜像地址也会随时被Render限制使用(具体操作可以看下面教程)**
 
 | 镜像 | 平台 |
 |-------|---------------|
@@ -103,6 +103,43 @@
 ## 替换
 docker pull your_render_url/library/redis:latest
 ```
+
+---
+
+## ✨ 将镜像上传到自己的Docker Hub仓库
+#### 步骤 1: 登录到 Docker Hub
+- 打开终端输入以下命令并按提示输入你的 Docker Hub 用户名和密码：
+
+```shell
+docker login
+```
+
+#### 步骤 2: 拉取镜像
+- 使用 docker pull 命令拉取上面的镜像，这里以 dockerdqz/mirror-hub:latest 举例：
+
+```shell
+docker pull dockerdqz/mirror-hub:latest
+```
+
+####  步骤 3: 标记镜像
+- 给拉下来的镜像打一个新标签，使其指向你的 Docker Hub 用户名。
+- 假设你的 Docker Hub 用户名是 yourusername，你可以使用以下命令：
+
+```shell
+docker tag dockerdqz/mirror-hub:latest yourusername/mirror-hub:latest
+```
+
+####  步骤 4: 上传镜像
+- 使用 docker push 命令上传标记的镜像到你的 Docker Hub 仓库：
+
+```shell
+docker push yourusername/mirror-hub:latest
+```
+
+####  步骤 5: 验证上传
+- 上传完成后，你可以登录到 Docker Hub 网站，查看你的仓库中是否已经存在刚刚上传的镜像。
+
+---
 
 > **说明**：如果上面配置了docker的daemon.json，那么拉取镜像的时候就不需要在镜像前面加Render_URL了。【只针对Docker生效】
 
