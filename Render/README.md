@@ -37,15 +37,17 @@
 </table>
 
 **3. 选择以docker容器的方式部署，输入下面任一镜像地址**
-  
+
+> **⚠️ 特别说明：目前作者账号已被Render特殊对待了,建议大家把下面的镜像下载到自己本地，然后上传到自己的Docker hub仓库。下面的镜像地址也会随时被Render限制使用**
+
 | 镜像 | 平台 |
 |-------|---------------|
-| dqzboy/hub:latest   | docker hub
-| dqzboy/gcr:latest      | Google Container Registry
-| dqzboy/ghcr:latest     | GitHub Container Registry
-| dqzboy/k8sgcr:latest  | Kubernetes Container Registry
-| dqzboy/k8sreg:latest      | Kubernetes's container image registry
-| dqzboy/quay:latest     | Quay Container Registry
+| dockerdqz/mirror-hub:latest   | docker hub
+| dockerdqz/mirror-gcr:latest      | Google Container Registry
+| dockerdqz/mirror-ghcr:latest     | GitHub Container Registry
+| dockerdqz/mirror-k8sgcr:latest  | Kubernetes Container Registry
+| dockerdqz/mirror-k8sreg:latest      | Kubernetes's container image registry
+| dockerdqz/mirror-quay:latest     | Quay Container Registry
 
 <table>
     <tr>
