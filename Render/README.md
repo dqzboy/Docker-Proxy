@@ -104,6 +104,21 @@
 docker pull your_render_url/library/redis:latest
 ```
 
+> **说明**：如果上面配置了docker的daemon.json，那么拉取镜像的时候就不需要在镜像前面加Render_URL了。【只针对Docker生效】
+
+**3. 拉取速度测试，效果还是可以的，主要是免费**
+![image](https://github.com/dqzboy/Blog-Image/assets/42825450/06ad14d4-cb0f-4924-ab41-5c3f001261a2)
+
+**4. 前缀替换的 Registry 的参考**
+
+| 源站 | 替换为 | 平台 |
+|-------|---------------|----------|
+| docker.io   | your_render_url   |  docker hub 
+| gcr.io      | your_render_url   |  Google Container Registry
+| ghcr.io     | your_render_url  |  GitHub Container Registry
+| k8s.gcr.io     | your_render_url  | Kubernetes Container Registry
+| quay.io     | your_render_url  | Quay Container Registry
+
 ---
 
 ## ✨ 将镜像上传到自己的Docker Hub仓库
@@ -140,21 +155,6 @@ docker push yourusername/mirror-hub:latest
 - 上传完成后，你可以登录到 Docker Hub 网站，查看你的仓库中是否已经存在刚刚上传的镜像。
 
 ---
-
-> **说明**：如果上面配置了docker的daemon.json，那么拉取镜像的时候就不需要在镜像前面加Render_URL了。【只针对Docker生效】
-
-**3. 拉取速度测试，效果还是可以的，主要是免费**
-![image](https://github.com/dqzboy/Blog-Image/assets/42825450/06ad14d4-cb0f-4924-ab41-5c3f001261a2)
-
-**4. 前缀替换的 Registry 的参考**
-
-| 源站 | 替换为 | 平台 |
-|-------|---------------|----------|
-| docker.io   | your_render_url   |  docker hub 
-| gcr.io      | your_render_url   |  Google Container Registry
-| ghcr.io     | your_render_url  |  GitHub Container Registry
-| k8s.gcr.io     | your_render_url  | Kubernetes Container Registry
-| quay.io     | your_render_url  | Quay Container Registry
 
 ## ⚠️ 注意
 **1.** 免费实例如果15分钟内未收到入站流量，Render会关闭实例的网络服务。Render 会在下次收到处理请求时重新启动该服务。
