@@ -63,6 +63,15 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 
 </details>
 
+#### 使用 Koyeb 部署
+<details>
+<summary><strong>部署到 Koyeb</strong></summary>
+<div>
+
+[使用Koyeb快速部署](Koyeb/README.md)
+
+</details>
+
 #### Docker Compose 部署
 <details>
 <summary><strong>手动部署容器</strong></summary>
