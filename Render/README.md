@@ -122,6 +122,19 @@ docker pull your_render_url/library/redis:latest
 ---
 
 ## ✨ 将镜像上传到自己的Docker Hub仓库
+
+#### 镜像下载地址
+| 镜像 | 平台 |
+|-------|---------------|
+| dqzboy/mirror-hub:latest   | docker hub
+| dqzboy/mirror-gcr:latest      | Google Container Registry
+| dqzboy/mirror-ghcr:latest     | GitHub Container Registry
+| dqzboy/mirror-k8sgcr:latest  | Kubernetes Container Registry
+| dqzboy/mirror-k8sreg:latest      | Kubernetes's container image registry
+| dqzboy/mirror-quay:latest     | Quay Container Registry
+| dqzboy/mirror-mcr:latest     | mcr.microsoft.com
+| dqzboy/mirror-elastic:latest     | docker.elastic.co
+
 #### 步骤 1: 登录到 Docker Hub
 - 打开终端输入以下命令并按提示输入你的 Docker Hub 用户名和密码：
 
@@ -130,10 +143,10 @@ docker login
 ```
 
 #### 步骤 2: 拉取镜像
-- 使用 docker pull 命令拉取上面的镜像，这里以 dockerdqz/mirror-hub:latest 举例：
+- 使用 docker pull 命令拉取上面的镜像，这里以 dqzboy/mirror-hub:latest 举例：
 
 ```shell
-docker pull dockerdqz/mirror-hub:latest
+docker pull dqzboy/mirror-hub:latest
 ```
 
 ####  步骤 3: 标记镜像
@@ -141,7 +154,7 @@ docker pull dockerdqz/mirror-hub:latest
 - 假设你的 Docker Hub 用户名是 yourusername，你可以使用以下命令：
 
 ```shell
-docker tag dockerdqz/mirror-hub:latest yourusername/mirror-hub:latest
+docker tag dqzboy/mirror-hub:latest yourusername/mirror-hub:latest
 ```
 
 ####  步骤 4: 上传镜像
