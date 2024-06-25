@@ -132,8 +132,8 @@ docker pull your_render_url/library/redis:latest
 | dqzboy/mirror-k8sgcr:latest  | Kubernetes Container Registry
 | dqzboy/mirror-k8sreg:latest      | Kubernetes's container image registry
 | dqzboy/mirror-quay:latest     | Quay Container Registry
-| dqzboy/mirror-mcr:latest     | mcr.microsoft.com
-| dqzboy/mirror-elastic:latest     | docker.elastic.co
+| dqzboy/mirror-mcr:latest     | Microsoft Container
+| dqzboy/mirror-elastic:latest     | Elastic Stack
 
 #### 步骤 1: 登录到 Docker Hub
 - 打开终端输入以下命令并按提示输入你的 Docker Hub 用户名和密码：

@@ -141,6 +141,8 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | k8s.gcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
 | registry.k8s.io     | k8s.your_domain_name  | Kubernetes's container image registry
 | quay.io     | quay.your_domain_name  | Quay Container Registry
+| mcr.microsoft.com     | mcr.your_domain_name  | Microsoft Container Registry
+| docker.elastic.co     | elastic.your_domain_name  | Elastic Stack
 
 ---
 
