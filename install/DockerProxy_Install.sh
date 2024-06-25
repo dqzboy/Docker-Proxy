@@ -49,20 +49,17 @@ function WARN() {
     echo -e "${WARN} ${1}"
 }
 
-# 服务部署和配置持久华存储路径
+
 PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
 
-# 项目RAW地址
 GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
 
 IMAGE_NAME="registry"
 UI_IMAGE_NAME="dqzboy/docker-registry-ui"
 DOCKER_COMPOSE_FILE="docker-compose.yaml"
 
-
-# 定义安装重试次数
 attempts=0
 maxAttempts=3
 
@@ -79,7 +76,6 @@ else
     exit 1
 fi
 
-# 根据发行版选择存储库类型
 case "$ID" in
     "centos")
         repo_type="centos"
@@ -140,10 +136,7 @@ function CHECK_PKG_MANAGER() {
 }
 
 function CHECKMEM() {
-# 获取内存使用率，并保留两位小数
 memory_usage=$(free | awk '/^Mem:/ {printf "%.2f", $3/$2 * 100}')
-
-# 将内存使用率转为整数（去掉小数部分）
 memory_usage=${memory_usage%.*}
 
 if [[ $memory_usage -gt 90 ]]; then  # 判断是否超过 90%
@@ -249,13 +242,13 @@ esac
 
 function INSTALL_PACKAGE(){
 INFO "======================= 安装依赖 ======================="
-# 每个软件包的安装超时时间（秒）
+INFO "检查依赖安装情况，请稍等 ..."
 TIMEOUT=300
 PACKAGES_APT=(
-    lsof jq wget apache2-utils
+    lsof jq wget apache2-utils tar
 )
 PACKAGES_YUM=(
-    epel-release lsof jq wget yum-utils httpd-tools
+    epel-release lsof jq wget yum-utils httpd-tools tar
 )
 
 if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
@@ -265,19 +258,15 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
         else
             INFO "正在安装 $package ..."
 
-            # 记录开始时间
             start_time=$(date +%s)
 
-            # 安装软件包并等待完成
             $package_manager -y install "$package" --skip-broken > /dev/null 2>&1 &
             install_pid=$!
 
-            # 检查安装是否超时
             while [[ $(($(date +%s) - $start_time)) -lt $TIMEOUT ]] && kill -0 $install_pid &>/dev/null; do
                 sleep 1
             done
 
-            # 如果安装仍在运行，提示用户
             if kill -0 $install_pid &>/dev/null; then
                 WARN "$package 的安装时间超过 $TIMEOUT 秒。是否继续？ (y/n)"
                 read -r continue_install
@@ -285,12 +274,10 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
                     ERROR "$package 的安装超时。退出脚本。"
                     exit 1
                 else
-                    # 直接跳过等待，继续下一个软件包的安装
                     continue
                 fi
             fi
 
-            # 检查安装结果
             wait $install_pid
             if [ $? -ne 0 ]; then
                 ERROR "$package 安装失败。请检查系统安装源，然后再次运行此脚本！请尝试手动执行安装：$package_manager -y install $package"
@@ -322,21 +309,18 @@ fi
 
 function INSTALL_CADDY() {
 INFO "====================== 安装Caddy ======================"
-# 定义一个函数来启动 Caddy
 start_caddy() {
     systemctl enable caddy.service &>/dev/null
     systemctl restart caddy.service
 }
 
 check_caddy() {
-# 检查 caddy 是否正在运行
 if pgrep "caddy" > /dev/null; then
     INFO "Caddy 已在运行."
 else
     WARN "Caddy 未运行。尝试启动 Caddy..."
     start_attempts=3
 
-    # 最多尝试启动 3 次
     for ((i=1; i<=$start_attempts; i++)); do
         start_caddy
         if pgrep "caddy" > /dev/null; then
@@ -355,7 +339,6 @@ fi
 }
 
 if [ "$package_manager" = "dnf" ]; then
-    # 检查是否已安装Caddy
     if which caddy &>/dev/null; then
         INFO "Caddy 已经安装."
     else
@@ -381,12 +364,9 @@ if [ "$package_manager" = "dnf" ]; then
             fi
         done
     fi
-
-    # 启动caddy
     check_caddy
 
 elif [ "$package_manager" = "yum" ]; then
-    # 检查是否已安装Caddy
     if which caddy &>/dev/null; then
         INFO "Caddy 已经安装."
     else
@@ -412,7 +392,6 @@ elif [ "$package_manager" = "yum" ]; then
         done
     fi
 
-    # 启动caddy
     check_caddy
 
 elif [ "$package_manager" = "apt" ] || [ "$package_manager" = "apt-get" ];then
@@ -482,21 +461,18 @@ done
 
 function INSTALL_NGINX() {
 INFO "====================== 安装Nginx ======================"
-# 定义一个函数来启动 Nginx
 start_nginx() {
     systemctl enable nginx &>/dev/null
     systemctl restart nginx
 }
 
 check_nginx() {
-# 检查 Nginx 是否正在运行
 if pgrep "nginx" > /dev/null; then
     INFO "Nginx 已在运行."
 else
     WARN "Nginx 未运行。尝试启动 Nginx..."
     start_attempts=3
 
-    # 最多尝试启动 3 次
     for ((i=1; i<=$start_attempts; i++)); do
         start_nginx
         if pgrep "nginx" > /dev/null; then
@@ -515,14 +491,12 @@ fi
 }
 
 if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
-    # 检查是否已安装Nginx
     if which nginx &>/dev/null; then
         INFO "Nginx 已经安装."
     else
         INFO "正在安装Nginx程序，请稍候..."
         NGINX="nginx-1.24.0-1.el${OSVER}.ngx.x86_64.rpm"
 
-        # 下载并安装RPM包
         rm -f ${NGINX}
         wget http://nginx.org/packages/centos/${OSVER}/x86_64/RPMS/${NGINX} &>/dev/null
         while [ $attempts -lt $maxAttempts ]; do
@@ -572,14 +546,9 @@ fi
 }
 
 function INSTALL_DOCKER() {
-INFO "====================== 安装Docker ======================"
-# 定义存储库文件名
 repo_file="docker-ce.repo"
-# 下载存储库文件
 url="https://download.docker.com/linux/$repo_type"
-# 定义最多重试次数
 MAX_ATTEMPTS=3
-# 初始化 attempt和 success变量为0和 false
 attempt=0
 success=false
 
@@ -590,7 +559,6 @@ if [ "$repo_type" = "centos" ] || [ "$repo_type" = "rhel" ]; then
         WARN "Docker 未安装，正在进行安装..."
         yum-config-manager --add-repo $url/$repo_file &>/dev/null
         $package_manager -y install docker-ce &>/dev/null
-        # 检查命令的返回值
         if [ $? -eq 0 ]; then
             success=true
             break
@@ -618,7 +586,6 @@ elif [ "$repo_type" == "ubuntu" ]; then
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
-        # 检查命令的返回值
         if [ $? -eq 0 ]; then
             success=true
             break
@@ -670,6 +637,145 @@ elif [ "$repo_type" == "debian" ]; then
 else
     ERROR "不支持的操作系统."
     exit 1
+fi
+}
+
+
+function INSTALL_DOCKER_CN() {
+MAX_ATTEMPTS=3
+attempt=0
+success=false
+cpu_arch=$(uname -m)
+save_path="/opt/docker_tgz"
+mkdir -p $save_path
+docker_ver="docker-26.1.4.tgz"
+
+case $cpu_arch in
+  "arm64")
+    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/$docker_ver"
+    ;;
+  "aarch64")
+    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/$docker_ver"
+    ;;
+  "x86_64")
+    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/x86_64/$docker_ver"
+    ;;
+  *)
+    ERROR "不支持的CPU架构: $cpu_arch"
+    exit 1
+    ;;
+esac
+
+
+if ! command -v docker &> /dev/null; then
+  while [ $attempt -lt $MAX_ATTEMPTS ]; do
+    attempt=$((attempt + 1))
+    WARN "Docker 未安装，正在进行安装..."
+    wget -P "$save_path" "$url" &>/dev/null
+    if [ $? -eq 0 ]; then
+        success=true
+        break
+    fi
+    ERROR "Docker 安装失败，正在尝试重新下载 (尝试次数: $attempt)"
+  done
+
+  if $success; then
+     tar -xzf $save_path/$docker_ver -C $save_path
+     \cp $save_path/docker/* /usr/bin/ &>/dev/null
+     rm -rf $save_path
+     INFO "Docker 安装成功，版本为：$(docker --version)"
+     
+     cat > /usr/lib/systemd/system/docker.service <<EOF
+[Unit]
+Description=Docker Application Container Engine
+Documentation=https://docs.docker.com
+After=network-online.target firewalld.service
+Wants=network-online.target
+[Service]
+Type=notify
+ExecStart=/usr/bin/dockerd
+ExecReload=/bin/kill -s HUP 
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+TimeoutStartSec=0
+Delegate=yes
+KillMode=process
+Restart=on-failure
+StartLimitBurst=3
+StartLimitInterval=60s
+[Install]
+WantedBy=multi-user.target
+EOF
+     systemctl daemon-reload
+     systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
+     systemctl enable docker &>/dev/null
+  else
+     ERROR "Docker 安装失败，请尝试手动安装"
+     exit 1
+  fi
+else 
+  INFO "Docker 已安装，安装版本为：$(docker --version)"
+  systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
+fi
+}
+
+
+function INSTALL_COMPOSE_CN() {
+MAX_ATTEMPTS=3
+attempt=0
+cpu_arch=$(uname -m)
+success=false
+save_path="/usr/local/lib/docker/cli-plugins"
+mkdir -p $save_path
+
+case $cpu_arch in
+  "arm64")
+    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/docker-compose-linux-aarch64"
+    ;;
+  "aarch64")
+    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/docker-compose-linux-aarch64"
+    ;;
+  "x86_64")
+    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/x86_64/docker-compose-linux-x86_64"
+    ;;
+  *)
+    ERROR "不支持的CPU架构: $cpu_arch"
+    exit 1
+    ;;
+esac
+
+
+chmod +x $save_path/docker-compose &>/dev/null
+if ! docker compose version &>/dev/null; then
+    WARN "Docker Compose 未安装，正在进行安装..."    
+    while [ $attempt -lt $MAX_ATTEMPTS ]; do
+        attempt=$((attempt + 1))
+        wget -O $save_path/docker-compose $url &>/dev/null
+        if [ $? -eq 0 ]; then
+            chmod +x $save_path/docker-compose
+            version_check=$(docker compose version)
+            if [ -n "$version_check" ]; then
+                success=true
+                break
+            else
+                ERROR "Docker Compose下载的文件不完整，正在尝试重新下载 (尝试次数: $attempt)"
+                rm -f $save_path/docker-compose &>/dev/null
+            fi
+        fi
+
+        ERROR "Docker Compose 下载失败，正在尝试重新下载 (尝试次数: $attempt)"
+    done
+
+    if $success; then
+        INFO "Docker Compose 安装成功，版本为：$(docker compose version)"
+    else
+        ERROR "Docker Compose 下载失败，请尝试手动安装docker-compose"
+        exit 1
+    fi
+else
+    chmod +x $save_path/docker-compose
+    INFO "Docker Compose 已安装，安装版本为：$(docker compose version)"
 fi
 }
 
@@ -1036,7 +1142,23 @@ case $user_choice in
         CHECKBBR
         PACKAGE
         INSTALL_WEB
-        INSTALL_DOCKER
+        
+        while true; do
+            INFO "====================== 安装Docker ======================"
+            read -e -p "$(INFO '安装环境确认.[国外输1;大陆输2]: ')" deploy_docker
+            case "$deploy_docker" in
+                1 )
+                    INSTALL_DOCKER
+                    break;;
+                2 )
+                    INSTALL_DOCKER_CN
+                    INSTALL_COMPOSE_CN
+                    break;;
+                * )
+                    INFO "请输入 '1' 表示国外，或者 '2' 表示大陆。";;
+            esac
+        done
+
         INSTALL_DOCKER_PROXY
         PROMPT
         ;;
