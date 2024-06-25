@@ -102,6 +102,41 @@ services:
     networks:
       - registry-net
 
+  ## mcr.microsoft.com
+  mcr:
+    container_name: reg-mcr
+    image: registry:latest
+    restart: always
+    #environment:
+      #- http=http://host:port
+      #- https=http://host:port
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./registry-mcr.yml:/etc/docker/registry/config.yml
+      #- ./htpasswd:/auth/htpasswd
+    ports:
+      - 57000:5000
+    networks:
+      - registry-net
+
+  ## docker.elastic.co
+  elastic:
+    container_name: reg-elastic
+    image: registry:latest
+    restart: always
+    #environment:
+      #- http=http://host:port
+      #- https=http://host:port
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./registry-elastic.yml:/etc/docker/registry/config.yml
+      #- ./htpasswd:/auth/htpasswd
+    ports:
+      - 58000:5000
+    networks:
+      - registry-net
+
+
   ## UI
   registry-ui:
     container_name: registry-ui

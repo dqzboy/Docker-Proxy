@@ -63,3 +63,21 @@ quay.your_domain_name {
         header_up X-Nginx-Proxy true
     }
 }
+
+mcr.your_domain_name {
+    reverse_proxy localhost:57000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_addr}
+        header_up X-Forwarded-For {remote_addr}
+        header_up X-Nginx-Proxy true
+    }
+}
+
+elastic.your_domain_name {
+    reverse_proxy localhost:58000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_addr}
+        header_up X-Forwarded-For {remote_addr}
+        header_up X-Nginx-Proxy true
+    }
+}

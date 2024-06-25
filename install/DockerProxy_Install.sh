@@ -422,7 +422,7 @@ fi
 
 INFO "====================== 配置Caddy ======================"
 while true; do
-    INFO ">>> 域名解析主机记录(即域名前缀)：ui、hub、gcr、ghcr、k8s-gcr、k8s、quay <<<"
+    INFO ">>> 域名解析主机记录(即域名前缀)：ui、hub、gcr、ghcr、k8s-gcr、k8s、quay、mcr、elastic <<<"
     read -e -p "$(WARN '是否配置Caddy,实现自动HTTPS? 执行前需提前在DNS服务商选择部署的服务进行解析主机记录[y/n]: ')" caddy_conf
     case "$caddy_conf" in
         y|Y )
@@ -807,6 +807,8 @@ function DOWN_CONFIG() {
         "quay reg-quay ${GITRAW}/config/registry-quay.yml"
         "k8sgcr reg-k8s-gcr ${GITRAW}/config/registry-k8sgcr.yml"
         "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
+        "mcr reg-mcr ${GITRAW}/config/registry-mcr.yml"
+        "elastic reg-elastic ${GITRAW}/config/registry-elastic.yml"
     )
 
     selected_names=()
@@ -820,13 +822,15 @@ function DOWN_CONFIG() {
     echo -e "${GREEN}4) ${RESET}quay"
     echo -e "${GREEN}5) ${RESET}k8s-gcr"
     echo -e "${GREEN}6) ${RESET}k8s"
-    echo -e "${GREEN}7) ${RESET}all"
-    echo -e "${GREEN}8) ${RESET}exit"
+    echo -e "${GREEN}7) ${RESET}mcr"
+    echo -e "${GREEN}8) ${RESET}elastic"
+    echo -e "${GREEN}9) ${RESET}all"
+    echo -e "${GREEN}0) ${RESET}exit"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO '输入序号下载对应配置文件,空格分隔多个选项. all下载所有: ')" choices_reg
 
-    if [[ "$choices_reg" == "7" ]]; then
+    if [[ "$choices_reg" == "9" ]]; then
         for file in "${files[@]}"; do
             file_name=$(echo "$file" | cut -d' ' -f1)
             container_name=$(echo "$file" | cut -d' ' -f2)
@@ -837,7 +841,7 @@ function DOWN_CONFIG() {
             wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
         done
         selected_all=true
-    elif [[ "$choices_reg" == "8" ]]; then
+    elif [[ "$choices_reg" == "0" ]]; then
         WARN "退出下载配置! 首次安装如果没有配置无法启动服务,只能启动UI服务"
         return
     else
@@ -1089,13 +1093,15 @@ function UPDATE_SERVICE() {
     echo -e "${GREEN}4) ${RESET}quay"
     echo -e "${GREEN}5) ${RESET}k8s-gcr"
     echo -e "${GREEN}6) ${RESET}k8s"
-    echo -e "${GREEN}7) ${RESET}all"
-    echo -e "${GREEN}8) ${RESET}exit"
+    echo -e "${GREEN}7) ${RESET}mcr"
+    echo -e "${GREEN}8) ${RESET}elastic"
+    echo -e "${GREEN}9) ${RESET}all"
+    echo -e "${GREEN}0) ${RESET}exit"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO '输入序号选择对应服务,空格分隔多个选项. all选择所有: ')" choices_service
 
-    if [[ "$choices_service" == "7" ]]; then
+    if [[ "$choices_service" == "9" ]]; then
         for service_name in "${services[@]}"; do
             #检查服务是否正在运行
             if docker compose ps --services | grep -q "^${service_name}$"; then
@@ -1105,7 +1111,7 @@ function UPDATE_SERVICE() {
             fi
         done
         INFO "更新的服务: ${selected_services[*]}"
-    elif [[ "$choices_service" == "8" ]]; then
+    elif [[ "$choices_service" == "0" ]]; then
         WARN "退出更新服务!"
         exit 1
     else
