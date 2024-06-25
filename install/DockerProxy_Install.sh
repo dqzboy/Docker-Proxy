@@ -895,23 +895,6 @@ function DOWN_CONFIG() {
 }
 
 
-function START_CONTAINER() {
-    if [ "$selected_all" = true ]; then
-        docker compose up -d --force-recreate
-    else
-        docker compose up -d "${selected_names[@]}" registry-ui
-    fi
-}
-
-function RESTART_CONTAINER() {
-    if [ "$selected_all" = true ]; then
-        docker compose restart
-    else
-        docker compose restart "${selected_names[@]}"
-    fi
-}
-
-
 function PROXY_HTTP() {
 read -e -p "$(echo -e ${INFO} ${GREEN}"是否添加代理? (y/n): "${RESET})" modify_config
 case $modify_config in
@@ -936,6 +919,56 @@ case $modify_config in
 esac
 }
 
+
+function ADD_PROXY() {
+mkdir -p /etc/systemd/system/docker.service.d
+
+
+if [ ! -f /etc/systemd/system/docker.service.d/http-proxy.conf ]; then
+    cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
+[Service]
+Environment="HTTP_PROXY=http://$url"
+Environment="HTTPS_PROXY=http://$url"
+EOF
+    systemctl daemon-reload
+    systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
+else
+    if ! grep -q "HTTP_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf || ! grep -q "HTTPS_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf; then
+        cat >> /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
+[Service]
+Environment="HTTP_PROXY=http://$url"
+Environment="HTTPS_PROXY=http://$url"
+EOF
+        systemctl daemon-reload
+        systemctl restart docker | grep -E "ERROR|ELIFECYCLE|WARN"
+    else
+        INFO "======================================================= "
+    fi
+fi
+}
+
+
+function START_CONTAINER() {
+    if [ "$modify_config" = "y" ] || [ "$modify_config" = "Y" ]; then
+        ADD_PROXY
+    else
+        INFO "拉取服务镜像并启动服务中，请稍等..."
+    fi
+
+    if [ "$selected_all" = true ]; then
+        docker compose up -d --force-recreate
+    else
+        docker compose up -d "${selected_names[@]}" registry-ui
+    fi
+}
+
+function RESTART_CONTAINER() {
+    if [ "$selected_all" = true ]; then
+        docker compose restart
+    else
+        docker compose restart "${selected_names[@]}"
+    fi
+}
 
 function INSTALL_DOCKER_PROXY() {
 INFO "======================= 开始安装 ======================="
