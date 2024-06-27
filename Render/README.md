@@ -167,6 +167,11 @@ docker push yourusername/mirror-hub:latest
 ####  步骤 5: 验证上传
 - 上传完成后，你可以登录到 Docker Hub 网站，查看你的仓库中是否已经存在刚刚上传的镜像。
 
+### 配置 GitHub Actions 实现定时拉去镜像至自己的 Docker Hub 仓库
+
+1. 配置 GitHub Actions secrets `DOCKERHUB_USERNAME`（Docker Hub 用户名） 和 `DOCKERHUB_TOKEN`（[Docker Hub访问凭证](https://hub.docker.com/settings/security)）。
+2. 启用名为 fork-image 的 GitHub Actions，将在每夜自动拉取镜像至自己的 Docker Hub 仓库。
+
 ---
 
 ## ⚠️ 注意
