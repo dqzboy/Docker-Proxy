@@ -66,7 +66,6 @@ maxAttempts=3
 
 function CHECK_OS() {
 INFO "======================= 检查环境 ======================="
-# OS version
 OSVER=$(cat /etc/os-release | grep -o '[0-9]' | head -n 1)
 
 if [ -f /etc/os-release ]; then
@@ -139,7 +138,7 @@ function CHECKMEM() {
 memory_usage=$(free | awk '/^Mem:/ {printf "%.2f", $3/$2 * 100}')
 memory_usage=${memory_usage%.*}
 
-if [[ $memory_usage -gt 90 ]]; then  # 判断是否超过 90%
+if [[ $memory_usage -gt 90 ]]; then
     read -e -p "$(WARN '内存占用率高于 70%($memory_usage%). 是否继续安装?: ')" continu
     if [ "$continu" == "n" ] || [ "$continu" == "N" ]; then
         exit 1

@@ -39,3 +39,4 @@ proxy:
   remoteurl: https://docker.elastic.co
   username: 
   password:
+  ttl:

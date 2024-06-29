@@ -39,3 +39,4 @@ proxy:
   remoteurl: https://mcr.microsoft.com
   username: 
   password:
+  ttl:

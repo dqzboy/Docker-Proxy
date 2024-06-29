@@ -16,7 +16,6 @@ services:
     networks:
       - registry-net
 
-
   ## ghcr.io
   ghcr:
     container_name: reg-ghcr
@@ -135,7 +134,6 @@ services:
       - 58000:5000
     networks:
       - registry-net
-
 
   ## UI
   registry-ui:
