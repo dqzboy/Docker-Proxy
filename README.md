@@ -15,11 +15,11 @@
 [![HitCount](https://views.whatilearened.today/views/github/dqzboy/Docker-Proxy.svg)](https://github.com/dqzboy/Docker-Proxy)
 [![GitHub license](https://img.shields.io/github/license/dqzboy/Docker-Proxy)](https://github.com/dqzboy/Docker-Proxy/blob/main/LICENSE)
 
+
+📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-交流群</a>
+
 </div>
 
----
-
-[Docker Proxy—技术交流群](https://t.me/+ghs_XDp1vwxkMGU9) 
 
 ---
 
@@ -88,17 +88,17 @@ docker logs -f [容器ID或名称]
 
 
 ## 🔨 功能
-- 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
-- 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry(ghcr.io)、Quay Container Registry(quay.io)、Kubernetes Container Registry(k8s.gcr.io)、Microsoft Container(mcr.microsoft.com)、Elastic Stack(docker.elastic.co)
-- 自动检查并安装所需的依赖软件，如Docker、Nginx\Caddy等，并确保系统环境满足运行要求
-- 根据你所选择部署的服务，自动渲染对应的Nginx或Caddy服务配置
-- 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
-- 提供了重启服务、更新服务、更新配置和卸载服务的功能，方便用户进行日常管理和维护
-- 支持用户在部署时选择是否提供身份验证
-- 支持配置代理(HTTP_PROXY)，仅支持http
-- 解决国内环境无法安装Docker服务的难题
-- 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
-- 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
+- [x] 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
+- [x] 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry(ghcr.io)、Quay Container Registry(quay.io)、Kubernetes Container Registry(k8s.gcr.io)、Microsoft Container(mcr.microsoft.com)、Elastic Stack(docker.elastic.co)
+- [x] 自动检查并安装所需的依赖软件，如Docker、Nginx\Caddy等，并确保系统环境满足运行要求
+- [x] 根据你所选择部署的服务，自动渲染对应的Nginx或Caddy服务配置
+- [x] 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
+- [x] 提供了重启服务、更新服务、更新配置和卸载服务的功能，方便用户进行日常管理和维护
+- [x] 支持用户在部署时选择是否提供身份验证
+- [x] 支持配置代理(HTTP_PROXY)，仅支持http
+- [x] 解决国内环境无法安装Docker服务的难题
+- [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
+- [x] 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
 
 ## ✨ 教程
 ### 配置Nginx反向代理
