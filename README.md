@@ -58,10 +58,10 @@
 ## 📦 部署
 ### 通过项目脚本部署
 ```shell
-# CentOS
-yum -y install wget curl
-# ubuntu
-apt -y install wget curl
+# CentOS && RHEL && Rocky
+yum -y install curl
+# ubuntu && debian
+apt -y install curl
 
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
