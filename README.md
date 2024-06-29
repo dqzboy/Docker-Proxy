@@ -80,7 +80,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 <summary><strong>部署到 Koyeb</strong></summary>
 <div>
 
-> Koyeb 分配到域名对国内地区不是很稳定，不是很推荐！
+> Koyeb 分配的域名在国内地区访问不是很稳定，不是很推荐！
 
 使用Koyeb快速部署: [点击查看教程](Koyeb/README.md)
 
