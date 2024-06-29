@@ -99,7 +99,7 @@
 docker pull your_render_url/library/redis:latest
 ```
 
-> **说明**：如果上面配置了docker的daemon.json，那么拉取镜像的时候就不需要在镜像前面加Render_URL了。【只针对Docker生效】
+> **说明**：如果上面配置了docker的`daemon.json`，那么拉取镜像的时候就不需要在镜像前面加`Render_URL`了。【只针对拉取Docker Hub上的镜像有效】
 
 **3. 拉取速度测试，效果还是可以的，主要是免费**
 ![image](https://github.com/dqzboy/Blog-Image/assets/42825450/06ad14d4-cb0f-4924-ab41-5c3f001261a2)

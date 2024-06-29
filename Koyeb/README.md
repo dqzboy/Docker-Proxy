@@ -107,18 +107,22 @@
 docker pull your_koyeb_url/library/redis:latest
 ```
 
-> **说明**：如果上面配置了docker的daemon.json，那么拉取镜像的时候就不需要在镜像前面加Render_URL了。【只针对Docker生效】
+> **说明**：如果上面配置了docker的`daemon.json`，那么拉取镜像的时候就不需要在镜像前面加`Koyeb_URL`了。【只针对拉取Docker Hub上的镜像有效】
 
 
 **3. 前缀替换的 Registry 的参考**
 
 | 源站 | 替换为 | 平台 |
 |-------|---------------|----------|
-| docker.io   | your_koyeb_url   |  docker hub 
-| gcr.io      | your_koyeb_url   |  Google Container Registry
-| ghcr.io     | your_koyeb_url  |  GitHub Container Registry
-| k8s.gcr.io     | your_koyeb_url  | Kubernetes Container Registry
-| quay.io     | your_koyeb_url  | Quay Container Registry
+| docker.io   | your_render_url   |  docker hub 
+| gcr.io      | your_render_url   |  Google Container Registry
+| ghcr.io     | your_render_url  |  GitHub Container Registry
+| k8s.gcr.io     | your_render_url  | Kubernetes Container Registry
+| quay.io     | your_render_url  | Quay Container Registry
+| mcr.microsoft.com     | mcr.your_domain_name  | Microsoft Container Registry
+| docker.elastic.co     | elastic.your_domain_name  | Elastic Stack
+
+**4. 说明：** 测试发现Koyeb所解析的IP为cloudfare的，国内部分地区运营商对cloudfare进行了阻断，所以这些地区则无法正常访问！
 
 ---
 
