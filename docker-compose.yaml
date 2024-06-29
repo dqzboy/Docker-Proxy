@@ -2,7 +2,7 @@ services:
   ## docker hub
   dockerhub:
     container_name: reg-docker-hub
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -19,7 +19,7 @@ services:
   ## ghcr.io
   ghcr:
     container_name: reg-ghcr
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -36,7 +36,7 @@ services:
   ## gcr.io
   gcr:
     container_name: reg-gcr
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -53,7 +53,7 @@ services:
   ## k8s.gcr.io
   k8sgcr:
     container_name: reg-k8s-gcr
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -70,7 +70,7 @@ services:
  ## registry.k8s.io
   k8s:
     container_name: reg-k8s
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -87,7 +87,7 @@ services:
   ## quay.io
   quay:
     container_name: reg-quay
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -104,7 +104,7 @@ services:
   ## mcr.microsoft.com
   mcr:
     container_name: reg-mcr
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
@@ -121,7 +121,7 @@ services:
   ## docker.elastic.co
   elastic:
     container_name: reg-elastic
-    image: registry:latest
+    image: dqzboy/registry:3.0.0
     restart: always
     #environment:
       #- http=http://host:port
