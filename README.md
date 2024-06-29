@@ -63,7 +63,11 @@ yum -y install curl
 # ubuntu && debian
 apt -y install curl
 
+# 国外环境
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
+
+# 国内环境
+bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/DockerProxy_Install.sh)"
 ```
 
 ### 部署到第三方平台
