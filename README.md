@@ -16,7 +16,15 @@
 [![GitHub license](https://img.shields.io/github/license/dqzboy/Docker-Proxy)](https://github.com/dqzboy/Docker-Proxy/blob/main/LICENSE)
 
 
-📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-交流群</a>
+📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-交流群</a> (Telegram)
+
+<details>
+<summary><strong>📢 Docker Proxy-交流群(WeChat)</strong></summary>
+<div>
+
+<img align='right' src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/TEG/dqzboy-it.png" width="330" />
+
+</details>
 
 </div>
 
