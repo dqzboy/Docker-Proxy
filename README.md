@@ -210,7 +210,7 @@ location ^~ / {
 </table>
 
 ## 💻 UI
-![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/5194cfc0-1108-4c99-bf87-31e90b9154a1)
+![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0)
 
 
 ## 🫶 赞助
@@ -226,6 +226,7 @@ location ^~ / {
         <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/9404460f-ea1b-446c-a0ae-6da96eb459e3?raw=true"></td>
     </tr>
 </table>
+
 
 ## 😺 其他
 
