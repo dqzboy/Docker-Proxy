@@ -31,6 +31,7 @@
 <div>
 
 **方式一：** [Acme.sh自动生成和续订Lets Encrypt免费SSL证书](https://www.dqzboy.com/16437.html)
+
 **方式二：** 域名托管到[Cloudflare 开启免费SSL证书](https://www.cloudflare.com/zh-cn/application-services/products/ssl/)
 
 </details>
@@ -54,7 +55,7 @@
 
 
 ## 📦 部署
-#### 通过项目脚本部署
+### 通过项目脚本部署
 ```shell
 # CentOS
 yum -y install wget curl
@@ -64,7 +65,7 @@ apt -y install wget curl
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
 
-#### 部署到第三方平台
+### 部署到第三方平台
 <details>
 <summary><strong>部署到 Render</strong></summary>
 <div>
@@ -86,7 +87,7 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main
 </details>
 
 
-#### Docker Compose 部署
+### Docker Compose 部署
 <details>
 <summary><strong>手动部署容器</strong></summary>
 <div>
