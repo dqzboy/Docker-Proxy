@@ -27,7 +27,7 @@
 ---
 
 ## 📝 Preparation
-⚠️  **Important:** Choose a foreign server that is not blocked. For the domain name, no need to go through domestic filing. During the one-click deployment process, if you choose to install Caddy, it will automatically configure HTTPS. If you choose to deploy Nginx service, you will need to apply for a free SSL certificate yourself, or realize SSL encryption through other methods.
+⚠️  **Important:** Choose a foreign server that is not blocked. For the domain name, no need to go through domestic filing. You can also apply for a free domain name through[CLouDNS](https://www.cloudns.net/). During the one-click deployment process, if you choose to install Caddy, it will automatically configure HTTPS. If you choose to deploy Nginx service, you will need to apply for a free SSL certificate yourself, or realize SSL encryption through other methods.
 
 <details>
 <summary><strong>Free domain certificate application</strong></summary>
