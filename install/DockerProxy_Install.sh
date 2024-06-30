@@ -1327,7 +1327,13 @@ function DOWN_CONFIG() {
         fi
     fi
 
+    WARN ">>> 说明: 配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码 <<<"
     read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
+    while [[ "$config_auth" != "y" && "$config_auth" != "n" ]]; do
+        WARN "无效输入，请输入 'y' 或 'n'。"
+        read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
+    done
+
     if [[ "$config_auth" == "y" ]]; then
         while true; do
             read -e -p "$(echo -e ${INFO} ${GREEN}"请输入账号名称: "${RESET})" username
@@ -1352,6 +1358,24 @@ function DOWN_CONFIG() {
         for file_url in "${selected_files[@]}"; do
             yml_name=$(basename "$file_url")
             append_auth_config "${PROXY_DIR}/${yml_name}"
+        done
+    fi
+
+    WARN ">>> 说明: Proxy代理缓存过期时间.单位:ns、us、ms、s、m、h，不指定默认ns, 0表示禁用 <<<"
+    read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
+    while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
+        WARN "无效输入，请输入 'y' 或 'n'。"
+        read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
+    done
+
+    if [[ "$modify_cache" == "y" ]]; then
+        while true; do
+            read -e -p "$(echo -e ${INFO} ${GREEN}"请输入新的缓存时间值: "${RESET})" new_ttl
+            for file_url in "${selected_files[@]}"; do
+                yml_name=$(basename "$file_url")
+                sed -ri "s/ttl: 168h/ttl: ${new_ttl}/g" ${PROXY_DIR}/${yml_name} &>/dev/null
+            done
+            break
         done
     fi
 }
