@@ -1406,6 +1406,32 @@ esac
 }
 
 
+# 只配置本机Docker走代理，加速镜像下载
+function DOCKER_PROXY_HTTP() {
+WARN ">>> 说明：配置本机Docker服务走代理，加速本机Docker镜像下载 <<<"
+read -e -p "$(echo -e ${INFO} ${GREEN}"是否添加代理? (y/n): "${RESET})" modify_proxy
+case $modify_proxy in
+  [Yy]* )
+    read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+    while [[ -z "$url" ]]; do
+      WARN "代理地址不能为空，请重新输入。"
+      read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+    done
+
+    INFO "你配置代理地址为: http://${url}."
+    ;;
+  [Nn]* )
+    WARN "退出代理配置"
+    exit 1
+    ;;
+  * )
+    ERROR "无效的输入。退出代理配置修改"
+    exit 2
+    ;;
+esac
+}
+
+
 function ADD_PROXY() {
 mkdir -p /etc/systemd/system/docker.service.d
 
@@ -1648,6 +1674,8 @@ echo "2) 重启服务"
 echo "3) 更新服务"
 echo "4) 更新配置"
 echo "5) 卸载服务"
+echo "6) 本机Docker代理"
+echo "---------------------------------------------------------------"
 read -e -p "$(INFO '输入对应数字并按 Enter 键: ')" user_choice
 case $user_choice in
     1)
@@ -1723,6 +1751,12 @@ case $user_choice in
                     INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
             esac
         done
+        ;;
+    6)
+        INFO "=======================配置本机Docker代理======================="
+        DOCKER_PROXY_HTTP
+        ADD_PROXY
+        INFO "=======================Docker代理配置完成======================="
         ;;
     *)
         WARN "输入了无效的选择。请重新运行脚本并选择1-4的选项。"
