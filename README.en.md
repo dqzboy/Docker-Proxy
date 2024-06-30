@@ -126,6 +126,7 @@ docker logs -f [Container ID or Name]
 - [x] Automatically checks for and installs required dependency software such as Docker, Nginx/Caddy, etc., and ensures the system environment meets the operational requirements.
 - [x] Automatically renders the corresponding Nginx or Caddy service configuration based on the service you choose to deploy.
 - [x] Automatically cleans up files in the registry upload directory that are no longer referenced by any image or manifest.
+- [x] Support custom configuration of proxy cache time(PROXY_TTL)
 - [x] Provides features for restarting services, updating services, updating configurations, and uninstalling services, making it convenient for users to perform daily management and maintenance.
 - [x] Supports user selection of whether to provide authentication during deployment.
 - [x] Supports configuration of proxy (HTTP_PROXY), only supports HTTP.
