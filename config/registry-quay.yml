@@ -39,4 +39,4 @@ proxy:
   remoteurl: https://quay.io
   username: 
   password:
-  ttl:
+  ttl: 168h

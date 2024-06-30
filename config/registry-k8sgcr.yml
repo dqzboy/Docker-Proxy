@@ -39,4 +39,4 @@ proxy:
   remoteurl: https://k8s.gcr.io
   username: 
   password:
-  ttl:
+  ttl: 168h

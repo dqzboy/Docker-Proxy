@@ -39,4 +39,4 @@ proxy:
   remoteurl: https://registry.k8s.io
   username: 
   password:
-  ttl:
+  ttl: 168h

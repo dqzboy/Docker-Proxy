@@ -39,4 +39,4 @@ proxy:
   remoteurl: https://ghcr.io
   username: 
   password:
-  ttl:
+  ttl: 168h
