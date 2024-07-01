@@ -184,9 +184,8 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 
 ---
 
-> Detailed Tutorial: 
-> [Self-built Docker Image Acceleration Service: Accelerating and Optimizing Image Management](https://www.dqzboy.com/8709.html)
-> 
+> **Detailed Tutorial:**  <br>
+> [Self-built Docker Image Acceleration Service: Accelerating and Optimizing Image Management](https://www.dqzboy.com/8709.html) <br>
 > [Build your own Docker image acceleration, and host the domain name to CF to accelerate image pulling.](https://www.dqzboy.com/17665.html)
 
 ## 📚 Display
