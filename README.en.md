@@ -101,7 +101,7 @@ Deploy quickly with Koyeb: [View Tutorial](Koyeb/README.md)
 <summary><strong>Manual Container Deployment</strong></summary>
 <div>
 
-**⚠️ Note:** Download the configuration for the image repository you wish to accelerate. The `docker-compose.yaml` file is set to deploy all domestic image repository acceleration services by default. Similarly, you should configure and deploy the one you need, and simply remove the rest!
+**⚠️ Note:** Download the configuration for whichever mirror repository you need to accelerate. The `docker-compose.yaml` file by default deploys the acceleration service for all foreign mirror repositories, again you configure whichever one you deploy, and delete the rest!
 
 **1.** Download the corresponding `yml` file from the [config](https://github.com/dqzboy/Docker-Proxy/tree/main/config) directory to your local machine.
 
