@@ -185,7 +185,62 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 
 ---
 
-**关于使用镜像加速拉取docker hub公共空间下的镜像时如何不添加library的方案**
+> 详细教程：[自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
+
+## 📚 展示
+<br/>
+<table>
+    <tr>
+      <td width="50%" align="center"><b>系统环境检查</b></td>
+      <td width="50%" align="center"><b>服务部署安装</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/55df7f6f-c788-4200-9bcd-631998dc53ef?raw=true"></td>
+        <td width="50%" align="center"><img src=https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
+    </tr>
+</table>
+
+## 💻 UI
+![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0)
+
+---
+
+
+## 🫶 赞助
+如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊
+
+> 项目作者自建公益服务：[服务地址查看](https://uk.dqzboy.com/)
+
+<table>
+    <tr>
+      <td width="50%" align="center"><b> Alipay </b></td>
+      <td width="50%" align="center"><b> WeChat Pay </b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/223fd099-9433-468b-b490-f9807bdd2035?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/9404460f-ea1b-446c-a0ae-6da96eb459e3?raw=true"></td>
+    </tr>
+</table>
+
+---
+## 👨🏻‍💻 问题
+
+#### 1、无法通过UI界面删除某一镜像的TAG
+**已知问题：** 使用`registry`作为代理缓存时不支持删除
+
+**issues：** [#3853](https://github.com/distribution/distribution/issues/3853)
+
+#### 2、搭建好了，但是国内拉取速度不理想
+**已知问题：** 你的国外服务器到国内的网络线路不理想
+
+**解决方案：** 
+- (1) 开启服务器BBR，优化网络性能(效果有限)
+- (2) 更换对国内网络线路优化更好的服务器
+
+#### 3、registry 镜像缓存多少时间，如何调整
+**已知问题：** 默认缓存`168h`，也就是`7天`。修改配置文件`proxy`配置部分`ttl`调整缓存时间
+
+#### 4、使用镜像加速拉取`hub`公共空间下的镜像时如何不添加`library`
 
 - 此方案来自交流群里大佬提供，通过nginx实现并实测
 ```shell
@@ -207,61 +262,7 @@ location ^~ / {
 }
 ```
 
-> 详细教程：[自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)
-
-## 📚 展示
-<br/>
-<table>
-    <tr>
-      <td width="50%" align="center"><b>系统环境检查</b></td>
-      <td width="50%" align="center"><b>服务部署安装</b></td>
-    </tr>
-    <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/55df7f6f-c788-4200-9bcd-631998dc53ef?raw=true"></td>
-        <td width="50%" align="center"><img src=https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
-    </tr>
-</table>
-
-## 💻 UI
-![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0)
-
 ---
-
-## 👨🏻‍💻 问题
-
-#### 1、无法通过UI界面删除某一镜像的TAG
-**已知问题：** 使用`registry`作为代理缓存时不支持删除
-
-**issues：** [#3853](https://github.com/distribution/distribution/issues/3853)
-
-#### 2、搭建好了，但是国内拉取速度不理想
-**已知问题：** 你的国外服务器到国内的网络线路不理想
-
-**解决方案：** 
-- (1) 开启服务器BBR，优化网络性能(效果有限)
-- (2) 更换对国内网络线路优化更好的服务器
-
-#### 3、registry 镜像缓存多少时间，如何调整
-**已知问题：** 默认缓存`168h`，也就是`7天`。修改配置文件`proxy`配置部分`ttl`调整缓存时间
-
----
-
-## 🫶 赞助
-如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊
-
-> 项目作者自建公益服务：[服务地址查看](https://uk.dqzboy.com/)
-
-<table>
-    <tr>
-      <td width="50%" align="center"><b> Alipay </b></td>
-      <td width="50%" align="center"><b> WeChat Pay </b></td>
-    </tr>
-    <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/223fd099-9433-468b-b490-f9807bdd2035?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/9404460f-ea1b-446c-a0ae-6da96eb459e3?raw=true"></td>
-    </tr>
-</table>
-
 
 ## 😺 其他
 
