@@ -154,12 +154,12 @@ memory_usage=$(free | awk '/^Mem:/ {printf "%.2f", $3/$2 * 100}')
 memory_usage=${memory_usage%.*}
 
 if [[ $memory_usage -gt 90 ]]; then
-    read -e -p "$(WARN '内存占用率高于 70%($memory_usage%). 是否继续安装?: ')" continu
+    read -e -p "$(WARN "内存占用率${LIGHT_RED}高于 70%($memory_usage%)${RESET} 是否继续安装?: ")" continu
     if [ "$continu" == "n" ] || [ "$continu" == "N" ]; then
         exit 1
     fi
 else
-    INFO "内存资源充足。请继续.($memory_usage%)"
+    INFO "内存资源充足.请继续 ${LIGHT_GREEN}($memory_usage%)${RESET}"
 fi
 }
 
@@ -187,7 +187,7 @@ fi
 function CHECKBBR() {
 kernel_version=$(uname -r | awk -F "-" '{print $1}')
 
-read -e -p "$(WARN '是否开启BBR,优化网络带宽提高网络性能？ [y/n]: ')" choice_bbr
+read -e -p "$(WARN "是否开启${LIGHT_CYAN}BBR${RESET},优化网络带宽提高网络性能? [y/n]: ")" choice_bbr
 case $choice_bbr in
     y | Y)
         version_compare=$(echo "${kernel_version} 4.9" | awk '{if ($1 >= $2) print "yes"; else print "no"}')
@@ -205,7 +205,7 @@ case $choice_bbr in
             if [ $? -eq 0 ]; then
                 INFO "BBR模块添加成功."
             else 
-                ERROR "BBR模块添加失败，请执行 sysctl -p 检查."
+                ERROR "BBR模块添加失败，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
                 exit 1
             fi
 
@@ -229,7 +229,7 @@ case $choice_bbr in
 
             sysctl -p &> /dev/null
             if [ $? -ne 0 ]; then
-                ERROR "应用sysctl设置过程中发生了一个错误，请执行 sysctl -p 检查."
+                ERROR "应用sysctl设置过程中发生了一个错误，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
                 exit 2
             fi
 
@@ -237,18 +237,18 @@ case $choice_bbr in
             if [ $? -eq 0 ]; then
                 INFO "BBR已经成功开启。"
             else
-                ERROR "BBR开启失败，请执行 sysctl -p 检查."
+                ERROR "BBR开启失败，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
                 exit 3
             fi
 
-            WARN "如果BBR开启后未生效，请执行 reboot 重启服务器使其BBR模块生效"
+            WARN "如果BBR开启后未生效，请执行 ${LIGHT_BLUE}reboot${RESET} 重启服务器使其BBR模块生效"
         fi
     ;;
     n | N)
         INFO "不开启BBR"
     ;;
     *)
-        ERROR "输入错误！请输入 y 或 n"
+        ERROR "输入错误！请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
     ;;
 esac
 }
@@ -268,9 +268,9 @@ PACKAGES_YUM=(
 if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
     for package in "${PACKAGES_YUM[@]}"; do
         if $pkg_manager -q "$package" &>/dev/null; then
-            INFO "已经安装 $package ..."
+            INFO "${LIGHT_GREEN}已经安装${RESET} $package ..."
         else
-            INFO "正在安装 $package ..."
+            INFO "${LIGHT_CYAN}正在安装${RESET} $package ..."
 
             start_time=$(date +%s)
 
@@ -282,7 +282,7 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
             done
 
             if kill -0 $install_pid &>/dev/null; then
-                WARN "$package 的安装时间超过 $TIMEOUT 秒。是否继续？ (y/n)"
+                WARN "$package 的安装时间超过 ${LIGHT_YELLOW}$TIMEOUT 秒${RESET}。是否继续? (y/n)"
                 read -r continue_install
                 if [ "$continue_install" != "y" ]; then
                     ERROR "$package 的安装超时。退出脚本。"
@@ -294,7 +294,7 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
 
             wait $install_pid
             if [ $? -ne 0 ]; then
-                ERROR "$package 安装失败。请检查系统安装源，然后再次运行此脚本！请尝试手动执行安装：$package_manager -y install $package"
+                ERROR "$package 安装失败。请检查系统安装源，然后再次运行此脚本！请尝试手动执行安装: ${LIGHT_BLUE}$package_manager -y install $package${RESET}"
                 exit 1
             fi
         fi
@@ -309,7 +309,7 @@ elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
             INFO "正在安装 $package ..."
             $package_manager install -y $package > /dev/null 2>&1
             if [ $? -ne 0 ]; then
-                ERROR "安装 $package 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install $package"
+                ERROR "安装 $package 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装: ${LIGHT_BLUE}$package_manager -y install $package${RESET}"
                 exit 1
             fi
         fi
@@ -447,14 +447,13 @@ fi
 
 INFO "====================== 配置Caddy ======================"
 while true; do
-    INFO ">>> 域名解析主机记录(即域名前缀)：ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic <<<"
-    WARN ">>> 只需选择你部署的服务进行解析即可，无需将上面提示中所有的主机记录进行解析 <<<"
+    INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+    WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
     read -e -p "$(WARN '是否配置Caddy,实现自动HTTPS? 执行前需提前在DNS服务商选择部署的服务进行解析主机记录[y/n]: ')" caddy_conf
     case "$caddy_conf" in
         y|Y )
-            read -e -p "$(INFO '请输入你的域名[例: baidu.com],不可为空: ')" caddy_domain
-            
-            read -e -p "$(INFO '请输入要配置的主机记录，用逗号分隔[例: hub,mcr]: ')" selected_records
+            read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" caddy_domain           
+            read -e -p "$(INFO "请输入要配置的主机记录，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
             IFS=',' read -r -a records_array <<< "$selected_records"
 
             declare -A record_templates
@@ -560,7 +559,7 @@ while true; do
             WARN "退出配置 Caddy 操作。"
             break;;
         * )
-            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+            INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
     esac
 done
 }
@@ -664,15 +663,15 @@ fi
 
 INFO "====================== 配置Nginx ======================"
 while true; do
-    WARN "自行安装的 Nginx 请勿执行此操作，以防覆盖原有配置"
-    INFO ">>> 域名解析主机记录(即域名前缀)：ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic <<<"
-    WARN ">>> 只需选择你部署的服务进行解析即可，无需将上面提示中所有的主机记录进行解析 <<<"
-    read -e -p "$(WARN '是否配置 Nginx ？配置完成后需在DNS服务商对部署的服务进行解析主机记录[y/n]: ')" nginx_conf
+    WARN "自行安装的 Nginx ${LIGHT_RED}请勿执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
+    INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+    WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
+    read -e -p "$(WARN '是否配置 Nginx？配置完成后需在DNS服务商对部署的服务进行解析主机记录 [y/n]: ')" nginx_conf
     case "$nginx_conf" in
         y|Y )
-            read -e -p "$(INFO '请输入你的域名[例: baidu.com],不可为空: ')" nginx_domain
+            read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" nginx_domain
             
-            read -e -p "$(INFO '请输入要配置的主机记录，用逗号分隔[例: hub,mcr]: ')" selected_records
+            read -e -p "$(INFO "请输入要配置的主机记录，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
             IFS=',' read -r -a records_array <<< "$selected_records"
 
             declare -A record_templates
@@ -947,7 +946,7 @@ while true; do
             WARN "退出配置 Nginx 操作。"
             break;;
         * )
-            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+            INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
     esac
 done
 }
@@ -1301,7 +1300,7 @@ function DOWN_CONFIG() {
     echo -e "${GREEN}0) ${RESET}exit"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
-    read -e -p "$(INFO '输入序号下载对应配置文件,空格分隔多个选项. all下载所有: ')" choices_reg
+    read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET}: ")" choices_reg
 
     if [[ "$choices_reg" == "9" ]]; then
         for file in "${files[@]}"; do
@@ -1342,10 +1341,10 @@ function DOWN_CONFIG() {
         fi
     fi
 
-    WARN ">>> 说明: 配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码 <<<"
+    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_CYAN}配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码${RESET}"
     read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
     while [[ "$config_auth" != "y" && "$config_auth" != "n" ]]; do
-        WARN "无效输入，请输入 'y' 或 'n'。"
+        WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
         read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
     done
 
@@ -1376,10 +1375,10 @@ function DOWN_CONFIG() {
         done
     fi
 
-    WARN "${BOLD}${GREEN}提示:${RESET} ${CYAN}Proxy代理缓存过期时间.${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
+    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
     read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
     while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
-        WARN "无效输入，请输入 'y' 或 'n'。"
+        WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
         read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
     done
 
@@ -1408,7 +1407,7 @@ case $modify_config in
     sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
     sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
 
-    INFO "你配置代理地址为: http://${url}."
+    INFO "你配置代理地址为: ${CYAN}http://${url}${RESET}"
     ;;
   [Nn]* )
     WARN "跳过代理配置"
@@ -1512,7 +1511,7 @@ function STOP_REMOVE_CONTAINER() {
         INFO "停止和移除所有容器"
         docker-compose -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
     else 
-        WARN "容器未运行，无需删除"
+        WARN "${LIGHT_YELLOW}容器未运行，无需删除${RESET}"
         exit 1
     fi
 }
@@ -1530,7 +1529,7 @@ while true; do
             WARN "退出配置更新操作。"
             break;;
         * )
-            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+            INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
     esac
 done
 }
@@ -1559,7 +1558,7 @@ while true; do
             WARN "跳过软件包安装步骤。"
             break;;
         * )
-            INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+            INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
     esac
 done
 }
@@ -1567,11 +1566,11 @@ done
 
 function INSTALL_WEB() {
 while true; do
-    read -e -p "$(INFO "是否安装WEB服务？(用来通过域名方式访问加速服务) [y/n]: ")" choice_service
+    read -e -p "$(INFO "是否安装WEB服务? (用来通过域名方式访问加速服务) [y/n]: ")" choice_service
     if [[ "$choice_service" =~ ^[YyNn]$ ]]; then
         if [[ "$choice_service" == "Y" || "$choice_service" == "y" ]]; then
             while true; do
-                read -e -p "$(INFO "选择安装的WEB服务。安装Caddy可自动开启HTTPS [Nginx/Caddy]: ")" web_service
+                read -e -p "$(INFO "选择安装的WEB服务。安装${LIGHT_CYAN}Caddy可自动开启HTTPS${RESET} [Nginx/Caddy]: ")" web_service
                 if [[ "$web_service" =~ ^(nginx|Nginx|caddy|Caddy)$ ]]; then
                     if [[ "$web_service" == "nginx" || "$web_service" == "Nginx" ]]; then
                         INSTALL_NGINX
@@ -1581,7 +1580,7 @@ while true; do
                         break
                     fi
                 else
-                    WARN "请输入'nginx' 或者 'caddy'"
+                    WARN "请输入 ${LIGHT_CYAN}nginx${RESET} 或 ${LIGHT_BLUE}caddy${RESET}"
                 fi
             done
             break
@@ -1590,7 +1589,7 @@ while true; do
             break
         fi
     else
-        INFO "请输入 'y' 表示是，或者 'n' 表示否。"
+        INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
     fi
 done
 }
@@ -1666,10 +1665,10 @@ echo
 INFO "=================感谢您的耐心等待，安装已经完成=================="
 INFO
 INFO "请用浏览器访问 UI 面板: "
-INFO "公网访问地址: http://$PUBLIC_IP:50000"
-INFO "内网访问地址: http://$INTERNAL_IP:50000"
+INFO "公网访问地址: ${UNDERLINE}http://$PUBLIC_IP:50000${RESET}"
+INFO "内网访问地址: ${UNDERLINE}http://$INTERNAL_IP:50000${RESET}"
 INFO
-INFO "服务安装路径: ${PROXY_DIR}"
+INFO "服务安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
 INFO 
 INFO "作者博客: https://dqzboy.com"
 INFO "技术交流: https://t.me/dqzboyblog"
@@ -1683,12 +1682,12 @@ INFO "================================================================"
 
 function main() {
 INFO "====================== 请选择操作 ======================"
-echo "1) 新装服务"
-echo "2) 重启服务"
-echo "3) 更新服务"
-echo "4) 更新配置"
-echo "5) 卸载服务"
-echo "6) 本机Docker代理"
+echo -e "1) ${BOLD}${LIGHT_GREEN}新装${RESET}服务"
+echo -e "2) ${BOLD}${LIGHT_MAGENTA}重启${RESET}服务"
+echo -e "3) ${BOLD}${GREEN}更新${RESET}服务"
+echo -e "4) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
+echo -e "5) ${BOLD}${LIGHT_YELLOW}卸载${RESET}服务"
+echo -e "6) 本机${BOLD}${CYAN}Docker代理${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO '输入对应数字并按 Enter 键: ')" user_choice
 case $user_choice in
@@ -1704,7 +1703,7 @@ case $user_choice in
         
         while true; do
             INFO "====================== 安装Docker ======================"
-            read -e -p "$(INFO '安装环境确认.[国外输1;大陆输2]: ')" deploy_docker
+            read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}大陆输2${RESET}]: ")" deploy_docker
             case "$deploy_docker" in
                 1 )
                     INSTALL_DOCKER
@@ -1715,7 +1714,7 @@ case $user_choice in
                     INSTALL_COMPOSE_CN
                     break;;
                 * )
-                    INFO "请输入 '1' 表示国外，或者 '2' 表示大陆。";;
+                    INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
             esac
         done
 
@@ -1745,7 +1744,7 @@ case $user_choice in
         ;;
     5)
         INFO "======================= 卸载服务 ======================="
-        WARN "注意: 卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件"
+        WARN "${LIGHT_RED}注意:${RESET} ${LIGHT_MAGENTA}卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件${RESET}"
         while true; do
             read -e -p "$(INFO '本人已知晓后果,确认卸载服务? [y/n]: ')" uninstall
             case "$uninstall" in
@@ -1755,14 +1754,14 @@ case $user_choice in
                     docker rmi --force $(docker images -q ${IMAGE_NAME}) &>/dev/null
                     docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
                     rm -rf ${PROXY_DIR} &>/dev/null
-                    INFO "服务已经卸载,感谢你的使用!"
+                    INFO "${LIGHT_YELLOW}服务已经卸载,感谢你的使用!${RESET}"
                     INFO "========================================================"
                     break;;
                 n|N )
                     WARN "退出卸载服务."
                     break;;
                 * )
-                    INFO "请输入 'y' 表示是，或者 'n' 表示否。";;
+                    INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
             esac
         done
         ;;
