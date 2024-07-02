@@ -4,7 +4,8 @@ services:
     container_name: reg-docker-hub
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -21,7 +22,8 @@ services:
     container_name: reg-ghcr
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -38,7 +40,8 @@ services:
     container_name: reg-gcr
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -55,7 +58,8 @@ services:
     container_name: reg-k8s-gcr
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -67,12 +71,13 @@ services:
     networks:
       - registry-net
 
- ## registry.k8s.io
+  ## registry.k8s.io
   k8s:
     container_name: reg-k8s
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -89,7 +94,8 @@ services:
     container_name: reg-quay
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -106,7 +112,8 @@ services:
     container_name: reg-mcr
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:
@@ -123,7 +130,8 @@ services:
     container_name: reg-elastic
     image: dqzboy/registry:latest
     restart: always
-    #environment:
+    environment:
+      - OTEL_TRACES_EXPORTER=none
       #- http=http://host:port
       #- https=http://host:port
     volumes:

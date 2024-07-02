@@ -35,6 +35,21 @@ GREEN="\033[0;32m"
 RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
+BLUE="\033[0;34m"
+MAGENTA="\033[0;35m"
+CYAN="\033[0;36m"
+WHITE="\033[1;37m"
+BLACK="\033[0;30m"
+LIGHT_GREEN="\033[1;32m"
+LIGHT_RED="\033[1;31m"
+LIGHT_YELLOW="\033[1;33m"
+LIGHT_BLUE="\033[1;34m"
+LIGHT_MAGENTA="\033[1;35m"
+LIGHT_CYAN="\033[1;36m"
+BOLD="\033[1m"
+UNDERLINE="\033[4m"
+BLINK="\033[5m"
+REVERSE="\033[7m"
 
 INFO="[${GREEN}INFO${RESET}]"
 ERROR="[${RED}ERROR${RESET}]"
@@ -1361,7 +1376,7 @@ function DOWN_CONFIG() {
         done
     fi
 
-    WARN ">>> 说明: Proxy代理缓存过期时间.单位:ns、us、ms、s、m、h，不指定默认ns, 0表示禁用 <<<"
+    WARN "${BOLD}${GREEN}提示:${RESET} ${CYAN}Proxy代理缓存过期时间.${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
     read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
     while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
         WARN "无效输入，请输入 'y' 或 'n'。"
@@ -1390,7 +1405,6 @@ case $modify_config in
       WARN "代理地址不能为空，请重新输入。"
       read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
     done
-    sed -i "s@#environment:@environment:@g" ${PROXY_DIR}/docker-compose.yaml
     sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
     sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
 
@@ -1408,7 +1422,7 @@ esac
 
 # 只配置本机Docker走代理，加速镜像下载
 function DOCKER_PROXY_HTTP() {
-WARN ">>> 说明：配置本机Docker服务走代理，加速本机Docker镜像下载 <<<"
+WARN "${BOLD}${LIGHT_GREEN}提示:${RESET} ${LIGHT_CYAN}配置本机Docker服务走代理，加速本机Docker镜像下载${RESET}"
 read -e -p "$(echo -e ${INFO} ${GREEN}"是否添加代理? (y/n): "${RESET})" modify_proxy
 case $modify_proxy in
   [Yy]* )
