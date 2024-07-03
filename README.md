@@ -211,7 +211,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 ## 🫶 赞助
 如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊
 
-> 项目作者自建公益服务：[服务地址查看](https://uk.dqzboy.com/)
+> 项目作者自建公益服务：[服务地址查看](https://uk.dqzboy.xyz/)
 
 <table>
     <tr>
