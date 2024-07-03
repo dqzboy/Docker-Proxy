@@ -64,6 +64,15 @@ function WARN() {
     echo -e "${WARN} ${1}"
 }
 
+function PROMPT_Y_N() {
+    echo -e "[${LIGHT_GREEN}y${RESET}/${LIGHT_BLUE}n${RESET}]: "
+}
+
+PROMPT_YES_NO=$(PROMPT_Y_N)
+
+function SEPARATOR() {
+    echo -e "${INFO}${BOLD}${LIGHT_BLUE}======================== ${1} ========================${RESET}"
+}
 
 PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
@@ -80,7 +89,7 @@ maxAttempts=3
 
 
 function CHECK_OS() {
-INFO "======================= 检查环境 ======================="
+SEPARATOR "检查环境"
 OSVER=$(cat /etc/os-release | grep -o '[0-9]' | head -n 1)
 
 if [ -f /etc/os-release ]; then
@@ -154,7 +163,7 @@ memory_usage=$(free | awk '/^Mem:/ {printf "%.2f", $3/$2 * 100}')
 memory_usage=${memory_usage%.*}
 
 if [[ $memory_usage -gt 90 ]]; then
-    read -e -p "$(WARN "内存占用率${LIGHT_RED}高于 70%($memory_usage%)${RESET} 是否继续安装?: ")" continu
+    read -e -p "$(WARN "内存占用率${LIGHT_RED}高于 70%($memory_usage%)${RESET} 是否继续安装? ${PROMPT_YES_NO}")" continu
     if [ "$continu" == "n" ] || [ "$continu" == "N" ]; then
         exit 1
     fi
@@ -187,7 +196,7 @@ fi
 function CHECKBBR() {
 kernel_version=$(uname -r | awk -F "-" '{print $1}')
 
-read -e -p "$(WARN "是否开启${LIGHT_CYAN}BBR${RESET},优化网络带宽提高网络性能? [y/n]: ")" choice_bbr
+read -e -p "$(WARN "是否开启${LIGHT_CYAN}BBR${RESET},优化网络带宽提高网络性能? ${PROMPT_YES_NO}")" choice_bbr
 case $choice_bbr in
     y | Y)
         version_compare=$(echo "${kernel_version} 4.9" | awk '{if ($1 >= $2) print "yes"; else print "no"}')
@@ -255,7 +264,7 @@ esac
 
 
 function INSTALL_PACKAGE(){
-INFO "======================= 安装依赖 ======================="
+SEPARATOR "安装依赖"
 INFO "检查依赖安装情况，请稍等 ..."
 TIMEOUT=300
 PACKAGES_APT=(
@@ -282,7 +291,7 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
             done
 
             if kill -0 $install_pid &>/dev/null; then
-                WARN "$package 的安装时间超过 ${LIGHT_YELLOW}$TIMEOUT 秒${RESET}。是否继续? (y/n)"
+                WARN "$package 的安装时间超过 ${LIGHT_YELLOW}$TIMEOUT 秒${RESET}。是否继续? [${LIGHT_GREEN}y${RESET}/${LIGHT_YELLOW}n${RESET}]"
                 read -r continue_install
                 if [ "$continue_install" != "y" ]; then
                     ERROR "$package 的安装超时。退出脚本。"
@@ -322,7 +331,7 @@ fi
 
 
 function INSTALL_CADDY() {
-INFO "====================== 安装Caddy ======================"
+SEPARATOR "安装Caddy"
 start_caddy() {
 systemctl enable caddy.service &>/dev/null
 systemctl restart caddy.service
@@ -445,15 +454,15 @@ else
 fi
 
 
-INFO "====================== 配置Caddy ======================"
+SEPARATOR "配置Caddy"
 while true; do
     INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
-    read -e -p "$(WARN '是否配置Caddy,实现自动HTTPS? 执行前需提前在DNS服务商选择部署的服务进行解析主机记录[y/n]: ')" caddy_conf
+    read -e -p "$(WARN "是否配置Caddy,实现自动HTTPS? 执行前需提前在DNS服务商选择部署的服务进行解析主机记录 ${PROMPT_YES_NO}")" caddy_conf
     case "$caddy_conf" in
         y|Y )
             read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" caddy_domain           
-            read -e -p "$(INFO "请输入要配置的主机记录，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
+            read -e -p "$(INFO "请输入要配置的${LIGHT_MAGENTA}主机记录${RESET}，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
             IFS=',' read -r -a records_array <<< "$selected_records"
 
             declare -A record_templates
@@ -566,7 +575,7 @@ done
 
 
 function INSTALL_NGINX() {
-INFO "====================== 安装Nginx ======================"
+SEPARATOR "安装Nginx"
 start_nginx() {
 systemctl enable nginx &>/dev/null
 systemctl restart nginx
@@ -661,17 +670,17 @@ else
 fi
 
 
-INFO "====================== 配置Nginx ======================"
+SEPARATOR "配置Nginx"
 while true; do
     WARN "自行安装的 Nginx ${LIGHT_RED}请勿执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
     INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
-    read -e -p "$(WARN '是否配置 Nginx？配置完成后需在DNS服务商对部署的服务进行解析主机记录 [y/n]: ')" nginx_conf
+    read -e -p "$(WARN "是否配置 Nginx？配置完成后需在DNS服务商对部署的服务进行解析主机记录 ${PROMPT_YES_NO}")" nginx_conf
     case "$nginx_conf" in
         y|Y )
             read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" nginx_domain
             
-            read -e -p "$(INFO "请输入要配置的主机记录，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
+            read -e -p "$(INFO "请输入要配置的${LIGHT_MAGENTA}主机记录${RESET}，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
             IFS=',' read -r -a records_array <<< "$selected_records"
 
             declare -A record_templates
@@ -1067,7 +1076,7 @@ fi
 
 
 function INSTALL_COMPOSE() {
-INFO "================== 安装Docker Compose =================="
+SEPARATOR "安装Docker Compose"
 
 TAG=`curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r '.tag_name'`
 url="https://github.com/docker/compose/releases/download/$TAG/docker-compose-$(uname -s)-$(uname -m)"
@@ -1193,7 +1202,7 @@ fi
 
 
 function INSTALL_COMPOSE_CN() {
-INFO "================== 安装Docker Compose =================="
+SEPARATOR "安装Docker Compose"
 MAX_ATTEMPTS=3
 attempt=0
 cpu_arch=$(uname -m)
@@ -1288,16 +1297,16 @@ function DOWN_CONFIG() {
     selected_containers=()
 
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1) ${RESET}docker hub"
-    echo -e "${GREEN}2) ${RESET}gcr"
-    echo -e "${GREEN}3) ${RESET}ghcr"
-    echo -e "${GREEN}4) ${RESET}quay"
-    echo -e "${GREEN}5) ${RESET}k8s-gcr"
-    echo -e "${GREEN}6) ${RESET}k8s"
-    echo -e "${GREEN}7) ${RESET}mcr"
-    echo -e "${GREEN}8) ${RESET}elastic"
-    echo -e "${GREEN}9) ${RESET}all"
-    echo -e "${GREEN}0) ${RESET}exit"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET}: ")" choices_reg
@@ -1342,15 +1351,16 @@ function DOWN_CONFIG() {
     fi
 
     WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_CYAN}配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码${RESET}"
-    read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
+    read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" config_auth
     while [[ "$config_auth" != "y" && "$config_auth" != "n" ]]; do
         WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
-        read -e -p "$(echo -e ${INFO} ${GREEN}"是否需要配置镜像仓库访问账号和密码? (y/n): "${RESET})" config_auth
+        read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" config_auth
     done
 
     if [[ "$config_auth" == "y" ]]; then
         while true; do
-            read -e -p "$(echo -e ${INFO} ${GREEN}"请输入账号名称: "${RESET})" username
+
+            read -e -p "$(INFO "请输入账号名称: ")" username
             if [[ -z "$username" ]]; then
                 ERROR "用户名不能为空。请重新输入"
             else
@@ -1359,7 +1369,7 @@ function DOWN_CONFIG() {
         done
 
         while true; do
-            read -e -p "$(echo -e ${INFO} ${GREEN}"请输入账号密码: "${RESET})" password
+            read -e -p "$(INFO "请输入账号密码: ")" password
             if [[ -z "$password" ]]; then
                 ERROR "密码不能为空。请重新输入"
             else
@@ -1376,15 +1386,15 @@ function DOWN_CONFIG() {
     fi
 
     WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
-    read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
+    read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
     while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
         WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
-        read -e -p "$(echo -e ${INFO} ${GREEN}"是否要修改缓存时间? (y/n): "${RESET})" modify_cache
+        read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
     done
 
     if [[ "$modify_cache" == "y" ]]; then
         while true; do
-            read -e -p "$(echo -e ${INFO} ${GREEN}"请输入新的缓存时间值: "${RESET})" new_ttl
+            read -e -p "$(INFO "请输入新的缓存时间值: ")" new_ttl
             for file_url in "${selected_files[@]}"; do
                 yml_name=$(basename "$file_url")
                 sed -ri "s/ttl: 168h/ttl: ${new_ttl}/g" ${PROXY_DIR}/${yml_name} &>/dev/null
@@ -1396,13 +1406,13 @@ function DOWN_CONFIG() {
 
 
 function PROXY_HTTP() {
-read -e -p "$(echo -e ${INFO} ${GREEN}"是否添加代理? (y/n): "${RESET})" modify_config
+read -e -p "$(INFO "是否添加代理? ${PROMPT_YES_NO}")" modify_config
 case $modify_config in
   [Yy]* )
-    read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+    read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     while [[ -z "$url" ]]; do
-      WARN "代理地址不能为空，请重新输入。"
-      read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+      WARN "代理${LIGHT_YELLOW}地址不能为空${RESET}，请重新输入!"
+      read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     done
     sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
     sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
@@ -1422,16 +1432,16 @@ esac
 # 只配置本机Docker走代理，加速镜像下载
 function DOCKER_PROXY_HTTP() {
 WARN "${BOLD}${LIGHT_GREEN}提示:${RESET} ${LIGHT_CYAN}配置本机Docker服务走代理，加速本机Docker镜像下载${RESET}"
-read -e -p "$(echo -e ${INFO} ${GREEN}"是否添加代理? (y/n): "${RESET})" modify_proxy
+read -e -p "$(INFO "是否添加代理? ${PROMPT_YES_NO}")" modify_proxy
 case $modify_proxy in
   [Yy]* )
-    read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+    read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     while [[ -z "$url" ]]; do
-      WARN "代理地址不能为空，请重新输入。"
-      read -e -p "$(INFO "输入代理地址 (e.g. host:port): ")" url
+      WARN "代理${LIGHT_YELLOW}地址不能为空${RESET}，请重新输入。"
+      read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     done
 
-    INFO "你配置代理地址为: http://${url}."
+    INFO "你配置代理地址为: ${CYAN}http://${url}${RESET}"
     ;;
   [Nn]* )
     WARN "退出代理配置"
@@ -1498,7 +1508,7 @@ function RESTART_CONTAINER() {
 }
 
 function INSTALL_DOCKER_PROXY() {
-INFO "======================= 开始安装 ======================="
+SEPARATOR "开始安装"
 wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 DOWN_CONFIG
 PROXY_HTTP
@@ -1519,7 +1529,7 @@ function STOP_REMOVE_CONTAINER() {
 
 function UPDATE_CONFIG() {
 while true; do
-    read -e -p "$(WARN '是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? [y/n]: ')" update_conf
+    read -e -p "$(WARN "是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? ${PROMPT_YES_NO}")" update_conf
     case "$update_conf" in
         y|Y )
             DOWN_CONFIG
@@ -1549,7 +1559,7 @@ function REMOVE_NONE_TAG() {
 
 function PACKAGE() {
 while true; do
-    read -e -p "$(INFO '是否执行软件包安装? [y/n]: ')" choice_package
+    read -e -p "$(INFO "是否执行软件包安装? ${PROMPT_YES_NO}")" choice_package
     case "$choice_package" in
         y|Y )
             INSTALL_PACKAGE
@@ -1566,7 +1576,7 @@ done
 
 function INSTALL_WEB() {
 while true; do
-    read -e -p "$(INFO "是否安装WEB服务? (用来通过域名方式访问加速服务) [y/n]: ")" choice_service
+    read -e -p "$(INFO "是否安装WEB服务? (用来通过域名方式访问加速服务) ${PROMPT_YES_NO}")" choice_service
     if [[ "$choice_service" =~ ^[YyNn]$ ]]; then
         if [[ "$choice_service" == "Y" || "$choice_service" == "y" ]]; then
             while true; do
@@ -1610,16 +1620,16 @@ function UPDATE_SERVICE() {
 
     WARN "更新服务请在docker compose文件存储目录下执行脚本.默认存储路径: ${PROXY_DIR}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1) ${RESET}docker hub"
-    echo -e "${GREEN}2) ${RESET}gcr"
-    echo -e "${GREEN}3) ${RESET}ghcr"
-    echo -e "${GREEN}4) ${RESET}quay"
-    echo -e "${GREEN}5) ${RESET}k8s-gcr"
-    echo -e "${GREEN}6) ${RESET}k8s"
-    echo -e "${GREEN}7) ${RESET}mcr"
-    echo -e "${GREEN}8) ${RESET}elastic"
-    echo -e "${GREEN}9) ${RESET}all"
-    echo -e "${GREEN}0) ${RESET}exit"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO '输入序号选择对应服务,空格分隔多个选项. all选择所有: ')" choices_service
@@ -1681,7 +1691,7 @@ INFO "================================================================"
 
 
 function main() {
-INFO "====================== 请选择操作 ======================"
+SEPARATOR "请选择操作"
 echo -e "1) ${BOLD}${LIGHT_GREEN}新装${RESET}服务"
 echo -e "2) ${BOLD}${LIGHT_MAGENTA}重启${RESET}服务"
 echo -e "3) ${BOLD}${GREEN}更新${RESET}服务"
@@ -1689,7 +1699,7 @@ echo -e "4) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
 echo -e "5) ${BOLD}${LIGHT_YELLOW}卸载${RESET}服务"
 echo -e "6) 本机${BOLD}${CYAN}Docker代理${RESET}"
 echo "---------------------------------------------------------------"
-read -e -p "$(INFO '输入对应数字并按 Enter 键: ')" user_choice
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键: ")" user_choice
 case $user_choice in
     1)
         CHECK_OS
@@ -1702,8 +1712,8 @@ case $user_choice in
         INSTALL_WEB
         
         while true; do
-            INFO "====================== 安装Docker ======================"
-            read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}大陆输2${RESET}]: ")" deploy_docker
+            SEPARATOR "安装Docker"
+            read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}]: ")" deploy_docker
             case "$deploy_docker" in
                 1 )
                     INSTALL_DOCKER
@@ -1722,12 +1732,12 @@ case $user_choice in
         PROMPT
         ;;
     2)
-        INFO "======================= 重启服务 ======================="
+        SEPARATOR "重启服务"
         docker-compose restart
-        INFO "======================= 重启完成 ======================="
+        SEPARATOR "重启完成"
         ;;
     3)
-        INFO "======================= 更新服务 ======================="
+        SEPARATOR "更新服务"
         UPDATE_SERVICE
         if [ ${#selected_services[@]} -eq 0 ]; then
             WARN "没有需要更新的服务。"
@@ -1735,18 +1745,18 @@ case $user_choice in
             docker-compose pull ${selected_services[*]}
             docker-compose up -d --force-recreate ${selected_services[*]}
         fi
-        INFO "======================= 更新完成 ======================="
+        SEPARATOR "更新完成"
         ;;
     4)
-        INFO "======================= 更新配置 ======================="
+        SEPARATOR "更新配置"
         UPDATE_CONFIG
-        INFO "======================= 更新完成 ======================="
+        SEPARATOR "更新完成"
         ;;
     5)
-        INFO "======================= 卸载服务 ======================="
+        SEPARATOR "卸载服务"
         WARN "${LIGHT_RED}注意:${RESET} ${LIGHT_MAGENTA}卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件${RESET}"
         while true; do
-            read -e -p "$(INFO '本人已知晓后果,确认卸载服务? [y/n]: ')" uninstall
+            read -e -p "$(INFO "本人${LIGHT_RED}已知晓后果,确认卸载${RESET}服务? ${PROMPT_YES_NO}")" uninstall
             case "$uninstall" in
                 y|Y )
                     STOP_REMOVE_CONTAINER
@@ -1755,7 +1765,7 @@ case $user_choice in
                     docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
                     rm -rf ${PROXY_DIR} &>/dev/null
                     INFO "${LIGHT_YELLOW}服务已经卸载,感谢你的使用!${RESET}"
-                    INFO "========================================================"
+                    SEPARATOR "=========="
                     break;;
                 n|N )
                     WARN "退出卸载服务."
@@ -1766,13 +1776,13 @@ case $user_choice in
         done
         ;;
     6)
-        INFO "=======================配置本机Docker代理======================="
+        SEPARATOR "配置本机Docker代理"
         DOCKER_PROXY_HTTP
         ADD_PROXY
-        INFO "=======================Docker代理配置完成======================="
+        SEPARATOR "Docker代理配置完成"
         ;;
     *)
-        WARN "输入了无效的选择。请重新运行脚本并选择1-4的选项。"
+        WARN "输入了无效的选择。请重新运行脚本并${LIGHT_GREEN}选择1-6${RESET}的选项."
         ;;
 esac
 }
