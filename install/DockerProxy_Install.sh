@@ -341,7 +341,7 @@ status=$(systemctl is-active caddy)
 if [ "$status" = "active" ]; then
     INFO "Caddy 服务运行正常，请继续..."
 else
-    ERROR "Caddy 服务未运行，会导致服务无法正常安装运行，请检查后再次执行脚本！"
+    ERROR "Caddy 服务未运行，请检查后再次执行脚本！"
     ERROR "-----------服务启动失败，请查看错误日志 ↓↓↓-----------"
       journalctl -u caddy.service --no-pager
     ERROR "-----------服务启动失败，请查看错误日志 ↑↑↑-----------"
@@ -585,7 +585,7 @@ status=$(systemctl is-active nginx)
 if [ "$status" = "active" ]; then
     INFO "Nginx 服务运行正常，请继续..."
 else
-    ERROR "Nginx 服务未运行，会导致服务无法正常安装运行，请检查后再次执行脚本！"
+    ERROR "Nginx 服务未运行，请检查后再次执行脚本！"
     ERROR "-----------服务启动失败，请查看错误日志 ↓↓↓-----------"
       journalctl -u nginx.service --no-pager
     ERROR "-----------服务启动失败，请查看错误日志 ↑↑↑-----------"
@@ -967,7 +967,7 @@ status=$(systemctl is-active docker)
 if [ "$status" = "active" ]; then
     INFO "Docker 服务运行正常，请继续..."
 else
-    ERROR "Docker 服务未运行，会导致服务无法正常安装运行，请检查后再次执行脚本！"
+    ERROR "Docker 服务未运行，请检查后再次执行脚本！"
     ERROR "-----------服务启动失败，请查看错误日志 ↓↓↓-----------"
       journalctl -u docker.service --no-pager
     ERROR "-----------服务启动失败，请查看错误日志 ↑↑↑-----------"
