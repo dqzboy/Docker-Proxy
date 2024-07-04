@@ -74,6 +74,7 @@ function SEPARATOR() {
     echo -e "${INFO}${BOLD}${LIGHT_BLUE}======================== ${1} ========================${RESET}"
 }
 
+
 PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
@@ -341,7 +342,7 @@ status=$(systemctl is-active caddy)
 if [ "$status" = "active" ]; then
     INFO "Caddy 服务运行正常，请继续..."
 else
-    ERROR "Caddy 服务未运行，请检查后再次执行脚本！"
+    ERROR "Caddy 服务未运行，会导致服务无法正常安装运行，请检查后再次执行脚本！"
     ERROR "-----------服务启动失败，请查看错误日志 ↓↓↓-----------"
       journalctl -u caddy.service --no-pager
     ERROR "-----------服务启动失败，请查看错误日志 ↑↑↑-----------"
@@ -452,8 +453,9 @@ else
     WARN "无法确定包管理系统."
     exit 1
 fi
+}
 
-
+function CONFIG_CADDY() {
 SEPARATOR "配置Caddy"
 while true; do
     INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
@@ -585,7 +587,7 @@ status=$(systemctl is-active nginx)
 if [ "$status" = "active" ]; then
     INFO "Nginx 服务运行正常，请继续..."
 else
-    ERROR "Nginx 服务未运行，请检查后再次执行脚本！"
+    ERROR "Nginx 服务未运行，会导致服务无法正常安装运行，请检查后再次执行脚本！"
     ERROR "-----------服务启动失败，请查看错误日志 ↓↓↓-----------"
       journalctl -u nginx.service --no-pager
     ERROR "-----------服务启动失败，请查看错误日志 ↑↑↑-----------"
@@ -668,8 +670,9 @@ else
     WARN "无法确定包管理系统."
     exit 1
 fi
+}
 
-
+function CONFIG_NGINX() {
 SEPARATOR "配置Nginx"
 while true; do
     WARN "自行安装的 Nginx ${LIGHT_RED}请勿执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
@@ -967,7 +970,7 @@ status=$(systemctl is-active docker)
 if [ "$status" = "active" ]; then
     INFO "Docker 服务运行正常，请继续..."
 else
-    ERROR "Docker 服务未运行，请检查后再次执行脚本！"
+    ERROR "Docker 服务未运行，会导致服务无法正常安装运行，请检查后再次执行脚本！"
     ERROR "-----------服务启动失败，请查看错误日志 ↓↓↓-----------"
       journalctl -u docker.service --no-pager
     ERROR "-----------服务启动失败，请查看错误日志 ↑↑↑-----------"
@@ -1115,7 +1118,7 @@ if ! command -v docker-compose &> /dev/null || [ -z "$(docker-compose --version)
     fi
 else
     chmod +x $save_path/docker-compose
-    INFO "Docker Compose 安装成功，版本为：$(docker-compose --version)"
+    INFO "Docker Compose 已经安装，版本为：$(docker-compose --version)"
 fi
 }
 
@@ -1309,7 +1312,7 @@ function DOWN_CONFIG() {
     echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
-    read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET}: ")" choices_reg
+    read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET} > ")" choices_reg
 
     if [[ "$choices_reg" == "9" ]]; then
         for file in "${files[@]}"; do
@@ -1576,6 +1579,7 @@ done
 
 function INSTALL_WEB() {
 while true; do
+    SEPARATOR "安装WEB服务"
     read -e -p "$(INFO "是否安装WEB服务? (用来通过域名方式访问加速服务) ${PROMPT_YES_NO}")" choice_service
     if [[ "$choice_service" =~ ^[YyNn]$ ]]; then
         if [[ "$choice_service" == "Y" || "$choice_service" == "y" ]]; then
@@ -1584,9 +1588,11 @@ while true; do
                 if [[ "$web_service" =~ ^(nginx|Nginx|caddy|Caddy)$ ]]; then
                     if [[ "$web_service" == "nginx" || "$web_service" == "Nginx" ]]; then
                         INSTALL_NGINX
+                        CONFIG_NGINX
                         break
                     elif [[ "$web_service" == "caddy" || "$web_service" == "Caddy" ]]; then
                         INSTALL_CADDY
+                        CONFIG_CADDY
                         break
                     fi
                 else
@@ -1605,8 +1611,7 @@ done
 }
 
 
-
-function UPDATE_SERVICE() {
+function RESTART_SERVICE() {
     services=(
         "dockerhub"
         "gcr"
@@ -1618,7 +1623,7 @@ function UPDATE_SERVICE() {
 
     selected_services=()
 
-    WARN "更新服务请在docker compose文件存储目录下执行脚本.默认存储路径: ${PROXY_DIR}"
+    WARN "重启服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
     echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
     echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
@@ -1632,7 +1637,66 @@ function UPDATE_SERVICE() {
     echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
-    read -e -p "$(INFO '输入序号选择对应服务,空格分隔多个选项. all选择所有: ')" choices_service
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  restart_service
+
+    if [[ "$restart_service" == "9" ]]; then
+        for service_name in "${services[@]}"; do
+            if docker-compose ps --services | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")               
+            else
+                WARN "服务 ${service_name}未运行，跳过重启。"
+            fi
+        done
+        INFO "重启的服务: ${selected_services[*]}"
+    elif [[ "$restart_service" == "0" ]]; then
+        WARN "退出重启服务!"
+        exit 1
+    else
+        for choice in ${restart_service}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+                service_name="${services[$((choice -1))]}"
+                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                    selected_services+=("$service_name")
+                    INFO "重启的服务: ${selected_services[*]}"
+                else
+                    WARN "服务 ${service_name} 未运行，跳过重启。"
+                    
+                fi
+            else
+                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项" 
+                sleep 2; RESTART_SERVICE
+            fi
+        done
+    fi
+}
+
+function UPDATE_SERVICE() {
+    services=(
+        "dockerhub"
+        "gcr"
+        "ghcr"
+        "quay"
+        "k8sgcr"
+        "k8s"
+    )
+
+    selected_services=()
+
+    WARN "更新服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  choices_service
 
     if [[ "$choices_service" == "9" ]]; then
         for service_name in "${services[@]}"; do
@@ -1658,8 +1722,8 @@ function UPDATE_SERVICE() {
                     
                 fi
             else
-                ERROR "无效的选择: $choice"
-                exit 3
+                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项"
+                sleep 2; UPDATE_SERVICE
             fi
         done
     fi
@@ -1690,69 +1754,182 @@ INFO "================================================================"
 }
 
 
-function main() {
-SEPARATOR "请选择操作"
-echo -e "1) ${BOLD}${LIGHT_GREEN}新装${RESET}服务"
-echo -e "2) ${BOLD}${LIGHT_MAGENTA}重启${RESET}服务"
-echo -e "3) ${BOLD}${GREEN}更新${RESET}服务"
-echo -e "4) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
-echo -e "5) ${BOLD}${LIGHT_YELLOW}卸载${RESET}服务"
-echo -e "6) 本机${BOLD}${CYAN}Docker代理${RESET}"
+function ALL_IN_ONE() {
+CHECK_OS
+CHECK_PACKAGE_MANAGER
+CHECK_PKG_MANAGER
+CHECKMEM
+CHECKFIRE
+CHECKBBR
+PACKAGE
+INSTALL_WEB
+while true; do
+    SEPARATOR "安装Docker"
+    read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" deploy_docker
+    case "$deploy_docker" in
+        1 )
+            INSTALL_DOCKER
+            INSTALL_COMPOSE
+            break;;
+        2 )
+            INSTALL_DOCKER_CN
+            INSTALL_COMPOSE_CN
+            break;;
+        * )
+            INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
+    esac
+done
+
+INSTALL_DOCKER_PROXY
+PROMPT
+}
+
+
+function COMP_INST() {
+SEPARATOR "安装组件"
+echo -e "1) ${BOLD}安装${LIGHT_GREEN}环境依赖${RESET}"
+echo -e "2) ${BOLD}安装${LIGHT_GREEN}Docker${RESET}"
+echo -e "3) ${BOLD}安装${LIGHT_MAGENTA}Compose${RESET}"
+echo -e "4) ${BOLD}安装${GREEN}Nginx${RESET}"
+echo -e "5) ${BOLD}安装${LIGHT_CYAN}Caddy${RESET}"
+echo -e "6) ${BOLD}配置${LIGHT_YELLOW}Nginx${RESET}"
+echo -e "7) ${BOLD}配置${CYAN}Caddy${RESET}"
+echo -e "8) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
-read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键: ")" user_choice
-case $user_choice in
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")"  comp_choice
+
+case $comp_choice in
     1)
         CHECK_OS
         CHECK_PACKAGE_MANAGER
         CHECK_PKG_MANAGER
         CHECKMEM
-        CHECKFIRE
-        CHECKBBR
         PACKAGE
-        INSTALL_WEB
-        
+        COMP_INST
+        ;;
+    2)
         while true; do
             SEPARATOR "安装Docker"
-            read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}]: ")" deploy_docker
+            read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" deploy_docker
             case "$deploy_docker" in
                 1 )
                     INSTALL_DOCKER
-                    INSTALL_COMPOSE
                     break;;
                 2 )
                     INSTALL_DOCKER_CN
+                    break;;
+                * )
+                    INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
+            esac
+        done
+        COMP_INST
+        ;;
+    3)
+        while true; do
+            read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" deploy_compose
+            case "$deploy_compose" in
+                1 )
+                    INSTALL_COMPOSE
+                    break;;
+                2 )
                     INSTALL_COMPOSE_CN
                     break;;
                 * )
                     INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
             esac
         done
+        COMP_INST
+        ;;
+    4)
+        INSTALL_NGINX
+        COMP_INST
+        ;;
+    5)
+        INSTALL_Caddy
+        COMP_INST
+        ;;
+    6)
+        CONFIG_NGINX
+        COMP_INST
+        ;;
+    7)
+        CONFIG_CADDY
+        COMP_INST
+        ;;
+    8)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新运行脚本并${LIGHT_GREEN}选择1-7${RESET}的选项."
+        ;;
+esac
+}
 
-        INSTALL_DOCKER_PROXY
-        PROMPT
+function main_menu() {
+echo -e "╔════════════════════════════════════════════════════╗"
+echo -e "║                                                    ║"
+echo -e "║                ${LIGHT_CYAN}欢迎使用Docker-Proxy${RESET}                ║"
+echo -e "║                                                    ║"
+echo -e "║          TG频道: ${UNDERLINE}https://t.me/dqzboyblog${RESET}           ║"
+echo -e "║                                                    ║"
+echo -e "║                                       ${LIGHT_BLUE}by dqzboy${RESET}    ║"
+echo -e "║                                                    ║"
+echo -e "╚════════════════════════════════════════════════════╝"
+echo
+SEPARATOR "请选择操作"
+echo -e "1) ${BOLD}${LIGHT_GREEN}一键${RESET}部署"
+echo -e "2) ${BOLD}${LIGHT_MAGENTA}组件${RESET}安装"
+echo -e "3) ${BOLD}${YELLOW}重启${RESET}服务"
+echo -e "4) ${BOLD}${GREEN}更新${RESET}服务"
+echo -e "5) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
+echo -e "6) ${BOLD}${LIGHT_YELLOW}卸载${RESET}服务"
+echo -e "7) 本机${BOLD}${CYAN}Docker代理${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
+
+
+case $main_choice in
+    1)
+        ALL_IN_ONE
         ;;
     2)
-        SEPARATOR "重启服务"
-        docker-compose restart
-        SEPARATOR "重启完成"
+        COMP_INST
         ;;
     3)
+        SEPARATOR "重启服务"
+        RESTART_SERVICE
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            ERROR "没有需要重启的服务,请重新选择"
+            sleep 2; RESTART_SERVICE
+        else
+            docker-compose stop ${selected_services[*]}
+            docker-compose up -d --force-recreate ${selected_services[*]}
+        fi
+        SEPARATOR "重启完成"
+        ;;
+    4)
         SEPARATOR "更新服务"
         UPDATE_SERVICE
         if [ ${#selected_services[@]} -eq 0 ]; then
-            WARN "没有需要更新的服务。"
+            ERROR "没有需要更新的服务,请重新选择"
+            sleep 2; UPDATE_SERVICE
         else
             docker-compose pull ${selected_services[*]}
             docker-compose up -d --force-recreate ${selected_services[*]}
         fi
         SEPARATOR "更新完成"
         ;;
-    4)
+    5)
         SEPARATOR "更新配置"
         UPDATE_CONFIG
         SEPARATOR "更新完成"
         ;;
-    5)
+    6)
         SEPARATOR "卸载服务"
         WARN "${LIGHT_RED}注意:${RESET} ${LIGHT_MAGENTA}卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件${RESET}"
         while true; do
@@ -1775,15 +1952,20 @@ case $user_choice in
             esac
         done
         ;;
-    6)
+    7)
         SEPARATOR "配置本机Docker代理"
         DOCKER_PROXY_HTTP
         ADD_PROXY
         SEPARATOR "Docker代理配置完成"
         ;;
+    0)
+        exit 1
+        ;;
     *)
-        WARN "输入了无效的选择。请重新运行脚本并${LIGHT_GREEN}选择1-6${RESET}的选项."
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-7${RESET}的选项."
+        sleep 2; main_menu
         ;;
 esac
 }
-main
+
+main_menu
