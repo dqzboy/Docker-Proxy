@@ -1917,6 +1917,39 @@ case $comp_choice in
 esac
 }
 
+
+function ADD_SYS_CMD() {
+MAX_ATTEMPTS=3
+attempt=0
+success=false
+
+DOWNLOAD_URL="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/DockerProxy_Install.sh"
+TARGET_PATH="/usr/bin/hub"
+
+if ! command -v hub &> /dev/null;then
+  while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
+    attempt=$((attempt + 1))
+    WARN "脚本未设置为系统命令，正在进行安装命令..."
+    wget -O "$TARGET_PATH" "$DOWNLOAD_URL" &>/dev/null
+    if [ $? -eq 0 ]; then
+        success=true
+        chmod +x "$TARGET_PATH"
+        break
+    fi
+    ERROR "设置系统命令失败，正在重新安装命令 (尝试次数: $attempt)"
+  done
+
+  if $success; then
+     INFO "设置系统命令成功，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
+  else
+     ERROR "设置系统命令失败"
+     exit 1
+  fi
+else
+    INFO "设置系统命令成功，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
+fi
+}
+
 function main_menu() {
 echo -e "╔════════════════════════════════════════════════════╗"
 echo -e "║                                                    ║"
@@ -1931,11 +1964,12 @@ echo
 SEPARATOR "请选择操作"
 echo -e "1) ${BOLD}${LIGHT_GREEN}一键${RESET}部署"
 echo -e "2) ${BOLD}${LIGHT_MAGENTA}组件${RESET}安装"
-echo -e "3) ${BOLD}${YELLOW}重启${RESET}服务"
+echo -e "3) ${BOLD}${LIGHT_YELLOW}重启${RESET}服务"
 echo -e "4) ${BOLD}${GREEN}更新${RESET}服务"
 echo -e "5) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
-echo -e "6) ${BOLD}${LIGHT_YELLOW}卸载${RESET}服务"
+echo -e "6) ${BOLD}${LIGHT_RED}卸载${RESET}服务"
 echo -e "7) 本机${BOLD}${CYAN}Docker代理${RESET}"
+echo -e "8) 设置成${BOLD}${YELLOW}系统命令${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
@@ -2005,6 +2039,11 @@ case $main_choice in
         DOCKER_PROXY_HTTP
         ADD_DOCKERD_PROXY
         SEPARATOR "Docker代理配置完成"
+        ;;
+    8)
+        SEPARATOR "设置脚本为系统命令"
+        ADD_SYS_CMD
+        SEPARATOR "系统命令设置完成"
         ;;
     0)
         exit 1
