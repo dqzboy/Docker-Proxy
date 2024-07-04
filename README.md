@@ -264,6 +264,9 @@ location ^~ / {
 }
 ```
 
+#### 5、拉取镜像报错 `tls: failed to verify certificate: x509: certificate signed by unknown authority`
+**已知问题：** 证书问题。表示证书是由一个未知的或不受信任的证书颁发机构（CA）签发的。
+
 ---
 
 ## 😺 其他
