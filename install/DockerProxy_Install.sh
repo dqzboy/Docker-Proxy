@@ -1923,7 +1923,7 @@ MAX_ATTEMPTS=3
 attempt=0
 success=false
 
-DOWNLOAD_URL="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/DockerProxy_Install.sh"
+DOWNLOAD_URL="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh"
 TARGET_PATH="/usr/bin/hub"
 
 if ! command -v hub &> /dev/null;then
