@@ -1858,6 +1858,8 @@ case $comp_choice in
         ;;
     2)
         CHECK_OS
+        CHECK_PACKAGE_MANAGER
+        CHECK_PKG_MANAGER
         while true; do
             SEPARATOR "安装Docker"
             read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" deploy_docker
@@ -1876,6 +1878,8 @@ case $comp_choice in
         ;;
     3)
         CHECK_OS
+        CHECK_PACKAGE_MANAGER
+        CHECK_PKG_MANAGER
         while true; do
             read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" deploy_compose
             case "$deploy_compose" in
