@@ -37,6 +37,8 @@
 
 **方式二：** 域名托管到[Cloudflare 开启免费SSL证书](https://www.cloudflare.com/zh-cn/application-services/products/ssl/)
 
+**方式三：** 可通过第三方平台，申请免费的域名证书(免费一般都为DV证书)，适用于个人网站、博客和小型项目
+
 </details>
 
 
@@ -46,11 +48,9 @@
 
 **方案一：**  🚀 如果你身边没有上面提到的这些东西，那么你也可以部署到 **[Render](Render/README.md)**
 
-**方案二：** 如果没有域名，只有公网IP，那么你可以尝试通过 **[Zerossl](https://zerossl.com)** 给IP申请SSL证书
+**方案二：** 如果你只有一台服务器，不想搞域名也不想配置TLS，那么你可以修改Docker的配置文件`daemon.json`，指定`insecure-registries` 为你的镜像加速地址
 
-**方案三：** 如果你只有一台服务器，不想搞域名也不想配置TLS，那么你可以配置Docker的配置文件`daemon.json`，指定`insecure-registries`配置你的镜像加速地址
-
-**方案四：** 如果你是在国内的服务器部署，那么你可以在执行一键部署时配置代理，同时会帮你解决国内无法安装Docker的问题
+**方案三：** 如果你是在国内的服务器部署，那么你可以在执行一键部署时配置代理，同时会帮你解决国内无法安装Docker的问题
 
 </details>
 

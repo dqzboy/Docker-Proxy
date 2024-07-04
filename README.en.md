@@ -37,6 +37,8 @@
 
 **Method two:** Domain hosted to[Cloudflare enabling free SSL certificate](https://www.cloudflare.com/zh-cn/application-services/products/ssl/)
 
+**Method Three:** You can apply for a free domain certificate (typically a DV certificate) through a third-party platform, suitable for personal websites, blogs, and small projects.
+
 </details>
 
 <details>
@@ -45,11 +47,9 @@
 
 **Scheme one:**  🚀 🚀 If you don't have the things mentioned above, you can also deploy to **[Render](Render/README.md)**
 
-**Scheme two:** If you don't have a domain name, only a public IP, then you can try to apply for an SSL certificate for the IP via **[Zerossl](https://zerossl.com)** 
+**Scheme two:** If you only have one server and don't want to deal with domain names or configure TLS, then you can configure Docker's configuration file `daemon.json`, and specify `insecure-registries` to configure your image acceleration address
 
-**Scheme three:** If you only have one server and don't want to deal with domain names or configure TLS, then you can configure Docker's configuration file `daemon.json`, and specify `insecure-registries` to configure your image acceleration address
-
-**Scheme four:** If you're deploying on a server within China, you can configure proxies while executing one-click deployment, which will also help solve the problem of Docker not being able to install domestically
+**Scheme three:** If you're deploying on a server within China, you can configure proxies while executing one-click deployment, which will also help solve the problem of Docker not being able to install domestically
 
 </details>
 
