@@ -1890,11 +1890,15 @@ case $comp_choice in
         COMP_INST
         ;;
     4)
+        CHECK_PACKAGE_MANAGER
+        CHECK_PKG_MANAGER
         INSTALL_NGINX
         COMP_INST
         ;;
     5)
-        INSTALL_Caddy
+        CHECK_PACKAGE_MANAGER
+        CHECK_PKG_MANAGER
+        INSTALL_CADDY
         COMP_INST
         ;;
     6)
