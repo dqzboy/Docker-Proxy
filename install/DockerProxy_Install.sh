@@ -1935,10 +1935,23 @@ MAX_ATTEMPTS=3
 attempt=0
 success=false
 
-DOWNLOAD_URL="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh"
 TARGET_PATH="/usr/bin/hub"
 
-if ! command -v hub &> /dev/null;then
+while true; do
+    read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" sys_cmd
+    case "$sys_cmd" in
+        1 )
+            DOWNLOAD_URL="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh"
+            break;;
+        2 )
+            DOWNLOAD_URL="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/DockerProxy_Install.sh"
+            break;;
+        * )
+            INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
+    esac
+done
+
+if ! command -v hub &> /dev/null; then
   while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
     attempt=$((attempt + 1))
     WARN "脚本未设置为系统命令，正在进行安装命令..."
@@ -1959,6 +1972,7 @@ if ! command -v hub &> /dev/null;then
   fi
 else
     INFO "设置系统命令成功，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
+    chmod +x "$TARGET_PATH"
 fi
 }
 
@@ -2034,7 +2048,12 @@ case $main_choice in
                     REMOVE_NONE_TAG
                     docker rmi --force $(docker images -q ${IMAGE_NAME}) &>/dev/null
                     docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
-                    rm -rf ${PROXY_DIR} &>/dev/null
+                    if [ -d "${PROXY_DIR}" ]; then
+                        rm -rf "${PROXY_DIR}" &>/dev/null
+                    fi
+                    if [ -f "/usr/bin/hub" ]; then
+                        rm -f /usr/bin/hub &>/dev/null
+                    fi
                     INFO "${LIGHT_YELLOW}服务已经卸载,感谢你的使用!${RESET}"
                     SEPARATOR "=========="
                     break;;
