@@ -8,7 +8,7 @@
 
 ---
 
-[Telegram Group](https://t.me/+ghs_XDp1vwxkMGU9) 
+[Docker Proxy-交流群](https://t.me/+ghs_XDp1vwxkMGU9) 
 
 ---
 
