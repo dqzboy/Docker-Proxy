@@ -80,6 +80,7 @@ mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
 
 GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
+CDNGITRAW="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy"
 
 IMAGE_NAME="registry"
 UI_IMAGE_NAME="dqzboy/docker-registry-ui"
@@ -258,7 +259,8 @@ case $choice_bbr in
         INFO "不开启BBR"
     ;;
     *)
-        ERROR "输入错误！请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
+        WARN "输入了无效的选择。请重新输入${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
+        CHECKBBR
     ;;
 esac
 }
@@ -325,7 +327,7 @@ elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
         fi
     done
 else
-    WARN "无法确定包管理系统."
+    ERROR "无法确定包管理系统,脚本无法继续执行,请检查!"
     exit 1
 fi
 }
@@ -1280,21 +1282,50 @@ auth:
 
 function update_docker_registry_url() {
     local container_name=$1
-    sed -ri "s@- DOCKER_REGISTRY_URL=http://reg-docker-hub:5000@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/docker-compose.yaml
+    if [[ -f "${PROXY_DIR}/docker-compose.yaml" ]]; then
+        sed -ri "s@- DOCKER_REGISTRY_URL=http://reg-docker-hub:5000@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/docker-compose.yaml
+    else
+        ERROR "文件 ${LIGHT_CYAN}${PROXY_DIR}/docker-compose.yaml${RESET} ${LIGHT_RED}不存在${RESET},导致容器无法应用新配置"
+        exit 1
+    fi
+}
+
+
+function CONFIG_FILES() {
+while true; do
+    read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" install_docker_reg
+    case "$install_docker_reg" in
+        1 )
+            files=(
+                "dockerhub reg-docker-hub ${GITRAW}/config/registry-hub.yml"
+                "gcr reg-gcr ${GITRAW}/config/registry-gcr.yml"
+                "ghcr reg-ghcr ${GITRAW}/config/registry-ghcr.yml"
+                "quay reg-quay ${GITRAW}/config/registry-quay.yml"
+                "k8sgcr reg-k8s-gcr ${GITRAW}/config/registry-k8sgcr.yml"
+                "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
+                "mcr reg-mcr ${GITRAW}/config/registry-mcr.yml"
+                "elastic reg-elastic ${GITRAW}/config/registry-elastic.yml"
+            )
+            break;;
+        2 )
+            files=(
+                "dockerhub reg-docker-hub ${CDNGITRAW}/config/registry-hub.yml"
+                "gcr reg-gcr ${CDNGITRAW}/config/registry-gcr.yml"
+                "ghcr reg-ghcr ${CDNGITRAW}/config/registry-ghcr.yml"
+                "quay reg-quay ${CDNGITRAW}/config/registry-quay.yml"
+                "k8sgcr reg-k8s-gcr ${CDNGITRAW}/config/registry-k8sgcr.yml"
+                "k8s reg-k8s ${CDNGITRAW}/config/registry-k8s.yml"
+                "mcr reg-mcr ${CDNGITRAW}/config/registry-mcr.yml"
+                "elastic reg-elastic ${CDNGITRAW}/config/registry-elastic.yml"
+            )
+            break;;
+        * )
+            INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
+    esac
+done
 }
 
 function DOWN_CONFIG() {
-    files=(
-        "dockerhub reg-docker-hub ${GITRAW}/config/registry-hub.yml"
-        "gcr reg-gcr ${GITRAW}/config/registry-gcr.yml"
-        "ghcr reg-ghcr ${GITRAW}/config/registry-ghcr.yml"
-        "quay reg-quay ${GITRAW}/config/registry-quay.yml"
-        "k8sgcr reg-k8s-gcr ${GITRAW}/config/registry-k8sgcr.yml"
-        "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
-        "mcr reg-mcr ${GITRAW}/config/registry-mcr.yml"
-        "elastic reg-elastic ${GITRAW}/config/registry-elastic.yml"
-    )
-
     selected_names=()
     selected_files=()
     selected_containers=()
@@ -1313,6 +1344,11 @@ function DOWN_CONFIG() {
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
     read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET} > ")" choices_reg
+    while [[ ! "$choices_reg" =~ ^([0-9]+[[:space:]]*)+$ ]]; do
+        WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
+        read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET} > ")" choices_reg
+    done
+
 
     if [[ "$choices_reg" == "9" ]]; then
         for file in "${files[@]}"; do
@@ -1339,15 +1375,14 @@ function DOWN_CONFIG() {
                 selected_files+=("$file_url")
                 wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
             else
-                ERROR "无效的选择: $choice"
-                exit 1
+                WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号" 
             fi
         done
 
         selected_all=false
 
 
-        if [[ "$user_choice" != "4" ]]; then
+        if [[ "$main_choice" != "5" ]]; then
             first_selected_container=${selected_containers[0]}
             update_docker_registry_url "$first_selected_container"
         fi
@@ -1423,10 +1458,11 @@ case $modify_config in
     INFO "你配置代理地址为: ${CYAN}http://${url}${RESET}"
     ;;
   [Nn]* )
-    WARN "跳过代理配置"
+    WARN "跳过添加代理配置"
     ;;
   * )
-    ERROR "无效的输入。跳过配置修改"
+    ERROR "无效的输入。请重新输入${LIGHT_GREEN}Y or N ${RESET}的选项"
+    PROXY_HTTP
     ;;
 esac
 }
@@ -1435,7 +1471,7 @@ esac
 # 只配置本机Docker走代理，加速镜像下载
 function DOCKER_PROXY_HTTP() {
 WARN "${BOLD}${LIGHT_GREEN}提示:${RESET} ${LIGHT_CYAN}配置本机Docker服务走代理，加速本机Docker镜像下载${RESET}"
-read -e -p "$(INFO "是否添加代理? ${PROMPT_YES_NO}")" modify_proxy
+read -e -p "$(INFO "是否添加本机Docker服务代理? ${PROMPT_YES_NO}")" modify_proxy
 case $modify_proxy in
   [Yy]* )
     read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
@@ -1447,18 +1483,18 @@ case $modify_proxy in
     INFO "你配置代理地址为: ${CYAN}http://${url}${RESET}"
     ;;
   [Nn]* )
-    WARN "退出代理配置"
+    WARN "退出本机Docker服务代理配置"
     exit 1
     ;;
   * )
-    ERROR "无效的输入。退出代理配置修改"
-    exit 2
+    ERROR "无效的输入。请重新输入${LIGHT_GREEN}Y or N ${RESET}的选项"
+    DOCKER_PROXY_HTTP
     ;;
 esac
 }
 
 
-function ADD_PROXY() {
+function ADD_DOCKERD_PROXY() {
 mkdir -p /etc/systemd/system/docker.service.d
 
 
@@ -1482,7 +1518,9 @@ EOF
         systemctl restart docker &>/dev/null
         CHECK_DOCKER
     else
-        INFO "======================================================= "
+        if [[ "$main_choice" = "7" ]]; then
+            WARN "已经存在相同的代理配置,${LIGHT_RED}请勿重复配置${RESET}"
+        fi       
     fi
 fi
 }
@@ -1490,7 +1528,7 @@ fi
 
 function START_CONTAINER() {
     if [ "$modify_config" = "y" ] || [ "$modify_config" = "Y" ]; then
-        ADD_PROXY
+        ADD_DOCKERD_PROXY
     else
         INFO "拉取服务镜像并启动服务中，请稍等..."
     fi
@@ -1511,8 +1549,13 @@ function RESTART_CONTAINER() {
 }
 
 function INSTALL_DOCKER_PROXY() {
-SEPARATOR "开始安装"
-wget -P ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
+SEPARATOR "部署Docker Proxy"
+CONFIG_FILES
+if [[ "$install_docker_reg" == "1" ]]; then
+    wget -NP ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
+elif [[ "$install_docker_reg" == "2" ]]; then
+    wget -NP ${PROXY_DIR}/ ${CDNGITRAW}/docker-compose.yaml &>/dev/null
+fi
 DOWN_CONFIG
 PROXY_HTTP
 START_CONTAINER
@@ -1535,6 +1578,7 @@ while true; do
     read -e -p "$(WARN "是否更新配置，更新前请确保您已备份现有配置，此操作不可逆? ${PROMPT_YES_NO}")" update_conf
     case "$update_conf" in
         y|Y )
+            CONFIG_FILES
             DOWN_CONFIG
             RESTART_CONTAINER
             break;;
@@ -1619,6 +1663,8 @@ function RESTART_SERVICE() {
         "quay"
         "k8sgcr"
         "k8s"
+        "mcr"
+        "elastic"
     )
 
     selected_services=()
@@ -1664,7 +1710,7 @@ function RESTART_SERVICE() {
                 fi
             else
                 ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项" 
-                sleep 2; RESTART_SERVICE
+                RESTART_SERVICE
             fi
         done
     fi
@@ -1678,6 +1724,8 @@ function UPDATE_SERVICE() {
         "quay"
         "k8sgcr"
         "k8s"
+        "mcr"
+        "elastic"
     )
 
     selected_services=()
@@ -1723,7 +1771,7 @@ function UPDATE_SERVICE() {
                 fi
             else
                 ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项"
-                sleep 2; UPDATE_SERVICE
+                UPDATE_SERVICE
             fi
         done
     fi
@@ -1905,7 +1953,7 @@ case $main_choice in
         RESTART_SERVICE
         if [ ${#selected_services[@]} -eq 0 ]; then
             ERROR "没有需要重启的服务,请重新选择"
-            sleep 2; RESTART_SERVICE
+            RESTART_SERVICE
         else
             docker-compose stop ${selected_services[*]}
             docker-compose up -d --force-recreate ${selected_services[*]}
@@ -1917,7 +1965,7 @@ case $main_choice in
         UPDATE_SERVICE
         if [ ${#selected_services[@]} -eq 0 ]; then
             ERROR "没有需要更新的服务,请重新选择"
-            sleep 2; UPDATE_SERVICE
+            UPDATE_SERVICE
         else
             docker-compose pull ${selected_services[*]}
             docker-compose up -d --force-recreate ${selected_services[*]}
@@ -1955,7 +2003,7 @@ case $main_choice in
     7)
         SEPARATOR "配置本机Docker代理"
         DOCKER_PROXY_HTTP
-        ADD_PROXY
+        ADD_DOCKERD_PROXY
         SEPARATOR "Docker代理配置完成"
         ;;
     0)
