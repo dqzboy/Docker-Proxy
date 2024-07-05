@@ -53,3 +53,6 @@ location ^~ / {
 
 #### 5、拉取镜像报错 `tls: failed to verify certificate: x509: certificate signed by unknown authority`
 - [x] **已知问题：** 证书问题。表示证书是由一个未知的或不受信任的证书颁发机构（CA）签发的。
+
+#### 6、通过docker-compose部署，如何设置Proxy认证
+- [x] **已知问题：** 查看教程：[自建Docker镜像加速服务](https://www.dqzboy.com/8709.html)
