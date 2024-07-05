@@ -54,7 +54,7 @@
 </details>
 
 
-> **During the deployment process, if you encounter any issues or questions, please scroll down to find the problem, see if your situation has been listed! Try to resolve it yourself first.**
+> **During the deployment process, if you encounter any issues or questions, please scroll down to find the [problem](https://github.com/dqzboy/Docker-Proxy/blob/main/README.en.md#-issue), see if your situation has been listed! Try to resolve it yourself first.**
 
 ---
 
