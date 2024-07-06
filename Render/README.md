@@ -33,18 +33,18 @@
 
 **3. 选择以docker容器的方式部署，输入下面任一镜像地址**
 
-> **⚠️ 特别说明：当前作者Docker Hub仓库账号已被Render特殊对待了,建议大家把下面的镜像下载到自己本地，然后上传到自己的Docker hub仓库。下面的镜像地址也会随时被Render限制使用(具体操作可以看下面教程)**
+> **⚠️ 特别说明：当前作者Docker Hub仓库账号已被Render特殊对待了,建议大家把下面的镜像下载到自己本地，然后上传到自己的Docker hub仓库。下面的镜像地址也会随时被Render限制使用[具体操作可以看此教程](#-将镜像上传到自己的docker-hub仓库)**
 
 | 镜像 | 平台 |
 |-------|---------------|
-| dqzboyhub/mirror-hub:latest   | docker hub
-| dqzboyhub/mirror-gcr:latest      | Google Container Registry
-| dqzboyhub/mirror-ghcr:latest     | GitHub Container Registry
-| dqzboyhub/mirror-k8sgcr:latest  | Kubernetes Container Registry
-| dqzboyhub/mirror-k8sreg:latest      | Kubernetes's container image registry
-| dqzboyhub/mirror-quay:latest     | Quay Container Registry
-| dqzboyhub/mirror-elastic:latest     | Microsoft Container Registry
-| dqzboyhub/mirror-mcr:latest     | Elastic Stack
+| dqzhub/mirror-hub:latest   | docker hub
+| dqzhub/mirror-gcr:latest      | Google Container Registry
+| dqzhub/mirror-ghcr:latest     | GitHub Container Registry
+| dqzhub/mirror-k8sgcr:latest  | Kubernetes Container Registry
+| dqzhub/mirror-k8sreg:latest      | Kubernetes's container image registry
+| dqzhub/mirror-quay:latest     | Quay Container Registry
+| dqzhub/mirror-elastic:latest     | Microsoft Container Registry
+| dqzhub/mirror-mcr:latest     | Elastic Stack
 
 <table>
     <tr>
