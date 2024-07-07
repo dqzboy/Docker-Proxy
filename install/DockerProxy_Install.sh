@@ -80,7 +80,7 @@ mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
 
 GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
-CDNGITRAW="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy"
+CNGITRAW="https://gitee.com/boydqz/Docker-Proxy/raw/main"
 
 IMAGE_NAME="registry"
 UI_IMAGE_NAME="dqzboy/docker-registry-ui"
@@ -1135,13 +1135,13 @@ docker_ver="docker-26.1.4.tgz"
 
 case $cpu_arch in
   "arm64")
-    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/$docker_ver"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/686ed74bf10e53fbec21f4c8d0eb4ae68b458198/$docker_ver"
     ;;
   "aarch64")
-    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/$docker_ver"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/686ed74bf10e53fbec21f4c8d0eb4ae68b458198/$docker_ver"
     ;;
   "x86_64")
-    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/x86_64/$docker_ver"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/f4cf4ec4167a4e6e4debc61d7b0be0d9b729a93a/$docker_ver"
     ;;
   *)
     ERROR "不支持的CPU架构: $cpu_arch"
@@ -1216,13 +1216,13 @@ save_path="/usr/local/bin"
 
 case $cpu_arch in
   "arm64")
-    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/docker-compose-linux-aarch64"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/b373da5a65a002691d78cf8d279704e85253d18a/docker-compose-linux-aarch64"
     ;;
   "aarch64")
-    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/aarch64/docker-compose-linux-aarch64"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/b373da5a65a002691d78cf8d279704e85253d18a/docker-compose-linux-aarch64"
     ;;
   "x86_64")
-    url="https://gitlab.com/dqzboy/docker/-/raw/main/stable/x86_64/docker-compose-linux-x86_64"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/3cd18cebe93acf81597b9c18f6770bf1bc5fa6dc/docker-compose-linux-x86_64"
     ;;
   *)
     ERROR "不支持的CPU架构: $cpu_arch"
@@ -1309,14 +1309,14 @@ while true; do
             break;;
         2 )
             files=(
-                "dockerhub reg-docker-hub ${CDNGITRAW}/config/registry-hub.yml"
-                "gcr reg-gcr ${CDNGITRAW}/config/registry-gcr.yml"
-                "ghcr reg-ghcr ${CDNGITRAW}/config/registry-ghcr.yml"
-                "quay reg-quay ${CDNGITRAW}/config/registry-quay.yml"
-                "k8sgcr reg-k8s-gcr ${CDNGITRAW}/config/registry-k8sgcr.yml"
-                "k8s reg-k8s ${CDNGITRAW}/config/registry-k8s.yml"
-                "mcr reg-mcr ${CDNGITRAW}/config/registry-mcr.yml"
-                "elastic reg-elastic ${CDNGITRAW}/config/registry-elastic.yml"
+                "dockerhub reg-docker-hub ${CNGITRAW}/config/registry-hub.yml"
+                "gcr reg-gcr ${CNGITRAW}/config/registry-gcr.yml"
+                "ghcr reg-ghcr ${CNGITRAW}/config/registry-ghcr.yml"
+                "quay reg-quay ${CNGITRAW}/config/registry-quay.yml"
+                "k8sgcr reg-k8s-gcr ${CNGITRAW}/config/registry-k8sgcr.yml"
+                "k8s reg-k8s ${CNGITRAW}/config/registry-k8s.yml"
+                "mcr reg-mcr ${CNGITRAW}/config/registry-mcr.yml"
+                "elastic reg-elastic ${CNGITRAW}/config/registry-elastic.yml"
             )
             break;;
         * )
@@ -1443,6 +1443,7 @@ function DOWN_CONFIG() {
 }
 
 
+# 一键部署调此函数
 function PROXY_HTTP() {
 read -e -p "$(INFO "是否添加代理? ${PROMPT_YES_NO}")" modify_config
 case $modify_config in
@@ -1468,7 +1469,7 @@ esac
 }
 
 
-# 只配置本机Docker走代理，加速镜像下载
+# 7) 本机Docker代理,调此函数
 function DOCKER_PROXY_HTTP() {
 WARN "${BOLD}${LIGHT_GREEN}提示:${RESET} ${LIGHT_CYAN}配置本机Docker服务走代理，加速本机Docker镜像下载${RESET}"
 read -e -p "$(INFO "是否添加本机Docker服务代理? ${PROMPT_YES_NO}")" modify_proxy
@@ -1507,6 +1508,7 @@ EOF
     systemctl daemon-reload
     systemctl restart docker &>/dev/null
     CHECK_DOCKER
+    CHECK_DOCKER_PROXY "$url"
 else
     if ! grep -q "HTTP_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf || ! grep -q "HTTPS_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf; then
         cat >> /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
@@ -1517,6 +1519,7 @@ EOF
         systemctl daemon-reload
         systemctl restart docker &>/dev/null
         CHECK_DOCKER
+        CHECK_DOCKER_PROXY "$url"
     else
         if [[ "$main_choice" = "7" ]]; then
             WARN "已经存在相同的代理配置,${LIGHT_RED}请勿重复配置${RESET}"
@@ -1524,6 +1527,20 @@ EOF
     fi
 fi
 }
+
+function CHECK_DOCKER_PROXY() {
+    local url=$1
+    local http_proxy=$(docker info 2>/dev/null | grep -i "HTTP Proxy" | awk -F ': ' '{print $2}')
+    local https_proxy=$(docker info 2>/dev/null | grep -i "HTTPS Proxy" | awk -F ': ' '{print $2}')
+
+    if [[ "$http_proxy" == "http://$url" && "$https_proxy" == "http://$url" ]]; then
+        INFO "Docker 代理${LIGHT_GREEN}配置成功${RESET}，当前 HTTP Proxy: ${LIGHT_CYAN}$http_proxy${RESET}, HTTPS Proxy: ${LIGHT_CYAN}$https_proxy${RESET}"
+    else
+        ERROR "Docker 代理${LIGHT_RED}配置失败${RESET}，请检查配置并重新执行配置"
+        DOCKER_PROXY_HTTP
+    fi
+}
+
 
 
 function START_CONTAINER() {
@@ -1554,7 +1571,7 @@ CONFIG_FILES
 if [[ "$install_docker_reg" == "1" ]]; then
     wget -NP ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
 elif [[ "$install_docker_reg" == "2" ]]; then
-    wget -NP ${PROXY_DIR}/ ${CDNGITRAW}/docker-compose.yaml &>/dev/null
+    wget -NP ${PROXY_DIR}/ ${CNGITRAW}/docker-compose.yaml &>/dev/null
 fi
 DOWN_CONFIG
 PROXY_HTTP
