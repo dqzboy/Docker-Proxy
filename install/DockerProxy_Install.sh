@@ -1819,7 +1819,8 @@ INFO "================================================================"
 }
 
 
-function ALL_IN_ONE() {
+function INSTALL_PROXY() {
+ALL_IN_ONE() {
 CHECK_OS
 CHECK_PACKAGE_MANAGER
 CHECK_PKG_MANAGER
@@ -1848,6 +1849,41 @@ done
 INSTALL_DOCKER_PROXY
 PROMPT
 }
+
+ADD_DOCKER_SERVICE() {
+WARN "提示: 此操作是在你的服务器${LIGHT_CYAN}已经部署对应组件${RESET}后才可执行,否则执行过程将会出现${LIGHT_RED}各种报错!${RESET}"
+INSTALL_DOCKER_PROXY
+}
+
+
+SEPARATOR "安装服务"
+echo -e "1) ${BOLD}${LIGHT_GREEN}一键${RESET}部署所有服务"
+echo -e "2) ${BOLD}${LIGHT_CYAN}安装指定${RESET}容器服务"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" proxy_install
+
+case $proxy_install in
+    1)
+        ALL_IN_ONE
+        ;;
+    2)
+        ADD_DOCKER_SERVICE       
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        INSTALL_PROXY
+        ;;
+esac
+}
+
 
 
 function COMP_INST() {
@@ -1941,7 +1977,8 @@ case $comp_choice in
         exit 1
         ;;
     *)
-        WARN "输入了无效的选择。请重新运行脚本并${LIGHT_GREEN}选择1-7${RESET}的选项."
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-8${RESET}的选项."
+        COMP_INST
         ;;
 esac
 }
@@ -1951,47 +1988,222 @@ function ADD_SYS_CMD() {
 MAX_ATTEMPTS=3
 attempt=0
 success=false
-
 TARGET_PATH="/usr/bin/hub"
 
-while true; do
-    read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" sys_cmd
-    case "$sys_cmd" in
-        1 )
-            DOWNLOAD_URL="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh"
-            break;;
-        2 )
-            DOWNLOAD_URL="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/DockerProxy_Install.sh"
-            break;;
-        * )
-            INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
-    esac
+INSTALL_ENV() {
+    while true; do
+        read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" sys_cmd
+        case "$sys_cmd" in
+            1 )
+                DOWNLOAD_URL="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh"
+                break;;
+            2 )
+                DOWNLOAD_URL="https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/DockerProxy_Install.sh"                
+                break;;
+            * )
+                INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
+        esac
+    done
+}
+
+INSTALL_OR_UPDATE_CMD() {
+    local action=$1
+    while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
+        attempt=$((attempt + 1))
+        if [[ "$action" == "安装" ]]; then
+            if command -v hub &> /dev/null; then
+                INFO "系统命令已存在，无需安装。"
+                success=true
+                break
+            fi
+            WARN "正在安装脚本中,请稍等..."
+        else
+            WARN "正在进行脚本更新,请稍等..."
+        fi
+        wget -O "$TARGET_PATH" "$DOWNLOAD_URL" &>/dev/null
+        if [ $? -eq 0 ]; then
+            success=true
+            chmod +x "$TARGET_PATH"
+            break
+        fi
+        ERROR "${action}脚本${RED}失败${RESET}，正在尝试重新${action} (尝试次数: $attempt)"
+    done
+
+    if $success; then
+        INFO "${action}脚本${GREEN}成功${RESET}，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
+    else
+        ERROR "设置系统命令失败"
+        exit 1
+    fi
+}
+
+SEPARATOR "设置脚本为系统命令"
+echo -e "1) ${BOLD}安装${LIGHT_GREEN}系统命令${RESET}"
+echo -e "2) ${BOLD}更新${LIGHT_CYAN}系统命令${RESET}"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" cmd_choice
+
+case $cmd_choice in
+    1)
+        INSTALL_ENV
+        INSTALL_OR_UPDATE_CMD "安装"
+        ADD_SYS_CMD
+        ;;
+    2)
+        INSTALL_ENV
+        INSTALL_OR_UPDATE_CMD "更新"
+        ADD_SYS_CMD
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        ADD_SYS_CMD
+        ;;
+esac
+}
+
+
+function UNI_DOCKER_SERVICE() {
+RM_SERVICE() {
+selected_containers=()
+
+files=(
+    "dockerhub registry-hub.yml"
+    "gcr registry-gcr.yml"
+    "ghcr registry-ghcr.yml"
+    "quay registry-quay.yml"
+    "k8sgcr registry-k8sgcr.yml"
+    "k8s registry-k8s.yml"
+    "mcr registry-mcr.yml"
+    "elastic registry-elastic.yml"
+)
+
+
+echo -e "${YELLOW}-------------------------------------------------${RESET}"
+echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+read -e -p "$(INFO "输入序号删除服务和对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" rm_service
+while [[ ! "$rm_service" =~ ^([0-8]+[[:space:]]*)+$ ]]; do
+    WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+    read -e -p "$(INFO "输入序号删除服务和对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" rm_service
 done
 
-if ! command -v hub &> /dev/null; then
-  while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
-    attempt=$((attempt + 1))
-    WARN "脚本未设置为系统命令，正在进行安装命令..."
-    wget -O "$TARGET_PATH" "$DOWNLOAD_URL" &>/dev/null
-    if [ $? -eq 0 ]; then
-        success=true
-        chmod +x "$TARGET_PATH"
-        break
-    fi
-    ERROR "设置系统命令失败，正在重新安装命令 (尝试次数: $attempt)"
-  done
 
-  if $success; then
-     INFO "设置系统命令成功，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
-  else
-     ERROR "设置系统命令失败"
-     exit 1
-  fi
+if [[ "$rm_service" == "0" ]]; then
+    WARN "退出删除容器服务操作!"
+    return
 else
-    INFO "设置系统命令成功，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
-    chmod +x "$TARGET_PATH"
+    for choice in ${rm_service}; do
+        if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+            file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
+            service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
+            
+            # 检查服务是否运行，并删除容器
+            if docker-compose ps --services | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")
+                INFO "删除的服务: ${selected_services[*]}"
+                docker-compose down ${selected_services[*]}
+            else
+                WARN "服务 ${service_name} 未运行，但将尝试删除相关文件。"
+            fi
+            
+            # 检查文件是否存在，并删除文件
+            if [ -f "${PROXY_DIR}/${file_name}" ]; then
+                rm -f "${PROXY_DIR}/${file_name}"
+                INFO "配置文件 ${file_name} 已被删除。"
+            else
+                WARN "配置文件 ${file_name} 不存在，无需删除。"
+            fi
+        else
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            RM_SERVICE
+        fi
+    done
 fi
 }
+
+
+RM_ALLSERVICE() {
+STOP_REMOVE_CONTAINER
+REMOVE_NONE_TAG
+docker rmi --force $(docker images -q ${IMAGE_NAME}) &>/dev/null
+docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
+if [ -d "${PROXY_DIR}" ]; then
+    rm -rf "${PROXY_DIR}" &>/dev/null
+fi
+if [ -f "/usr/bin/hub" ]; then
+    rm -f /usr/bin/hub &>/dev/null
+fi
+INFO "${LIGHT_YELLOW}服务已经卸载,感谢你的使用!${RESET}"
+SEPARATOR "=========="
+}
+
+CONFIREM_ACTION() {
+    local action_name=$1
+    local action_function=$2
+
+    WARN "${LIGHT_RED}注意:${RESET} ${LIGHT_YELLOW}卸载服务会一同将本地的配置和对应服务删除，请执行删除之前确定是否需要备份本地的配置文件${RESET}"
+    while true; do
+        read -e -p "$(INFO "本人${LIGHT_RED}已知晓后果,确认${action_name}${RESET}服务? ${PROMPT_YES_NO}")" uniservice
+        case "$uniservice" in
+            y|Y )
+                $action_function
+                break;;
+            n|N )
+                WARN "退出${action_name}服务."
+                break;;
+            * )
+                INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
+        esac
+    done
+}
+
+SEPARATOR "卸载服务"
+echo -e "1) ${BOLD}卸载${LIGHT_YELLOW}所有服务${RESET}"
+echo -e "2) ${BOLD}删除${LIGHT_CYAN}指定服务${RESET}"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" rm_choice
+
+case $rm_choice in
+    1)
+        CONFIREM_ACTION "卸载所有" RM_ALLSERVICE
+        UNI_DOCKER_SERVICE
+        ;;
+    2)
+        CONFIREM_ACTION "删除指定" RM_SERVICE
+        UNI_DOCKER_SERVICE
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        UNI_DOCKER_SERVICE
+        ;;
+esac
+}
+
 
 function main_menu() {
 echo -e "╔════════════════════════════════════════════════════╗"
@@ -2005,7 +2217,7 @@ echo -e "║                                                    ║"
 echo -e "╚════════════════════════════════════════════════════╝"
 echo
 SEPARATOR "请选择操作"
-echo -e "1) ${BOLD}${LIGHT_GREEN}一键${RESET}部署"
+echo -e "1) ${BOLD}${LIGHT_GREEN}安装${RESET}服务"
 echo -e "2) ${BOLD}${LIGHT_MAGENTA}组件${RESET}安装"
 echo -e "3) ${BOLD}${LIGHT_YELLOW}重启${RESET}服务"
 echo -e "4) ${BOLD}${GREEN}更新${RESET}服务"
@@ -2020,7 +2232,7 @@ read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}E
 
 case $main_choice in
     1)
-        ALL_IN_ONE
+        INSTALL_PROXY
         ;;
     2)
         COMP_INST
@@ -2055,32 +2267,7 @@ case $main_choice in
         SEPARATOR "更新完成"
         ;;
     6)
-        SEPARATOR "卸载服务"
-        WARN "${LIGHT_RED}注意:${RESET} ${LIGHT_MAGENTA}卸载服务会一同将项目本地的镜像缓存删除，请执行卸载之前确定是否需要备份本地的镜像缓存文件${RESET}"
-        while true; do
-            read -e -p "$(INFO "本人${LIGHT_RED}已知晓后果,确认卸载${RESET}服务? ${PROMPT_YES_NO}")" uninstall
-            case "$uninstall" in
-                y|Y )
-                    STOP_REMOVE_CONTAINER
-                    REMOVE_NONE_TAG
-                    docker rmi --force $(docker images -q ${IMAGE_NAME}) &>/dev/null
-                    docker rmi --force $(docker images -q ${UI_IMAGE_NAME}) &>/dev/null
-                    if [ -d "${PROXY_DIR}" ]; then
-                        rm -rf "${PROXY_DIR}" &>/dev/null
-                    fi
-                    if [ -f "/usr/bin/hub" ]; then
-                        rm -f /usr/bin/hub &>/dev/null
-                    fi
-                    INFO "${LIGHT_YELLOW}服务已经卸载,感谢你的使用!${RESET}"
-                    SEPARATOR "=========="
-                    break;;
-                n|N )
-                    WARN "退出卸载服务."
-                    break;;
-                * )
-                    INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
-            esac
-        done
+        UNI_DOCKER_SERVICE
         ;;
     7)
         SEPARATOR "配置本机Docker代理"
@@ -2089,9 +2276,7 @@ case $main_choice in
         SEPARATOR "Docker代理配置完成"
         ;;
     8)
-        SEPARATOR "设置脚本为系统命令"
         ADD_SYS_CMD
-        SEPARATOR "系统命令设置完成"
         ;;
     0)
         exit 1
