@@ -1857,7 +1857,7 @@ INSTALL_DOCKER_PROXY
 
 
 SEPARATOR "安装服务"
-echo -e "1) ${BOLD}${LIGHT_GREEN}一键${RESET}部署所有服务"
+echo -e "1) 一键${BOLD}${LIGHT_GREEN}部署所有${RESET}服务"
 echo -e "2) ${BOLD}${LIGHT_CYAN}安装指定${RESET}容器服务"
 echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
