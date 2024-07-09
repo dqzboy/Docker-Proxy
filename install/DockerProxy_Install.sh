@@ -1542,7 +1542,7 @@ function CHECK_DOCKER_PROXY() {
 }
 
 
-
+# 一键部署时调用START_CONTAINER
 function START_CONTAINER() {
     if [ "$modify_config" = "y" ] || [ "$modify_config" = "Y" ]; then
         ADD_DOCKERD_PROXY
@@ -1550,14 +1550,17 @@ function START_CONTAINER() {
         INFO "拉取服务镜像并启动服务中，请稍等..."
     fi
 
-    if [ "$selected_all" = true ]; then
+    # DOWN_CONFIG函数执行后判断selected_all变量
+    if [ "$selected_all变量" = true ]; then
         docker-compose up -d --force-recreate
     else
         docker-compose up -d "${selected_names[@]}" registry-ui
     fi
 }
 
+# 使用函数UPDATE_CONFIG时调用RESTART_CONTAINER
 function RESTART_CONTAINER() {
+    # DOWN_CONFIG函数执行后判断selected_all变量
     if [ "$selected_all" = true ]; then
         docker-compose restart
     else
@@ -1672,127 +1675,8 @@ done
 }
 
 
-function RESTART_SERVICE() {
-    services=(
-        "dockerhub"
-        "gcr"
-        "ghcr"
-        "quay"
-        "k8sgcr"
-        "k8s"
-        "mcr"
-        "elastic"
-    )
 
-    selected_services=()
 
-    WARN "重启服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-
-    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  restart_service
-
-    if [[ "$restart_service" == "9" ]]; then
-        for service_name in "${services[@]}"; do
-            if docker-compose ps --services | grep -q "^${service_name}$"; then
-                selected_services+=("$service_name")               
-            else
-                WARN "服务 ${service_name}未运行，跳过重启。"
-            fi
-        done
-        INFO "重启的服务: ${selected_services[*]}"
-    elif [[ "$restart_service" == "0" ]]; then
-        WARN "退出重启服务!"
-        exit 1
-    else
-        for choice in ${restart_service}; do
-            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
-                service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services | grep -q "^${service_name}$"; then
-                    selected_services+=("$service_name")
-                    INFO "重启的服务: ${selected_services[*]}"
-                else
-                    WARN "服务 ${service_name} 未运行，跳过重启。"
-                    
-                fi
-            else
-                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项" 
-                RESTART_SERVICE
-            fi
-        done
-    fi
-}
-
-function UPDATE_SERVICE() {
-    services=(
-        "dockerhub"
-        "gcr"
-        "ghcr"
-        "quay"
-        "k8sgcr"
-        "k8s"
-        "mcr"
-        "elastic"
-    )
-
-    selected_services=()
-
-    WARN "更新服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-
-    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  choices_service
-
-    if [[ "$choices_service" == "9" ]]; then
-        for service_name in "${services[@]}"; do
-            if docker-compose ps --services | grep -q "^${service_name}$"; then
-                selected_services+=("$service_name")               
-            else
-                WARN "服务 ${service_name}未运行，跳过更新。"
-            fi
-        done
-        INFO "更新的服务: ${selected_services[*]}"
-    elif [[ "$choices_service" == "0" ]]; then
-        WARN "退出更新服务!"
-        exit 1
-    else
-        for choice in ${choices_service}; do
-            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
-                service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services | grep -q "^${service_name}$"; then
-                    selected_services+=("$service_name")
-                    INFO "更新的服务: ${selected_services[*]}"
-                else
-                    WARN "服务 ${service_name} 未运行，跳过更新。"
-                    
-                fi
-            else
-                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项"
-                UPDATE_SERVICE
-            fi
-        done
-    fi
-}
 
 
 function PROMPT(){
@@ -1883,7 +1767,6 @@ case $proxy_install in
         ;;
 esac
 }
-
 
 
 function COMP_INST() {
@@ -1979,6 +1862,222 @@ case $comp_choice in
     *)
         WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-8${RESET}的选项."
         COMP_INST
+        ;;
+esac
+}
+
+
+function SVC_MGMT() {
+# 定义Docker容器服务名称
+CONTAINER_SERVICES() {
+    services=(
+        "dockerhub"
+        "gcr"
+        "ghcr"
+        "quay"
+        "k8sgcr"
+        "k8s"
+        "mcr"
+        "elastic"
+    )
+}
+
+RESTART_SERVICE() {
+    CONTAINER_SERVICES
+
+    selected_services=()
+
+    WARN "重启服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  restart_service
+
+    if [[ "$restart_service" == "9" ]]; then
+        for service_name in "${services[@]}"; do
+            if docker-compose ps --services | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")               
+            else
+                WARN "服务 ${service_name}未运行，跳过重启。"
+            fi
+        done
+        INFO "重启的服务: ${selected_services[*]}"
+    elif [[ "$restart_service" == "0" ]]; then
+        WARN "退出重启服务!"
+        exit 1
+    else
+        for choice in ${restart_service}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+                service_name="${services[$((choice -1))]}"
+                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                    selected_services+=("$service_name")
+                    INFO "重启的服务: ${selected_services[*]}"
+                else
+                    WARN "服务 ${service_name} 未运行，跳过重启。"
+                    
+                fi
+            else
+                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项" 
+                RESTART_SERVICE # 选择无效重新调用当前函数进行选择
+            fi
+        done
+    fi
+}
+
+UPDATE_SERVICE() {
+    CONTAINER_SERVICES
+
+    selected_services=()
+
+    WARN "更新服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  choices_service
+
+    if [[ "$choices_service" == "9" ]]; then
+        for service_name in "${services[@]}"; do
+            if docker-compose ps --services | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")               
+            else
+                WARN "服务 ${service_name}未运行，跳过更新。"
+            fi
+        done
+        INFO "更新的服务: ${selected_services[*]}"
+    elif [[ "$choices_service" == "0" ]]; then
+        WARN "退出更新服务!"
+        exit 1
+    else
+        for choice in ${choices_service}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+                service_name="${services[$((choice -1))]}"
+                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                    selected_services+=("$service_name")
+                    INFO "更新的服务: ${selected_services[*]}"
+                else
+                    WARN "服务 ${service_name} 未运行，跳过更新。"
+                    
+                fi
+            else
+                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项"
+                UPDATE_SERVICE # 选择无效重新调用当前函数进行选择
+            fi
+        done
+    fi
+}
+
+
+CONTAIENR_LOGS() {
+    CONTAINER_SERVICES
+
+    selected_services=()
+
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  restart_service
+
+    if  [[ "$restart_service" == "0" ]]; then
+        WARN "退出查看容器服务日志操作!"
+        exit 1
+    else
+        for choice in ${restart_service}; do
+            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+                service_name="${services[$((choice -1))]}"
+                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                    selected_services+=("$service_name")
+                    INFO "查看日志的服务: ${selected_services[*]}"
+                else
+                    WARN "服务 ${service_name} 未运行，无法查看容器日志。"
+                fi
+            else
+                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-8${RESET}的选项" 
+                CONTAIENR_LOGS # 选择无效重新调用当前函数进行选择
+            fi
+        done
+    fi
+}
+
+SEPARATOR "服务管理"
+echo -e "1) ${BOLD}${LIGHT_GREEN}重启${RESET}服务"
+echo -e "2) ${BOLD}${LIGHT_CYAN}更新${RESET}服务"
+echo -e "3) ${BOLD}${LIGHT_MAGENTA}查看${RESET}日志"
+echo -e "4) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" ser_choice
+
+case $ser_choice in
+    1)
+        RESTART_SERVICE
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            ERROR "没有需要重启的服务,请重新选择"
+            RESTART_SERVICE
+        else
+            docker-compose stop ${selected_services[*]}
+            docker-compose up -d --force-recreate ${selected_services[*]}
+        fi
+        SVC_MGMT
+        ;;
+    2)
+        UPDATE_SERVICE
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            ERROR "没有需要更新的服务,请重新选择"
+            UPDATE_SERVICE
+        else
+            docker-compose pull ${selected_services[*]}
+            docker-compose up -d --force-recreate ${selected_services[*]}
+        fi
+        SVC_MGMT
+        ;;
+    3)
+        CONTAIENR_LOGS
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            ERROR "没有需要查看的服务,请重新选择"
+            CONTAIENR_LOGS
+        else
+            docker-compose logs ${selected_services[*]}
+        fi
+        SVC_MGMT
+        ;;
+    4)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        SVC_MGMT
         ;;
 esac
 }
@@ -2219,12 +2318,11 @@ echo
 SEPARATOR "请选择操作"
 echo -e "1) ${BOLD}${LIGHT_GREEN}安装${RESET}服务"
 echo -e "2) ${BOLD}${LIGHT_MAGENTA}组件${RESET}安装"
-echo -e "3) ${BOLD}${LIGHT_YELLOW}重启${RESET}服务"
-echo -e "4) ${BOLD}${GREEN}更新${RESET}服务"
-echo -e "5) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
-echo -e "6) ${BOLD}${LIGHT_RED}卸载${RESET}服务"
-echo -e "7) 本机${BOLD}${CYAN}Docker代理${RESET}"
-echo -e "8) 设置成${BOLD}${YELLOW}系统命令${RESET}"
+echo -e "3) ${BOLD}${LIGHT_YELLOW}管理${RESET}服务"
+echo -e "4) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
+echo -e "5) ${BOLD}${LIGHT_RED}卸载${RESET}服务"
+echo -e "6) 本机${BOLD}${CYAN}Docker代理${RESET}"
+echo -e "7) 设置成${BOLD}${YELLOW}系统命令${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
@@ -2238,44 +2336,23 @@ case $main_choice in
         COMP_INST
         ;;
     3)
-        SEPARATOR "重启服务"
-        RESTART_SERVICE
-        if [ ${#selected_services[@]} -eq 0 ]; then
-            ERROR "没有需要重启的服务,请重新选择"
-            RESTART_SERVICE
-        else
-            docker-compose stop ${selected_services[*]}
-            docker-compose up -d --force-recreate ${selected_services[*]}
-        fi
-        SEPARATOR "重启完成"
+        SVC_MGMT
         ;;
     4)
-        SEPARATOR "更新服务"
-        UPDATE_SERVICE
-        if [ ${#selected_services[@]} -eq 0 ]; then
-            ERROR "没有需要更新的服务,请重新选择"
-            UPDATE_SERVICE
-        else
-            docker-compose pull ${selected_services[*]}
-            docker-compose up -d --force-recreate ${selected_services[*]}
-        fi
-        SEPARATOR "更新完成"
-        ;;
-    5)
         SEPARATOR "更新配置"
         UPDATE_CONFIG
         SEPARATOR "更新完成"
         ;;
-    6)
+    5)
         UNI_DOCKER_SERVICE
         ;;
-    7)
+    6)
         SEPARATOR "配置本机Docker代理"
         DOCKER_PROXY_HTTP
         ADD_DOCKERD_PROXY
         SEPARATOR "Docker代理配置完成"
         ;;
-    8)
+    7)
         ADD_SYS_CMD
         ;;
     0)
