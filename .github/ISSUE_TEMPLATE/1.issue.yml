@@ -8,13 +8,18 @@ body:
       value: |
         ### ⚠️ 前置确认 (温馨提示: 未star项目会被自动关闭issue哦!)
         1. 是否国外服务器，并且未被墙(必须)
-        2. 是否最新脚本(必须)
-        3. 服务器规格是否 >= 1C1G(必须)
+        2. 服务器规格是否 >= 1C1G(必须)
   - type: checkboxes
     attributes:
       label: 前置确认
       options:
-        - label: 我确认使用的是国外未被墙的服务器，使用的是最新脚本，并且服务器规格 >= 1C1G
+        - label: 我确认使用的是国外未被墙的服务器，并且服务器规格 >= 1C1G
+          required: true
+  - type: checkboxes
+    attributes:
+      label: ⚠️ 采用脚本进行部署，非脚本部署问题将不被受理
+      options:
+        - label: 我确认使用的是最新脚本部署
           required: true
   - type: checkboxes
     attributes:
