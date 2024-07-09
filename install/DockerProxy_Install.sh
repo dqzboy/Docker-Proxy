@@ -2065,7 +2065,8 @@ case $ser_choice in
             ERROR "没有需要查看的服务,请重新选择"
             CONTAIENR_LOGS
         else
-            docker-compose logs ${selected_services[*]}
+            # 查看最近30条日志
+            docker-compose logs --tail=30 ${selected_services[*]}
         fi
         SVC_MGMT
         ;;
@@ -2076,7 +2077,7 @@ case $ser_choice in
         exit 1
         ;;
     *)
-        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-4${RESET}的选项."
         SVC_MGMT
         ;;
 esac
