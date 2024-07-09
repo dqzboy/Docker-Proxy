@@ -66,3 +66,5 @@ location ^~ / {
 > To ensure best performance and guarantee correctness the Registry cache should be configured to use the `filesystem` driver for storage.
 
 - [x] **已知问题：** 当我们在配置文件开启了 `delete.enabled.true` 那么调度程序会自动清理过期的镜像层或未使用的镜像标签
+
+ - ⚠️ 注意：不要通过在UI上查看某个镜像是否被删除来判断调度程序是否已自动执行删除操作
