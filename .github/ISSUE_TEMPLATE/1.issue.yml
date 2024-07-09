@@ -9,6 +9,7 @@ body:
         ### ⚠️ 前置确认 (温馨提示: 未star项目会被自动关闭issue哦!)
         1. 是否国外服务器，并且未被墙(必须)
         2. 服务器规格是否 >= 1C1G(必须)
+        3. 在提交issue之前，请务必确保没有包含个人数据！！！
   - type: checkboxes
     attributes:
       label: 前置确认

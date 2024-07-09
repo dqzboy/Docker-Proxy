@@ -60,7 +60,9 @@ location ^~ / {
 #### 7、对于服务器的规格要求，内存、CPU、磁盘、带宽网络等
 - [x] **已知问题：** 建议最低使用1C1G的服务器，磁盘大小取决于你拉取镜像的频率以及保存镜像缓存的时长决定(默认缓存7天,部署时可自定义)；如果对拉取速度有要求，最好选择针对中国大陆进行网络优化的服务器
 
-#### 8、缓存在本地磁盘上的数据是否会自动清理？
+#### 8、缓存在本地磁盘上的数据是否会自动清理？如何判断缓存是否被清理？
 - [x] **已知问题：** Registry会定期删除旧内容以节省磁盘空间。下面为官方原文解释：
 > In environments with high churn rates, stale data can build up in the cache. When running as a pull through cache the Registry periodically removes old content to save disk space. Subsequent requests for removed content causes a remote fetch and local re-caching.
 > To ensure best performance and guarantee correctness the Registry cache should be configured to use the `filesystem` driver for storage.
+
+- [x] **已知问题：** 当我们在配置文件开启了 `delete.enabled.true` 那么调度程序会自动清理过期的镜像层或未使用的镜像标签
