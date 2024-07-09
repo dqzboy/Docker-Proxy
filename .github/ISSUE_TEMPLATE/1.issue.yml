@@ -20,7 +20,7 @@ body:
     attributes:
       label: ⚠️ 搜索issues中是否已存在类似问题
       description: >
-        请在 [历史issue](https://github.com/dqzboy/Docker-Proxy/issues) 中清空输入框，搜索你的问题或在[问题总结](../../Issue/issue.md)查找相关问题，以及相关日志的关键词来查找是否存在类似问题。
+        请在 [历史issue](https://github.com/dqzboy/Docker-Proxy/issues) 中清空输入框，搜索你的问题或在[问题总结](https://github.com/dqzboy/Docker-Proxy/blob/main/Issue/issue.md)查找相关问题，以及相关日志的关键词来查找是否存在类似问题。
       options:
         - label: 我已经搜索过issues、disscussions和问题总结，没有跟我遇到的问题相关的issue
           required: true

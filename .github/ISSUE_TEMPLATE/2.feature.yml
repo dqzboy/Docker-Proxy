@@ -12,7 +12,7 @@ body:
     attributes:
       label: ⚠️ 搜索是否存在类似issue
       description: >
-        请在 [历史issue](https://github.com/dqzboy/Docker-Proxy/issues) 中清空输入框，搜索你的问题或在[问题总结](../../Issue/issue.md)查找相关问题
+        请在 [历史issue](https://github.com/dqzboy/Docker-Proxy/issues) 中清空输入框，搜索你的问题或在[问题总结](https://github.com/dqzboy/Docker-Proxy/blob/main/Issue/issue.md)查找相关问题
       options:
         - label: 我已经搜索过issues、disscussions和问题总结，没有跟我遇到的问题相关的issue
           required: true
