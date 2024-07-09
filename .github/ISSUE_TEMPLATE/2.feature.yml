@@ -12,9 +12,9 @@ body:
     attributes:
       label: ⚠️ 搜索是否存在类似issue
       description: >
-        请在 [历史issue](https://github.com/dqzboy/Docker-Proxy/issues) 中清空输入框，搜索关键词查找是否存在相似issue。
+        请在 [历史issue](https://github.com/dqzboy/Docker-Proxy/issues) 中清空输入框，搜索你的问题或在[问题总结](issue/issue.md)查找相关问题
       options:
-        - label: 我已经搜索过issues和disscussions，没有发现相似issue
+        - label: 我已经搜索过issues、disscussions和问题总结，没有跟我遇到的问题相关的issue
           required: true
   - type: textarea
     attributes:
