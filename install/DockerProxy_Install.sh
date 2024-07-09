@@ -1920,8 +1920,7 @@ RESTART_SERVICE() {
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
                 if docker-compose ps --services | grep -q "^${service_name}$"; then
-                    selected_services+=("$service_name")
-                    INFO "重启的服务: ${selected_services[*]}"
+                    selected_services+=("$service_name")                  
                 else
                     WARN "服务 ${service_name} 未运行，跳过重启。"
                     
@@ -1931,6 +1930,7 @@ RESTART_SERVICE() {
                 RESTART_SERVICE # 选择无效重新调用当前函数进行选择
             fi
         done
+        INFO "重启的服务: ${selected_services[*]}"
     fi
 }
 
@@ -1973,7 +1973,6 @@ UPDATE_SERVICE() {
                 service_name="${services[$((choice -1))]}"
                 if docker-compose ps --services | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
-                    INFO "更新的服务: ${selected_services[*]}"
                 else
                     WARN "服务 ${service_name} 未运行，跳过更新。"
                     
@@ -1983,6 +1982,7 @@ UPDATE_SERVICE() {
                 UPDATE_SERVICE # 选择无效重新调用当前函数进行选择
             fi
         done
+        INFO "更新的服务: ${selected_services[*]}"
     fi
 }
 
@@ -2015,7 +2015,6 @@ CONTAIENR_LOGS() {
                 service_name="${services[$((choice -1))]}"
                 if docker-compose ps --services | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
-                    INFO "查看日志的服务: ${selected_services[*]}"
                 else
                     WARN "服务 ${service_name} 未运行，无法查看容器日志。"
                 fi
@@ -2024,6 +2023,7 @@ CONTAIENR_LOGS() {
                 CONTAIENR_LOGS # 选择无效重新调用当前函数进行选择
             fi
         done
+        INFO "查看日志的服务: ${selected_services[*]}"
     fi
 }
 
