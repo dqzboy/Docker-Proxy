@@ -79,6 +79,7 @@ PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
 
+
 GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
 CNGITRAW="https://gitee.com/boydqz/Docker-Proxy/raw/main"
 
@@ -1494,6 +1495,18 @@ case $modify_proxy in
 esac
 }
 
+function CHECK_DOCKER_PROXY() {
+    local url=$1
+    local http_proxy=$(docker info 2>/dev/null | grep -i "HTTP Proxy" | awk -F ': ' '{print $2}')
+    local https_proxy=$(docker info 2>/dev/null | grep -i "HTTPS Proxy" | awk -F ': ' '{print $2}')
+
+    if [[ "$http_proxy" == "http://$url" && "$https_proxy" == "http://$url" ]]; then
+        INFO "Docker 代理${LIGHT_GREEN}配置成功${RESET}，当前 HTTP Proxy: ${LIGHT_CYAN}$http_proxy${RESET}, HTTPS Proxy: ${LIGHT_CYAN}$https_proxy${RESET}"
+    else
+        ERROR "Docker 代理${LIGHT_RED}配置失败${RESET}，请检查配置并重新执行配置"
+        DOCKER_PROXY_HTTP
+    fi
+}
 
 function ADD_DOCKERD_PROXY() {
 mkdir -p /etc/systemd/system/docker.service.d
@@ -1526,19 +1539,6 @@ EOF
         fi       
     fi
 fi
-}
-
-function CHECK_DOCKER_PROXY() {
-    local url=$1
-    local http_proxy=$(docker info 2>/dev/null | grep -i "HTTP Proxy" | awk -F ': ' '{print $2}')
-    local https_proxy=$(docker info 2>/dev/null | grep -i "HTTPS Proxy" | awk -F ': ' '{print $2}')
-
-    if [[ "$http_proxy" == "http://$url" && "$https_proxy" == "http://$url" ]]; then
-        INFO "Docker 代理${LIGHT_GREEN}配置成功${RESET}，当前 HTTP Proxy: ${LIGHT_CYAN}$http_proxy${RESET}, HTTPS Proxy: ${LIGHT_CYAN}$https_proxy${RESET}"
-    else
-        ERROR "Docker 代理${LIGHT_RED}配置失败${RESET}，请检查配置并重新执行配置"
-        DOCKER_PROXY_HTTP
-    fi
 }
 
 
@@ -1673,9 +1673,6 @@ while true; do
     fi
 done
 }
-
-
-
 
 
 
@@ -1905,7 +1902,7 @@ RESTART_SERVICE() {
 
     if [[ "$restart_service" == "9" ]]; then
         for service_name in "${services[@]}"; do
-            if docker-compose ps --services | grep -q "^${service_name}$"; then
+            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")               
             else
                 WARN "服务 ${service_name}未运行，跳过重启。"
@@ -1919,7 +1916,7 @@ RESTART_SERVICE() {
         for choice in ${restart_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")                  
                 else
                     WARN "服务 ${service_name} 未运行，跳过重启。"
@@ -1957,7 +1954,7 @@ UPDATE_SERVICE() {
 
     if [[ "$choices_service" == "9" ]]; then
         for service_name in "${services[@]}"; do
-            if docker-compose ps --services | grep -q "^${service_name}$"; then
+            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")               
             else
                 WARN "服务 ${service_name}未运行，跳过更新。"
@@ -1971,7 +1968,7 @@ UPDATE_SERVICE() {
         for choice in ${choices_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
                 else
                     WARN "服务 ${service_name} 未运行，跳过更新。"
@@ -2013,7 +2010,7 @@ CONTAIENR_LOGS() {
         for choice in ${restart_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services | grep -q "^${service_name}$"; then
+                if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
                 else
                     WARN "服务 ${service_name} 未运行，无法查看容器日志。"
@@ -2027,11 +2024,107 @@ CONTAIENR_LOGS() {
     fi
 }
 
+
+MODIFY_SERVICE_CONFIG() {
+    selected_services=()
+    selected_files=()
+    existing_files=()
+    non_existing_files=()
+
+    files=(
+        "dockerhub registry-hub.yml"
+        "gcr registry-gcr.yml"
+        "ghcr registry-ghcr.yml"
+        "quay registry-quay.yml"
+        "k8sgcr registry-k8sgcr.yml"
+        "k8s registry-k8s.yml"
+        "mcr registry-mcr.yml"
+        "elastic registry-elastic.yml"
+    )
+
+    while true; do
+        echo -e "${YELLOW}-------------------------------------------------${RESET}"
+        echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+        echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+        echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+        echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+        echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+        echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+        echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+        echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+        echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+        echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+        read -e -p "$(INFO "输入序号修改服务对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" ttl_service
+        if [[ "$ttl_service" == "0" ]]; then
+            WARN "退出修改容器服务配置操作!"
+            return
+        elif [[ "$ttl_service" =~ ^([1-8]+[[:space:]]*)+$ ]]; then
+            break
+        else
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+        fi
+    done
+
+    for choice in ${ttl_service}; do
+        file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
+        service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
+        selected_files+=("$file_name")
+
+        # 检查文件是否存在
+        if [ -f "${PROXY_DIR}/${file_name}" ]; then
+            existing_files+=("$file_name")
+            selected_services+=("$service_name")
+        else
+            non_existing_files+=("$file_name")
+        fi
+        
+        # 检查服务是否运行
+        if ! docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+            WARN "服务 ${service_name} 未运行。"
+        fi
+    done
+
+    if [ ${#existing_files[@]} -gt 0 ]; then
+        INFO "${GREEN}存在的配置文件:${RESET} ${existing_files[*]}${RESET}"
+    fi
+
+    if [ ${#non_existing_files[@]} -gt 0 ]; then
+        WARN "${RED}不存在的配置文件:${RESET} ${non_existing_files[*]}"
+    fi
+
+    if [ ${#existing_files[@]} -gt 0 ]; then
+        WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
+        read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
+        while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
+            WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
+            read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
+        done
+
+        if [[ "$modify_cache" == "y" ]]; then
+            while true; do
+                read -e -p "$(INFO "请输入新的缓存时间值: ")" new_ttl
+                for file_url in "${existing_files[@]}"; do
+                    yml_name=$(basename "$file_url")
+                    WARN "${YELLOW}正在修改配置文件: ${PROXY_DIR}/${yml_name}${RESET}"
+                    sed -i "s/ttl: .*/ttl: ${new_ttl}/g" "${PROXY_DIR}/${yml_name}" &>/dev/null
+                    INFO "${GREEN}配置文件 ${yml_name} 修改完成，代理缓存过期时间已设置为: ${new_ttl}${RESET}"
+                done
+                break
+            done
+        fi
+    else
+        WARN "未选择有效的配置文件进行修改。"
+    fi
+}
+
+
 SEPARATOR "服务管理"
 echo -e "1) ${BOLD}${LIGHT_GREEN}重启${RESET}服务"
 echo -e "2) ${BOLD}${LIGHT_CYAN}更新${RESET}服务"
 echo -e "3) ${BOLD}${LIGHT_MAGENTA}查看${RESET}日志"
-echo -e "4) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "4) ${BOLD}${LIGHT_BLUE}缓存${RESET}时效"
+echo -e "5) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" ser_choice
@@ -2071,13 +2164,17 @@ case $ser_choice in
         SVC_MGMT
         ;;
     4)
+        MODIFY_SERVICE_CONFIG
+        SVC_MGMT
+        ;;
+    5)
         main_menu
         ;;
     0)
         exit 1
         ;;
     *)
-        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-4${RESET}的选项."
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-5${RESET}的选项."
         SVC_MGMT
         ;;
 esac
@@ -2215,7 +2312,7 @@ else
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             
             # 检查服务是否运行，并删除容器
-            if docker-compose ps --services | grep -q "^${service_name}$"; then
+            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
                 INFO "删除的服务: ${selected_services[*]}"
                 docker-compose down ${selected_services[*]}
@@ -2304,7 +2401,6 @@ case $rm_choice in
 esac
 }
 
-
 function main_menu() {
 echo -e "╔════════════════════════════════════════════════════╗"
 echo -e "║                                                    ║"
@@ -2365,5 +2461,4 @@ case $main_choice in
         ;;
 esac
 }
-
 main_menu
