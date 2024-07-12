@@ -121,6 +121,9 @@ case "$ID" in
     "rocky")
         repo_type="centos"
         ;;
+    "openEuler")
+        repo_type="centos"
+        ;;
     *)
         WARN "此脚本目前不支持您的系统: $ID"
         exit 1
