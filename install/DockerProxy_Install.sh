@@ -1551,10 +1551,20 @@ function START_CONTAINER() {
     fi
 
     # DOWN_CONFIG函数执行后判断selected_all变量
-    if [ "$selected_all变量" = true ]; then
+    if [ "$selected_all" = true ]; then
         docker-compose up -d --force-recreate
+        # 检查命令执行是否成功
+        if [ $? -ne 0 ]; then
+          ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
+          exit 1
+        fi
     else
         docker-compose up -d "${selected_names[@]}" registry-ui
+        # 检查命令执行是否成功
+        if [ $? -ne 0 ]; then
+          ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
+          exit 1
+        fi
     fi
 }
 
@@ -1563,8 +1573,18 @@ function RESTART_CONTAINER() {
     # DOWN_CONFIG函数执行后判断selected_all变量
     if [ "$selected_all" = true ]; then
         docker-compose restart
+        # 检查命令执行是否成功
+        if [ $? -ne 0 ]; then
+          ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
+          exit 1
+        fi
     else
         docker-compose restart "${selected_names[@]}"
+        # 检查命令执行是否成功
+        if [ $? -ne 0 ]; then
+          ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
+          exit 1
+        fi
     fi
 }
 
