@@ -1607,7 +1607,7 @@ function STOP_REMOVE_CONTAINER() {
         INFO "停止和移除所有容器"
         docker-compose -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
     else 
-        WARN "${LIGHT_YELLOW}容器未运行，无需删除${RESET}"
+        WARN "${LIGHT_YELLOW}容器目前未处于运行状态，无需进行删除操作！${RESET}"
         exit 1
     fi
 }
@@ -1714,7 +1714,7 @@ INFO "作者博客: https://dqzboy.com"
 INFO "技术交流: https://t.me/dqzboyblog"
 INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
 INFO  
-INFO "如果使用的是云服务器，且配置了域名与证书，请至安全组开放80、443端口；否则开放对应服务的监听端口"
+INFO "若用云服务器并设域名及证书，需在安全组开放80、443端口；否则开放对应服务监听端口"
 INFO
 INFO "================================================================"
 }
@@ -2289,6 +2289,7 @@ esac
 
 function UNI_DOCKER_SERVICE() {
 RM_SERVICE() {
+
 selected_containers=()
 
 files=(
@@ -2301,7 +2302,6 @@ files=(
     "mcr registry-mcr.yml"
     "elastic registry-elastic.yml"
 )
-
 
 echo -e "${YELLOW}-------------------------------------------------${RESET}"
 echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
@@ -2321,37 +2321,42 @@ while [[ ! "$rm_service" =~ ^([0-8]+[[:space:]]*)+$ ]]; do
     read -e -p "$(INFO "输入序号删除服务和对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" rm_service
 done
 
-
 if [[ "$rm_service" == "0" ]]; then
     WARN "退出删除容器服务操作!"
     return
 else
+    selected_services=()
     for choice in ${rm_service}; do
         if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
             file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             
-            # 检查服务是否运行，并删除容器
+            # 检查服务是否运行，并添加到待删除列表
             if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
-                INFO "删除的服务: ${selected_services[*]}"
-                docker-compose down ${selected_services[*]}
             else
-                WARN "服务 ${service_name} 未运行，但将尝试删除相关文件。"
+                WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，但将尝试删除相关文件。"
             fi
             
             # 检查文件是否存在，并删除文件
             if [ -f "${PROXY_DIR}/${file_name}" ]; then
                 rm -f "${PROXY_DIR}/${file_name}"
-                INFO "配置文件 ${file_name} 已被删除。"
+                INFO "配置文件 ${LIGHT_CYAN}${file_name}${RESET} ${LIGHT_GREEN}已被删除${RESET}"
             else
-                WARN "配置文件 ${file_name} 不存在，无需删除。"
+                WARN "配置文件 ${LIGHT_CYAN}${file_name}${RESET} 不存在,${LIGHT_YELLOW}无需删除${RESET}"
             fi
         else
             WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
-            RM_SERVICE
+            UNI_DOCKER_SERVICE
+            return
         fi
     done
+
+    # 一次性删除所有选中的服务
+    if [ ${#selected_services[@]} -gt 0 ]; then
+        INFO "删除的服务: ${LIGHT_RED}${selected_services[*]}${RESET}"
+        docker-compose down ${selected_services[*]}
+    fi
 fi
 }
 
@@ -2367,8 +2372,8 @@ fi
 if [ -f "/usr/bin/hub" ]; then
     rm -f /usr/bin/hub &>/dev/null
 fi
-INFO "${LIGHT_YELLOW}服务已经卸载,感谢你的使用!${RESET}"
-SEPARATOR "=========="
+INFO "${LIGHT_YELLOW}感谢您的使用，Docker-Proxy服务已卸载。欢迎您再次使用！${RESET}"
+SEPARATOR "DONE"
 }
 
 CONFIREM_ACTION() {
@@ -2402,7 +2407,6 @@ read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}E
 case $rm_choice in
     1)
         CONFIREM_ACTION "卸载所有" RM_ALLSERVICE
-        UNI_DOCKER_SERVICE
         ;;
     2)
         CONFIREM_ACTION "删除指定" RM_SERVICE
