@@ -2280,14 +2280,12 @@ else
             file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             
-            # 检查服务是否运行，并添加到待删除列表
             if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
             else
                 WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，但将尝试删除相关文件。"
             fi
             
-            # 检查文件是否存在，并删除文件
             if [ -f "${PROXY_DIR}/${file_name}" ]; then
                 rm -f "${PROXY_DIR}/${file_name}"
                 INFO "配置文件 ${LIGHT_CYAN}${file_name}${RESET} ${LIGHT_GREEN}已被删除${RESET}"
@@ -2420,13 +2418,10 @@ auth:
     realm: basic-realm
     path: /auth/htpasswd"
 
-# 检查文件是否存在
 if [ ! -f "$FILE" ]; then
-  # 如果文件不存在
   ERROR "配置文件 ${LIGHT_BLUE}$FILE${RESET} 不存在"
   exit 1
 else
-  # 如果文件存在，检查配置是否存在
   if ! grep -q "auth:" "$FILE" || ! grep -q "htpasswd:" "$FILE" || ! grep -q "realm: basic-realm" "$FILE" || ! grep -q "path: /auth/htpasswd" "$FILE"; then
     echo -e "$auth_config" | sudo tee -a "$FILE" > /dev/null
     INFO "配置文件 ${LIGHT_BLUE}$FILE${RESET} 添加认证配置成功"
@@ -2441,18 +2436,14 @@ local SERVICES=$1
 local FILE=${DOCKER_COMPOSE_FILE}
 local HTPASSWD_CONFIG="      - ./${SERVICES}_htpasswd:/auth/htpasswd"
 
-# 检查文件是否存在
 if [ ! -f "$FILE" ]; then
   ERROR "配置文件 ${LIGHT_BLUE}$FILE${RESET} 不存在"
   exit 1
 fi
 
 for SERVICE in "${SERVICES[@]}"; do
-  # 检查服务是否存在
   if grep -q "  $SERVICE:" "$FILE"; then
-    # 检查是否已经存在 htpasswd 配置
     if ! grep -A10 "  $SERVICE:" "$FILE" | grep -q "      - ./${SERVICES}_htpasswd:/auth/htpasswd"; then
-      # 使用 sed 添加 htpasswd 配置
       sed -i "/  $SERVICE:/,/volumes:/ {
         /volumes:/a\\
 $HTPASSWD_CONFIG
@@ -2472,12 +2463,9 @@ local FILE=$1
 
 # 检查文件是否存在
 if [ ! -f "$FILE" ]; then
-  # 如果文件
   ERROR "配置文件 $FILE 不存在"
 else
-  # 检查配置是否存在
   if grep -q "auth:" "$FILE"; then
-    # 如果配置存在，删除配置
     sed -i '/^auth:$/,/^[^[:space:]]/d' "$FILE" >/dev/null
     INFO "配置文件 ${LIGHT_BLUE}$FILE${RESET} 成功移除认证信息"
   else
@@ -2485,7 +2473,6 @@ else
   fi
 fi
 }
-
 
 DEL_AUTH_COMPOSE() {
 local SERVICES=$1
@@ -2498,9 +2485,7 @@ if [ ! -f "$FILE" ]; then
 fi
 
 for SERVICE in "${SERVICES[@]}"; do
-  # 检查服务是否存在
   if grep -q "  $SERVICE:" "$FILE"; then
-    # 删除现有的 htpasswd 参数
     sed -i "/  $SERVICE:/,/^[^[:space:]]/ {/^[[:space:]]*- .\/${SERVICES}_htpasswd:\/auth\/htpasswd/d}" "$FILE"
   else
     ERROR "$FILE 中不存在服务 $SERVICE"
@@ -2521,7 +2506,6 @@ else
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             selected_files+=("$file_name")
 
-            # 检查服务是否运行，并添加到待添加列表
             if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
             else
@@ -2576,7 +2560,6 @@ else
 fi
 }
 
-
 DELETE_AUTH() {
 AUTH_MENU
 
@@ -2590,7 +2573,6 @@ else
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             selected_files+=("$file_name")
 
-            # 检查服务是否运行，并添加到待添加列表
             if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
             else
