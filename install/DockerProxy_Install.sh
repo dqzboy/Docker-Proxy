@@ -83,7 +83,7 @@ cd "${PROXY_DIR}"
 GITRAW="https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main"
 CNGITRAW="https://gitee.com/boydqz/Docker-Proxy/raw/main"
 
-IMAGE_NAME="registry"
+IMAGE_NAME="dqzboy/registry"
 UI_IMAGE_NAME="dqzboy/docker-registry-ui"
 DOCKER_COMPOSE_FILE="docker-compose.yaml"
 
