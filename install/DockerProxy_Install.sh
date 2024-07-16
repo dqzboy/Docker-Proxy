@@ -2201,7 +2201,7 @@ INSTALL_OR_UPDATE_CMD() {
         INFO "${action}脚本${GREEN}成功${RESET}，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
     else
         ERROR "设置系统命令失败"
-        exit 2
+        exit 1
     fi
 }
 
