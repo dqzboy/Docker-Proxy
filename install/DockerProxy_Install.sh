@@ -1267,20 +1267,6 @@ fi
 }
 
 
-function append_auth_config() {
-    local file=$1
-    local auth_config="
-
-auth:
-  htpasswd:
-    realm: basic-realm
-    path: /auth/htpasswd"
-
-    echo -e "$auth_config" | sudo tee -a "$file" > /dev/null
-
-    sed -ri "s@#- ./htpasswd:/auth/htpasswd@- ./htpasswd:/auth/htpasswd@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} &>/dev/null
-}
-
 function update_docker_registry_url() {
     local container_name=$1
     if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
@@ -1387,41 +1373,6 @@ function DOWN_CONFIG() {
             first_selected_container=${selected_containers[0]}
             update_docker_registry_url "$first_selected_container"
         fi
-    fi
-
-    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_CYAN}配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码${RESET}"
-    read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" config_auth
-    while [[ "$config_auth" != "y" && "$config_auth" != "n" ]]; do
-        WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
-        read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" config_auth
-    done
-
-    if [[ "$config_auth" == "y" ]]; then
-        while true; do
-
-            read -e -p "$(INFO "请输入账号名称: ")" username
-            if [[ -z "$username" ]]; then
-                ERROR "用户名不能为空。请重新输入"
-            else
-                break
-            fi
-        done
-
-        while true; do
-            read -e -p "$(INFO "请输入账号密码: ")" password
-            if [[ -z "$password" ]]; then
-                ERROR "密码不能为空。请重新输入"
-            else
-                break
-            fi
-        done
-
-        htpasswd -Bbn "$username" "$password" > ${PROXY_DIR}/htpasswd
-
-        for file_url in "${selected_files[@]}"; do
-            yml_name=$(basename "$file_url")
-            append_auth_config "${PROXY_DIR}/${yml_name}"
-        done
     fi
 
     WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
@@ -2250,7 +2201,7 @@ INSTALL_OR_UPDATE_CMD() {
         INFO "${action}脚本${GREEN}成功${RESET}，命令行输入 ${LIGHT_GREEN}hub${RESET} 运行"
     else
         ERROR "设置系统命令失败"
-        exit 1
+        exit 2
     fi
 }
 
@@ -2266,12 +2217,10 @@ case $cmd_choice in
     1)
         INSTALL_ENV
         INSTALL_OR_UPDATE_CMD "安装"
-        ADD_SYS_CMD
         ;;
     2)
         INSTALL_ENV
         INSTALL_OR_UPDATE_CMD "更新"
-        ADD_SYS_CMD
         ;;
     3)
         main_menu
@@ -2425,6 +2374,294 @@ case $rm_choice in
 esac
 }
 
+
+function AUTH_SERVICE_CONFIG() {
+
+AUTH_MENU() {
+selected_files=()
+selected_services=()
+files=(
+    "dockerhub registry-hub.yml"
+    "gcr registry-gcr.yml"
+    "ghcr registry-ghcr.yml"
+    "quay registry-quay.yml"
+    "k8sgcr registry-k8sgcr.yml"
+    "k8s registry-k8s.yml"
+    "mcr registry-mcr.yml"
+    "elastic registry-elastic.yml"
+)
+
+echo -e "${YELLOW}-------------------------------------------------${RESET}"
+echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+echo -e "${YELLOW}-------------------------------------------------${RESET}"
+
+read -e -p "$(INFO "输入序号选择添加认证的服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" auth_service
+while [[ ! "$auth_service" =~ ^([0-8]+[[:space:]]*)+$ ]]; do
+    WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+    read -e -p "$(INFO "输入序号选择添加认证的服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" auth_service
+done
+}
+
+
+ADD_AUTH_CONFIG() {
+local FILE=$1
+local auth_config="
+
+auth:
+  htpasswd:
+    realm: basic-realm
+    path: /auth/htpasswd"
+
+# 检查文件是否存在
+if [ ! -f "$FILE" ]; then
+  # 如果文件不存在
+  ERROR "配置文件 ${LIGHT_BLUE}$FILE${RESET} 不存在"
+  exit 1
+else
+  # 如果文件存在，检查配置是否存在
+  if ! grep -q "auth:" "$FILE" || ! grep -q "htpasswd:" "$FILE" || ! grep -q "realm: basic-realm" "$FILE" || ! grep -q "path: /auth/htpasswd" "$FILE"; then
+    echo -e "$auth_config" | sudo tee -a "$FILE" > /dev/null
+    INFO "配置文件 ${LIGHT_BLUE}$FILE${RESET} 添加认证配置成功"
+  else
+    WARN "配置文件 ${LIGHT_BLUE}$FILE${RESET} 已添加认证配置"
+  fi
+fi
+}
+
+ADD_AUTH_COMPOSE() {
+local SERVICES=$1
+local FILE=${DOCKER_COMPOSE_FILE}
+local HTPASSWD_CONFIG="      - ./${SERVICES}_htpasswd:/auth/htpasswd"
+
+# 检查文件是否存在
+if [ ! -f "$FILE" ]; then
+  ERROR "配置文件 ${LIGHT_BLUE}$FILE${RESET} 不存在"
+  exit 1
+fi
+
+for SERVICE in "${SERVICES[@]}"; do
+  # 检查服务是否存在
+  if grep -q "  $SERVICE:" "$FILE"; then
+    # 检查是否已经存在 htpasswd 配置
+    if ! grep -A10 "  $SERVICE:" "$FILE" | grep -q "      - ./${SERVICES}_htpasswd:/auth/htpasswd"; then
+      # 使用 sed 添加 htpasswd 配置
+      sed -i "/  $SERVICE:/,/volumes:/ {
+        /volumes:/a\\
+$HTPASSWD_CONFIG
+      }" "$FILE"
+      INFO "Htpasswd配置添加到 ${LIGHT_GREEN}$SERVICE${RESET} 服务中"
+    else
+      WARN "Htpasswd配置已存在 ${LIGHT_YELLOW}$SERVICE${RESET} 服务中"
+    fi
+  else
+    ERROR "服务 $SERVICE 在 $FILE 中不存在"
+  fi
+done
+}
+
+DEL_AUTH_CONFIG() {
+local FILE=$1
+
+# 检查文件是否存在
+if [ ! -f "$FILE" ]; then
+  # 如果文件
+  ERROR "配置文件 $FILE 不存在"
+else
+  # 检查配置是否存在
+  if grep -q "auth:" "$FILE"; then
+    # 如果配置存在，删除配置
+    sed -i '/^auth:$/,/^[^[:space:]]/d' "$FILE" >/dev/null
+    INFO "配置文件 ${LIGHT_BLUE}$FILE${RESET} 成功移除认证信息"
+  else
+    WARN "配置文件 ${LIGHT_BLUE}$FILE${RESET} 不存在认证信息"
+  fi
+fi
+}
+
+
+DEL_AUTH_COMPOSE() {
+local SERVICES=$1
+local FILE=${DOCKER_COMPOSE_FILE}
+
+# 检查文件是否存在
+if [ ! -f "$FILE" ]; then
+  ERROR "$File 不存在"
+  exit 1
+fi
+
+for SERVICE in "${SERVICES[@]}"; do
+  # 检查服务是否存在
+  if grep -q "  $SERVICE:" "$FILE"; then
+    # 删除现有的 htpasswd 参数
+    sed -i "/  $SERVICE:/,/^[^[:space:]]/ {/^[[:space:]]*- .\/${SERVICES}_htpasswd:\/auth\/htpasswd/d}" "$FILE"
+  else
+    ERROR "$FILE 中不存在服务 $SERVICE"
+  fi
+done
+}
+
+ENABLE_AUTH() {
+AUTH_MENU
+
+if [[ "$auth_service" == "0" ]]; then
+    WARN "退出添加容器认证操作!"
+    return
+else
+    for choice in ${auth_service}; do
+        if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+            file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
+            service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
+            selected_files+=("$file_name")
+
+            # 检查服务是否运行，并添加到待添加列表
+            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")
+            else
+                WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，无法添加认证授权"
+            fi
+
+        else
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            AUTH_MENU
+            return
+        fi
+    done
+
+
+    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_CYAN}配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码${RESET}"
+    read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" enable_auth
+    while [[ "$enable_auth" != "y" && "$enable_auth" != "n" ]]; do
+        WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
+        read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" enable_auth
+    done
+
+    if [[ "$enable_auth" == "y" ]]; then
+        while true; do
+
+            read -e -p "$(INFO "请输入账号名称: ")" username
+            if [[ -z "$username" ]]; then
+                ERROR "用户名不能为空。请重新输入"
+            else
+                break
+            fi
+        done
+
+        while true; do
+            read -e -p "$(INFO "请输入账号密码: ")" password
+            if [[ -z "$password" ]]; then
+                ERROR "密码不能为空。请重新输入"
+            else
+                break
+            fi
+        done
+
+        for file_url in "${selected_files[@]}"; do
+            yml_name=$(basename "$file_url")
+            ADD_AUTH_CONFIG "${PROXY_DIR}/${yml_name}"
+        done
+
+        for server in "${selected_services[@]}"; do
+            htpasswd -Bbn "$username" "$password" > ${PROXY_DIR}/${server}_htpasswd
+            ADD_AUTH_COMPOSE "${server}"
+        done
+    fi
+fi
+}
+
+
+DELETE_AUTH() {
+AUTH_MENU
+
+if [[ "$auth_service" == "0" ]]; then
+    WARN "退出移除容器认证操作!"
+    return
+else
+    for choice in ${auth_service}; do
+        if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+            file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
+            service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
+            selected_files+=("$file_name")
+
+            # 检查服务是否运行，并添加到待添加列表
+            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+                selected_services+=("$service_name")
+            else
+                WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，无法添加认证授权"                
+            fi
+
+        else
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            AUTH_MENU
+            return
+        fi
+    done
+
+
+    for file_url in "${selected_files[@]}"; do
+        yml_name=$(basename "$file_url")
+        DEL_AUTH_CONFIG "${PROXY_DIR}/${yml_name}"
+    done
+
+    for server in "${selected_services[@]}"; do
+        DEL_AUTH_COMPOSE "${server}"
+        rm -f ${PROXY_DIR}/${server}_htpasswd
+    done
+fi
+}
+
+SEPARATOR "认证授权"
+echo -e "1) ${BOLD}${LIGHT_YELLOW}添加${RESET}认证"
+echo -e "2) ${BOLD}${LIGHT_CYAN}删除${RESET}认证"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" auth_choice
+
+case $auth_choice in
+    1)
+        ENABLE_AUTH
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "没有运行任何选择的服务，请${LIGHT_CYAN}重新选择运行${RESET}的服务"
+            AUTH_SERVICE_CONFIG # 没有服务运行调用函数
+        else
+            docker-compose down ${selected_services[*]}
+            docker-compose up -d --force-recreate ${selected_services[*]}
+        fi
+        AUTH_SERVICE_CONFIG
+        ;;
+    2)
+        DELETE_AUTH
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "没有运行任何选择的服务，请${LIGHT_CYAN}重新选择运行${RESET}的服务"
+            AUTH_SERVICE_CONFIG # 没有服务运行调用函数
+        else
+            docker-compose down ${selected_services[*]}
+            docker-compose up -d --force-recreate ${selected_services[*]}
+        fi
+        AUTH_SERVICE_CONFIG
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        AUTH_SERVICE_CONFIG
+        ;;
+esac
+}
+
+
 function main_menu() {
 echo -e "╔════════════════════════════════════════════════════╗"
 echo -e "║                                                    ║"
@@ -2442,8 +2679,9 @@ echo -e "2) ${BOLD}${LIGHT_MAGENTA}组件${RESET}安装"
 echo -e "3) ${BOLD}${LIGHT_YELLOW}管理${RESET}服务"
 echo -e "4) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
 echo -e "5) ${BOLD}${LIGHT_RED}卸载${RESET}服务"
-echo -e "6) 本机${BOLD}${CYAN}Docker代理${RESET}"
-echo -e "7) 设置成${BOLD}${YELLOW}系统命令${RESET}"
+echo -e "6) ${BOLD}${LIGHT_BLUE}认证${RESET}授权"
+echo -e "7) 本机${BOLD}${CYAN}Docker代理${RESET}"
+echo -e "8) 设置成${BOLD}${YELLOW}系统命令${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
@@ -2468,12 +2706,15 @@ case $main_choice in
         UNI_DOCKER_SERVICE
         ;;
     6)
+        AUTH_SERVICE_CONFIG
+        ;;
+    7)
         SEPARATOR "配置本机Docker代理"
         DOCKER_PROXY_HTTP
         ADD_DOCKERD_PROXY
         SEPARATOR "Docker代理配置完成"
         ;;
-    7)
+    8)
         ADD_SYS_CMD
         ;;
     0)
