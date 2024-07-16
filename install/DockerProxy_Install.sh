@@ -1278,15 +1278,15 @@ auth:
 
     echo -e "$auth_config" | sudo tee -a "$file" > /dev/null
 
-    sed -ri "s@#- ./htpasswd:/auth/htpasswd@- ./htpasswd:/auth/htpasswd@g" ${PROXY_DIR}/docker-compose.yaml &>/dev/null
+    sed -ri "s@#- ./htpasswd:/auth/htpasswd@- ./htpasswd:/auth/htpasswd@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} &>/dev/null
 }
 
 function update_docker_registry_url() {
     local container_name=$1
-    if [[ -f "${PROXY_DIR}/docker-compose.yaml" ]]; then
-        sed -ri "s@- DOCKER_REGISTRY_URL=http://reg-docker-hub:5000@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/docker-compose.yaml
+    if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
+        sed -ri "s@- DOCKER_REGISTRY_URL=http://reg-docker-hub:5000@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} 
     else
-        ERROR "文件 ${LIGHT_CYAN}${PROXY_DIR}/docker-compose.yaml${RESET} ${LIGHT_RED}不存在${RESET},导致容器无法应用新配置"
+        ERROR "文件 ${LIGHT_CYAN}${PROXY_DIR}/${DOCKER_COMPOSE_FILE} ${RESET} ${LIGHT_RED}不存在${RESET},导致容器无法应用新配置"
         exit 1
     fi
 }
@@ -1454,8 +1454,8 @@ case $modify_config in
       WARN "代理${LIGHT_YELLOW}地址不能为空${RESET}，请重新输入!"
       read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     done
-    sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
-    sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/docker-compose.yaml
+    sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} 
+    sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} 
 
     INFO "你配置代理地址为: ${CYAN}http://${url}${RESET}"
     ;;
@@ -1592,9 +1592,9 @@ function INSTALL_DOCKER_PROXY() {
 SEPARATOR "部署Docker Proxy"
 CONFIG_FILES
 if [[ "$install_docker_reg" == "1" ]]; then
-    wget -NP ${PROXY_DIR}/ ${GITRAW}/docker-compose.yaml &>/dev/null
+    wget -NP ${PROXY_DIR}/ ${GITRAW}/${DOCKER_COMPOSE_FILE} &>/dev/null
 elif [[ "$install_docker_reg" == "2" ]]; then
-    wget -NP ${PROXY_DIR}/ ${CNGITRAW}/docker-compose.yaml &>/dev/null
+    wget -NP ${PROXY_DIR}/ ${CNGITRAW}/${DOCKER_COMPOSE_FILE}  &>/dev/null
 fi
 DOWN_CONFIG
 PROXY_HTTP
@@ -1904,7 +1904,7 @@ RESTART_SERVICE() {
 
     selected_services=()
 
-    WARN "重启服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
+    WARN "重启服务请在${LIGHT_GREEN}${DOCKER_COMPOSE_FILE}${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
     echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
     echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
@@ -1956,7 +1956,7 @@ UPDATE_SERVICE() {
 
     selected_services=()
 
-    WARN "更新服务请在${LIGHT_GREEN}docker-compose.yaml${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
+    WARN "更新服务请在${LIGHT_GREEN}${DOCKER_COMPOSE_FILE}${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
     echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
     echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
