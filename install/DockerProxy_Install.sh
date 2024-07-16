@@ -463,12 +463,27 @@ SEPARATOR "配置Caddy"
 while true; do
     INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
-    read -e -p "$(WARN "是否配置Caddy,实现自动HTTPS? 执行前需提前在DNS服务商选择部署的服务进行解析主机记录 ${PROMPT_YES_NO}")" caddy_conf
+    read -e -p "$(WARN "是否配置Caddy,实现自动HTTPS? 执行前需在DNS服务商对部署服务解析主机记录 ${PROMPT_YES_NO}")" caddy_conf
     case "$caddy_conf" in
         y|Y )
             read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" caddy_domain           
             read -e -p "$(INFO "请输入要配置的${LIGHT_MAGENTA}主机记录${RESET}，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
+
+            # 验证输入的主机记录
+            local valid_records=("ui" "hub" "gcr" "ghcr" "k8sgcr" "k8s" "quay" "mcr" "elastic")
             IFS=',' read -r -a records_array <<< "$selected_records"
+            local invalid_records=()
+            for record in "${records_array[@]}"; do
+                if ! [[ " ${valid_records[@]} " =~ " ${record} " ]]; then
+                    invalid_records+=("$record")
+                fi
+            done
+
+            if [[ ${#invalid_records[@]} -gt 0 ]]; then
+                ERROR "无效的主机记录: ${LIGHT_RED}${invalid_records[@]}${RESET}"
+                INFO "请输入有效的主机记录: ${LIGHT_GREEN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+                continue
+            fi
 
             declare -A record_templates
             record_templates[ui]="ui.$caddy_domain {
@@ -681,13 +696,27 @@ while true; do
     WARN "自行安装的 Nginx ${LIGHT_RED}请勿执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
     INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
-    read -e -p "$(WARN "是否配置 Nginx？配置完成后需在DNS服务商对部署的服务进行解析主机记录 ${PROMPT_YES_NO}")" nginx_conf
+    read -e -p "$(WARN "是否配置 Nginx？配置完成后需在DNS服务商解析主机记录 ${PROMPT_YES_NO}")" nginx_conf
     case "$nginx_conf" in
         y|Y )
-            read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" nginx_domain
-            
+            read -e -p "$(INFO "请输入你的域名${LIGHT_BLUE}[例: baidu.com]${RESET} ${LIGHT_RED}不可为空${RESET}: ")" nginx_domain           
             read -e -p "$(INFO "请输入要配置的${LIGHT_MAGENTA}主机记录${RESET}，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
+
+            # 验证输入的主机记录
+            local valid_records=("ui" "hub" "gcr" "ghcr" "k8sgcr" "k8s" "quay" "mcr" "elastic")
             IFS=',' read -r -a records_array <<< "$selected_records"
+            local invalid_records=()
+            for record in "${records_array[@]}"; do
+                if ! [[ " ${valid_records[@]} " =~ " ${record} " ]]; then
+                    invalid_records+=("$record")
+                fi
+            done
+
+            if [[ ${#invalid_records[@]} -gt 0 ]]; then
+                ERROR "无效的主机记录: ${LIGHT_RED}${invalid_records[@]}${RESET}"
+                INFO "请输入有效的主机记录: ${LIGHT_GREEN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+                continue
+            fi
 
             declare -A record_templates
             record_templates[ui]="server {
@@ -1552,7 +1581,6 @@ PROXY_HTTP
 START_CONTAINER
 }
 
-
 function STOP_REMOVE_CONTAINER() {
     if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
         INFO "停止和移除所有容器"
@@ -1562,7 +1590,6 @@ function STOP_REMOVE_CONTAINER() {
         exit 1
     fi
 }
-
 
 function UPDATE_CONFIG() {
 while true; do
