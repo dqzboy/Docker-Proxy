@@ -40,12 +40,15 @@ MAGENTA="\033[0;35m"
 CYAN="\033[0;36m"
 WHITE="\033[1;37m"
 BLACK="\033[0;30m"
+PINK="\033[0;95m"
 LIGHT_GREEN="\033[1;32m"
 LIGHT_RED="\033[1;31m"
 LIGHT_YELLOW="\033[1;33m"
 LIGHT_BLUE="\033[1;34m"
 LIGHT_MAGENTA="\033[1;35m"
 LIGHT_CYAN="\033[1;36m"
+LIGHT_PINK="\033[1;95m"
+BRIGHT_CYAN="\033[96m"
 BOLD="\033[1m"
 UNDERLINE="\033[4m"
 BLINK="\033[5m"
@@ -199,7 +202,7 @@ fi
 function CHECKBBR() {
 kernel_version=$(uname -r | awk -F "-" '{print $1}')
 
-read -e -p "$(WARN "是否开启${LIGHT_CYAN}BBR${RESET},优化网络带宽提高网络性能? ${PROMPT_YES_NO}")" choice_bbr
+read -e -p "$(WARN "是否开启${BRIGHT_CYAN}BBR${RESET},优化网络带宽提高网络性能? ${PROMPT_YES_NO}")" choice_bbr
 case $choice_bbr in
     y | Y)
         version_compare=$(echo "${kernel_version} 4.9" | awk '{if ($1 >= $2) print "yes"; else print "no"}')
@@ -209,15 +212,14 @@ case $choice_bbr in
         fi
         sysctl net.ipv4.tcp_available_congestion_control | grep -q "bbr"
         if [ $? -eq 0 ]; then
-            INFO "你的服务器已经启动BBR"
+            INFO "你的服务器已经启动 ${BRIGHT_CYAN}BBR${RESET}"
         else
             INFO "开启BBR中..."
-
             modprobe tcp_bbr
             if [ $? -eq 0 ]; then
-                INFO "BBR模块添加成功."
+                INFO "${BRIGHT_CYAN}BBR${RESET} 模块${LIGHT_GREEN}添加成功${RESET}"
             else 
-                ERROR "BBR模块添加失败，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
+                ERROR "${BRIGHT_CYAN}BBR${RESET} 模块${LIGHT_RED}添加失败${RESET}，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
                 exit 1
             fi
 
@@ -245,15 +247,15 @@ case $choice_bbr in
                 exit 2
             fi
 
-            lsmod | grep tcp_bbr
+            lsmod | grep tcp_bbr &> /dev/null
             if [ $? -eq 0 ]; then
-                INFO "BBR已经成功开启。"
+                INFO "${BRIGHT_CYAN}BBR${RESET} 已经${LIGHT_GREEN}成功开启${RESET}"
             else
-                ERROR "BBR开启失败，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
+                ERROR "${BRIGHT_CYAN}BBR${RESET} 开启${LIGHT_RED}失败${RESET}，请执行 ${LIGHT_CYAN}sysctl -p${RESET} 检查."
                 exit 3
             fi
 
-            WARN "如果BBR开启后未生效，请执行 ${LIGHT_BLUE}reboot${RESET} 重启服务器使其BBR模块生效"
+            WARN "如果 ${BRIGHT_CYAN}BBR${RESET} 开启后${LIGHT_YELLOW}未生效${RESET}，请执行 ${LIGHT_BLUE}reboot${RESET} 重启服务器使其BBR模块生效"
         fi
     ;;
     n | N)
@@ -1618,16 +1620,15 @@ function REMOVE_NONE_TAG() {
     done
 }
 
-
 function PACKAGE() {
 while true; do
-    read -e -p "$(INFO "是否执行软件包安装? ${PROMPT_YES_NO}")" choice_package
+    read -e -p "$(INFO "是否执行软件包安装? (${LIGHT_YELLOW}首次部署需安装依赖${RESET}) ${PROMPT_YES_NO}")" choice_package
     case "$choice_package" in
         y|Y )
             INSTALL_PACKAGE
             break;;
         n|N )
-            WARN "跳过软件包安装步骤。"
+            WARN "跳过软件包安装步骤"
             break;;
         * )
             INFO "请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}";;
@@ -1928,9 +1929,7 @@ RESTART_SERVICE() {
 
 UPDATE_SERVICE() {
     CONTAINER_SERVICES
-
     selected_services=()
-
     WARN "更新服务请在${LIGHT_GREEN}${DOCKER_COMPOSE_FILE}${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
     echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
@@ -1978,12 +1977,9 @@ UPDATE_SERVICE() {
     fi
 }
 
-
 CONTAIENR_LOGS() {
     CONTAINER_SERVICES
-
     selected_services=()
-
     echo -e "${YELLOW}-------------------------------------------------${RESET}"
     echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
     echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
@@ -2018,7 +2014,6 @@ CONTAIENR_LOGS() {
         INFO "查看日志的服务: ${selected_services[*]}"
     fi
 }
-
 
 MODIFY_SERVICE_CONFIG() {
     selected_services=()
@@ -2066,7 +2061,6 @@ MODIFY_SERVICE_CONFIG() {
         service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
         selected_files+=("$file_name")
 
-        # 检查文件是否存在
         if [ -f "${PROXY_DIR}/${file_name}" ]; then
             existing_files+=("$file_name")
             selected_services+=("$service_name")
@@ -2074,7 +2068,6 @@ MODIFY_SERVICE_CONFIG() {
             non_existing_files+=("$file_name")
         fi
         
-        # 检查服务是否运行
         if ! docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
             WARN "服务 ${service_name} 未运行。"
         fi
@@ -2160,6 +2153,12 @@ case $ser_choice in
         ;;
     4)
         MODIFY_SERVICE_CONFIG
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            ERROR "修改的服务未运行,请重新选择"
+            MODIFY_SERVICE_CONFIG
+        else
+            docker-compose restart ${selected_services[*]}
+        fi
         SVC_MGMT
         ;;
     5)
@@ -2331,7 +2330,6 @@ else
 fi
 }
 
-
 RM_ALLSERVICE() {
 STOP_REMOVE_CONTAINER
 REMOVE_NONE_TAG
@@ -2398,7 +2396,6 @@ esac
 
 
 function AUTH_SERVICE_CONFIG() {
-
 AUTH_MENU() {
 selected_files=()
 selected_services=()
@@ -2485,7 +2482,6 @@ done
 DEL_AUTH_CONFIG() {
 local FILE=$1
 
-# 检查文件是否存在
 if [ ! -f "$FILE" ]; then
   ERROR "配置文件 $FILE 不存在"
 else
@@ -2502,7 +2498,6 @@ DEL_AUTH_COMPOSE() {
 local SERVICES=$1
 local FILE=${DOCKER_COMPOSE_FILE}
 
-# 检查文件是否存在
 if [ ! -f "$FILE" ]; then
   ERROR "$File 不存在"
   exit 1
@@ -2610,7 +2605,6 @@ else
         fi
     done
 
-
     for file_url in "${selected_files[@]}"; do
         yml_name=$(basename "$file_url")
         DEL_AUTH_CONFIG "${PROXY_DIR}/${yml_name}"
@@ -2667,7 +2661,7 @@ case $auth_choice in
 esac
 }
 
-
+## 主菜单
 function main_menu() {
 echo -e "╔════════════════════════════════════════════════════╗"
 echo -e "║                                                    ║"
@@ -2691,7 +2685,6 @@ echo -e "8) 设置成${BOLD}${YELLOW}系统命令${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
-
 
 case $main_choice in
     1)
