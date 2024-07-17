@@ -2396,7 +2396,46 @@ esac
 
 
 function AUTH_SERVICE_CONFIG() {
+CHECK_REG_AUTH() {
+if ! command -v docker &> /dev/null; then
+    ERROR "docker 命令未找到，请确保 Docker 已正确安装"
+    AUTH_SERVICE_CONFIG
+fi
+declare -A services
+services=(
+    ["reg-docker-hub"]="dockerhub"
+    ["reg-gcr"]="gcr"
+    ["reg-ghcr"]="ghcr"
+    ["reg-quay"]="quay"
+    ["reg-k8s-gcr"]="k8sgcr"
+    ["reg-k8s"]="k8s"
+    ["reg-mcr"]="mcr"
+    ["reg-elastic"]="elastic"
+)
+
+container_names=$(docker ps --filter "name=reg-" --filter "status=running" --format "{{.Names}}")
+
+auth_containers=()
+
+for container_name in $container_names; do
+    specified_name=${services[$container_name]}
+    if [ -z "$specified_name" ]; then
+        specified_name=$container_name
+    fi
+    if docker exec $container_name grep -q "auth" /etc/docker/registry/config.yml; then
+        auth_containers+=("$specified_name")
+    fi
+done
+
+if [ ${#auth_containers[@]} -gt 0 ]; then
+    INFO "当前运行的 Docker 容器中${LIGHT_GREEN}包含认证${RESET}的容器有: ${LIGHT_CYAN}${auth_containers[*]}${RESET}"
+else
+    WARN "当前运行的 Docker 容器中${LIGHT_YELLOW}没有包含认证${RESET}的容器"
+fi
+}
+
 AUTH_MENU() {
+CHECK_REG_AUTH
 selected_files=()
 selected_services=()
 files=(
