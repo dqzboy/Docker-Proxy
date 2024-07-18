@@ -249,3 +249,19 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 [CNCF Distribution](https://distribution.github.io/distribution/) 
 
 [docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
+
+## 🤝 参与贡献
+
+感谢所有做过贡献的人!
+
+<a href="https://github.com/dqzboy/Docker-Proxy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=dqzboy/Docker-Proxy" />
+</a>
+
+
+## License
+MIT © [DingQinZheng](./LICENSE)
+
+---
+
+[![Star History Chart](https://api.star-history.com/svg?repos=dqzboy/Docker-Proxy&type=Date)](https://star-history.com/#dqzboy/Docker-Proxy&Date)

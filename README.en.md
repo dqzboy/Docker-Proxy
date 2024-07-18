@@ -248,3 +248,20 @@ Thanks to the open source contributions of the following projects:
 [CNCF Distribution](https://distribution.github.io/distribution/) 
 
 [docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
+
+
+## 🤝 Contributing
+
+Thanks to everyone who has contributed!
+
+<a href="https://github.com/dqzboy/Docker-Proxy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=dqzboy/Docker-Proxy" />
+</a>
+
+
+## License
+MIT © [DingQinZheng](./LICENSE)
+
+---
+
+[![Star History Chart](https://api.star-history.com/svg?repos=dqzboy/Docker-Proxy&type=Date)](https://star-history.com/#dqzboy/Docker-Proxy&Date)
