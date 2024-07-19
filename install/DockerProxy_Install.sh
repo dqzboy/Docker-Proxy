@@ -1661,7 +1661,7 @@ while true; do
             done
             break
         else
-            WARN "跳过WEB服务的安装。"
+            WARN "跳过WEB服务安装步骤"
             break
         fi
     else
@@ -2422,7 +2422,7 @@ for container_name in $container_names; do
     if [ -z "$specified_name" ]; then
         specified_name=$container_name
     fi
-    if docker exec $container_name grep -q "auth" /etc/docker/registry/config.yml; then
+    if docker exec $container_name grep -q "auth" /etc/distribution/config.yml; then
         auth_containers+=("$specified_name")
     fi
 done
