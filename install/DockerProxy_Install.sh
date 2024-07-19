@@ -1396,8 +1396,8 @@ function DOWN_CONFIG() {
 
         selected_all=false
 
-
-        if [[ "$main_choice" != "5" ]]; then
+        # 非更新配置操作则执行下面步骤
+        if [[ "$main_choice" != "4" ]]; then
             first_selected_container=${selected_containers[0]}
             update_docker_registry_url "$first_selected_container"
         fi
