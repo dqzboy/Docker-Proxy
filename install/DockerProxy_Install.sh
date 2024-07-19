@@ -1298,7 +1298,7 @@ fi
 function update_docker_registry_url() {
     local container_name=$1
     if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
-        sed -ri "s@- DOCKER_REGISTRY_URL=http://reg-docker-hub:5000@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} 
+        sed -i "s@- DOCKER_REGISTRY_URL=.*@- DOCKER_REGISTRY_URL=http://${container_name}:5000@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE}
     else
         ERROR "文件 ${LIGHT_CYAN}${PROXY_DIR}/${DOCKER_COMPOSE_FILE} ${RESET} ${LIGHT_RED}不存在${RESET},导致容器无法应用新配置"
         exit 1
