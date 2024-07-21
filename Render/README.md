@@ -37,14 +37,14 @@
 
 | 镜像 | 平台 |
 |-------|---------------|
-| dqzhub/mirror-hub:latest   | docker hub
-| dqzhub/mirror-gcr:latest      | Google Container Registry
-| dqzhub/mirror-ghcr:latest     | GitHub Container Registry
-| dqzhub/mirror-k8sgcr:latest  | Kubernetes Container Registry
-| dqzhub/mirror-k8sreg:latest      | Kubernetes's container image registry
-| dqzhub/mirror-quay:latest     | Quay Container Registry
-| dqzhub/mirror-elastic:latest     | Microsoft Container Registry
-| dqzhub/mirror-mcr:latest     | Elastic Stack
+| hubdqzboy/mirror-hub:latest   | docker hub
+| hubdqzboy/mirror-gcr:latest      | Google Container Registry
+| hubdqzboy/mirror-ghcr:latest     | GitHub Container Registry
+| hubdqzboy/mirror-k8sgcr:latest  | Kubernetes Container Registry
+| hubdqzboy/mirror-k8sreg:latest      | Kubernetes's container image registry
+| hubdqzboy/mirror-quay:latest     | Quay Container Registry
+| hubdqzboy/mirror-elastic:latest     | Microsoft Container Registry
+| hubdqzboy/mirror-mcr:latest     | Elastic Stack
 
 <table>
     <tr>
@@ -173,9 +173,8 @@ docker push yourusername/mirror-hub:latest
 **1.** 免费实例如果15分钟内未收到入站流量，Render会关闭实例的网络服务。Render 会在下次收到处理请求时重新启动该服务。
 
 **2.** Render每月为每个用户和团队提供 750 小时的免费实例时间：
-   - 免费网络服务在运行期间会消耗这些时间（停止服务不要消耗免费实例
-   - 小时数）。
-   - 如果您在某个月内用完了所有免费实例小时数，Render将暂停您的所有免费网络服务，直到下个月开始。
-   - 每个月开始时，您的免费实例小时数将重置为 750 小时（剩余小时数不会结转）。
+   - 免费网络服务在运行期间会消耗这些时间（停止服务不会消耗免费实例小时数）
+   - 如果您在某个月内用完了所有免费实例小时数，Render将暂停您的所有免费网络服务，直到下个月开始
+   - 每个月开始时，您的免费实例小时数将重置为 750 小时（剩余小时数不会结转）
 
-**3.** 最好自己个人使用或者小团队使用，如果你的服务使用人多了，Render照样会把你的服务给删除掉，并且没有任何提醒！
+**3.** 最好自己个人使用或者小团队使用，如果你的服务使用人多了，Render照样会把你的服务给删除掉，并且没有任何提醒或通知！
