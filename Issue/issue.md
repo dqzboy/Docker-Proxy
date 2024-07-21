@@ -33,21 +33,36 @@
 
 - 此方案来自交流群里大佬提供，通过nginx实现并实测
 ```shell
-location ^~ / {
-    if ($request_uri ~  ^/v2/([^/]+)/(manifests|blobs)/(.*)$) {
-            # 重写路径并添加 library/
-            rewrite ^/v2/(.*)$ /v2/library/$1 break;
+# 将下面的$http_upgrade $connection_upgrade变量添加到http块中
+http {
+    # 用于支持WebSocket
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
     }
 
-    proxy_pass http://127.0.0.1:51000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header REMOTE-HOST $remote_addr;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $connection_upgrade;
-    proxy_http_version 1.1;
-    add_header X-Cache $upstream_cache_status;
+    server {
+        listen 80;
+        server_name hub.your_domain.com;
+
+        # 在docker hub的配置中添加下面的location规则
+        location ^~ / {
+            if ($request_uri ~  ^/v2/([^/]+)/(manifests|blobs)/(.*)$) {
+                    # 重写路径并添加 library/
+                    rewrite ^/v2/(.*)$ /v2/library/$1 break;
+            }
+
+            proxy_pass http://127.0.0.1:51000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header REMOTE-HOST $remote_addr;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_http_version 1.1;
+            add_header X-Cache $upstream_cache_status;
+        }
+    }
 }
 ```
 
