@@ -2211,7 +2211,7 @@ INSTALL_OR_UPDATE_CMD() {
         else
             WARN "正在进行脚本更新,请稍等..."
         fi
-        wget -O "$TARGET_PATH" "$DOWNLOAD_URL" &>/dev/null
+        wget -q -O "$TARGET_PATH" "$DOWNLOAD_URL" &>/dev/null
         if [ $? -eq 0 ]; then
             success=true
             chmod +x "$TARGET_PATH"
