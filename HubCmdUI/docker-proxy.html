@@ -53,11 +53,10 @@
         }
         .container {
             max-width: 800px;
-            min-width: 800px; /* 固定容器宽度 */
-            width: 100%;
+            width: 90%;
             margin: 20px auto;
             background: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             flex-grow: 1;
@@ -97,20 +96,15 @@
         button:hover {
             background-color: #2c974b;
         }
-        /* 广告容器样式 */
         .ad-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 90px; /* 与获取命令按钮之间的间距 */
+            margin-top: 30px;
             margin-bottom: 30px;
-            max-width: 800px;
-            min-width: 800px;
         }
         .ad-container img {
             max-width: 100%;
-            width: 750; /* 广告图片宽度 */
-            height: 300px; /* 广告图片高度 */
             border-radius: 8px;
         }
         pre {
@@ -120,20 +114,27 @@
             overflow: auto;
             font-size: 14px;
             border: 1px solid #e1e4e8;
+            position: relative;
         }
         .copy-btn {
-            float: right;
+            position: absolute;
+            top: 8px;
+            right: 8px;
             padding: 6px 12px;
             font-size: 12px;
-            margin-top: -5px;
-            background-color: #0366d6;
-            color: white;
+            background-color: #f0f0f0;
+            color: #333;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Arial', sans-serif;
+            font-weight: 500;
+            border-radius: 12px;
         }
         .copy-btn:hover {
-            background-color: #0256b9;
+            background-color: #e0e0e0;
+            color: #000;
         }
         .step {
             margin-bottom: 25px;
@@ -178,10 +179,6 @@
         #backToTopBtn:hover {
             background-color: #0256b9;
         }
-        #backToTopBtn:before {
-            display: inline-block;
-            font-size: 20px;
-        }
         #backToTopBtn::after {
             content: '返回顶部';
             display: none;
@@ -196,6 +193,33 @@
         }
         #backToTopBtn:hover::after {
             display: block;
+        }
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            .header-content {
+                flex-direction: column;
+            }
+            .logo {
+                margin-bottom: 10px;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+            .ad-container img {
+                width: 100%;
+                height: auto;
+            }
+        }
+        @media (min-width: 769px) {
+            .nav-menu {
+                display: flex;
+            }
         }
     </style>
 </head>
@@ -282,8 +306,7 @@
                 cmdDiv.className = 'step';
                 cmdDiv.innerHTML = `
                     <h3>${index + 1}. ${command.title}</h3>
-                    <pre><code>${command.cmd}</code></pre>
-                    <button class="copy-btn" onclick="copyToClipboard('${command.cmd}')">复制</button>
+                    <pre><code>${command.cmd}</code><button class="copy-btn" onclick="copyToClipboard('${command.cmd}')">复制</button></pre>
                 `;
                 container.appendChild(cmdDiv);
             });
