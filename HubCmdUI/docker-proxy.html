@@ -217,8 +217,8 @@
                 alert('请输入 Docker 镜像');
                 return;
             }
-
-            const proxyDomain = 'hub.dqzboy.xyz';
+            // docker镜像加速地址，请把下面your_domain改为你实际的加速地址
+            const proxyDomain = 'your_domain'; //例如：hub.baidu.com
             let [imageName, tag] = imageInput.split(':');
             tag = tag || 'latest';
             

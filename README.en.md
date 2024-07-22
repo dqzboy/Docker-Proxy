@@ -202,8 +202,17 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 </table>
 
 ## 💻 UI
-![docker-proxy](https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0)
-
+<br/>
+<table>
+    <tr>
+      <td width="50%" align="center"><b>Docker Registry UI</b></td>
+      <td width="50%" align="center"><b>Docker-Proxy CmdUI</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/2efe5d7e-6542-4867-9e50-17fa0e704b23?raw=true"></td>
+    </tr>
+</table>
 
 ---
 

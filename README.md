@@ -197,24 +197,20 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
     </tr>
     <tr>
         <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/55df7f6f-c788-4200-9bcd-631998dc53ef?raw=true"></td>
-        <td width="50%" align="center"><img src=https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
     </tr>
 </table>
 
 ## 💻 UI
-
+<br/>
 <table>
     <tr>
       <td width="50%" align="center"><b>Docker Registry UI</b></td>
       <td width="50%" align="center"><b>Docker-Proxy CmdUI</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center">
-            <img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true" width="300" height="200">
-        </td>
-        <td width="50%" align="center">
-            <img src="https://github.com/user-attachments/assets/7d9443cc-f94c-4c1a-9f0a-48ead46f2d0d?raw=true" width="300" height="200">
-        </td>
+        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/2efe5d7e-6542-4867-9e50-17fa0e704b23?raw=true"></td>
     </tr>
 </table>
 
