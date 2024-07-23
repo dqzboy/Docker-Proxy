@@ -228,12 +228,8 @@
     <header class="header">
         <div class="header-content">
             <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" alt="Logo" class="logo">
-            <nav class="nav-menu">
-                <a href="javascript:void(0);" onclick="location.reload();">首页</a>
-                <a href="https://www.dqzboy.com" target="_blank">博客</a>
-                <a href="https://www.dqzboy.com/zanzu" target="_blank">捐赠</a>
-                <a href="https://t.me/dqzboyblog" target="_blank">交流群</a>
-                <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank">GitHub</a>
+            <nav class="nav-menu" id="navMenu">
+                <!-- 菜单项将通过 JavaScript 动态加载 -->
             </nav>
         </div>
     </header>
@@ -245,10 +241,8 @@
             <button onclick="generateCommands()">获取加速命令</button>
         </div>
         <!-- 广告容器 -->
-        <div class="ad-container" id="adContainer">
-            <a href="https://example.com" target="_blank">
-                <img src="https://github.com/user-attachments/assets/595f645a-e4da-49fd-bd67-db93566a6152?text=Ad+Banner" alt="广告图片">
-            </a>
+        <div class="ad-container" id="adContainer" style="display: flex;">
+            <!-- 广告内容将通过 JavaScript 动态加载 -->
         </div>
         <!-- 结果容器 -->
         <div id="result" style="display:none;">
@@ -258,7 +252,7 @@
     </div>
     <!-- 页脚 -->
     <footer class="footer">
-        <p>Copyright © <span id="currentYear"></span> dqzboy.com. All Rights Reserved. <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank" rel="noopener noreferrer">Docker-Proxy</a>版权所有</p>
+        <p>Copyright © <span id="currentYear"></span> All Rights Reserved. <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank" rel="noopener noreferrer">Docker-Proxy</a> 版权所有</p>
     </footer>
 
     <!-- 返回顶部按钮 -->
@@ -268,6 +262,8 @@
         // 设置当前年份
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
+        let proxyDomain = ''; // 默认代理加速地址
+
         // 生成加速命令
         function generateCommands() {
             const imageInput = document.getElementById('imageInput').value.trim();
@@ -275,8 +271,6 @@
                 alert('请输入 Docker 镜像');
                 return;
             }
-            // docker镜像加速地址，请把下面your_domain改为你实际的加速地址
-            const proxyDomain = 'your_domain'; //例如：hub.baidu.com
             let [imageName, tag] = imageInput.split(':');
             tag = tag || 'latest';
             
@@ -333,6 +327,67 @@
                 behavior: 'smooth'
             });
         }
+
+        // 获取并加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                if (config.logo) {
+                    document.querySelector('.logo').src = config.logo;
+                }
+                if (config.menuItems && Array.isArray(config.menuItems)) {
+                    const navMenu = document.getElementById('navMenu');
+                    navMenu.innerHTML = ''; // 清空菜单
+                    config.menuItems.forEach(item => {
+                        const a = document.createElement('a');
+                        a.href = item.link;
+                        a.textContent = item.text;
+                        if (item.newTab) {
+                            a.target = '_blank';
+                        }
+                        navMenu.appendChild(a);
+                    });
+                }
+                if (config.adImages && Array.isArray(config.adImages)) {
+                    const adContainer = document.getElementById('adContainer');
+                    adContainer.innerHTML = ''; // 清空广告容器
+                    config.adImages.forEach((ad, index) => {
+                        const adLink = document.createElement('a');
+                        adLink.href = ad.link;
+                        adLink.target = '_blank';
+                        const adImage = document.createElement('img');
+                        adImage.src = ad.url;
+                        adImage.alt = ad.alt || '广告图片';
+                        adImage.style.display = 'none'; // 初始状态隐藏所有广告图片
+                        adLink.appendChild(adImage);
+                        adContainer.appendChild(adLink);
+                    });
+
+                    // 轮播功能
+                    let currentAdIndex = 0;
+                    const adImages = adContainer.querySelectorAll('img');
+                    function showAd(index) {
+                        adImages.forEach((img, i) => {
+                            img.style.display = i === index ? 'block' : 'none';
+                        });
+                    }
+                    showAd(currentAdIndex); // 显示第一张广告图片
+
+                    setInterval(() => {
+                        currentAdIndex = (currentAdIndex + 1) % adImages.length;
+                        showAd(currentAdIndex);
+                    }, 5000); // 每5秒切换一次广告
+                }
+                if (config.proxyDomain) {
+                    proxyDomain = config.proxyDomain;
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        loadConfig();
     </script>
 </body>
 </html>

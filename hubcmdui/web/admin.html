@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker 镜像代理加速 - 管理面板</title>
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Lato', 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #24292e;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f8fa;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            border-bottom: 2px solid #eaecef;
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+            color: #0366d6;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            border-bottom: none;
+            padding-bottom: 0;
+            color: #24292e;
+            font-size: 20px;
+        }
+        input[type="text"], input[type="url"], input[type="password"], select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #d1d5da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        button {
+            background-color: #2ea44f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        button:hover {
+            background-color: #2c974b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #d1d5da;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f6f8fa;
+            font-weight: normal;
+        }
+        .action-btn {
+            background-color: #0366d6;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        .action-btn:hover {
+            background-color: #0256b9;
+        }
+        .add-btn {
+            background-color: #2ea44f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        .add-btn:hover {
+            background-color: #2c974b;
+        }
+        #menuPreview {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f6f8fa;
+            border: 1px solid #d1d5da;
+            border-radius: 4px;
+        }
+        #menuPreview a {
+            margin-right: 15px;
+            color: #0366d6;
+            text-decoration: none;
+        }
+        #menuPreview a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+        .login-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .login-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+            border-radius: 8px;
+        }
+        .user-management {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+        }
+        .user-management i {
+            font-size: 24px;
+            color: #0366d6;
+        }
+        .menu-label {
+            font-size: 20px;
+            color: #24292e;
+        }
+        .admin-title {
+            font-size: 24px;
+            color: #0366d6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container hidden" id="adminContainer">
+        <h1 class="admin-title">Docker 镜像代理加速 - 管理面板</h1>
+        <form id="adminForm">
+            <label for="logoUrl">Logo URL: (可选)</label>
+            <input type="url" id="logoUrl" name="logoUrl">
+            
+            <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
+            <input type="text" id="proxyDomain" name="proxyDomain" required>
+            
+            <h2 class="menu-label">菜单项管理</h2>
+            <table id="menuTable">
+                <thead>
+                    <tr>
+                        <th>文本</th>
+                        <th>链接 (可选)</th>
+                        <th>新标签页打开</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="menuTableBody">
+                    <!-- 菜单项将在这里动态添加 -->
+                </tbody>
+            </table>
+            <button type="button" class="add-btn" onclick="showNewMenuItemRow()">添加菜单项</button>
+            
+            <h2 class="menu-label">广告管理</h2>
+            <table id="adTable">
+                <thead>
+                    <tr>
+                        <th>广告URL</th>
+                        <th>跳转URL</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="adTableBody">
+                    <!-- 广告项将在这里动态添加 -->
+                </tbody>
+            </table>
+            <button type="button" class="add-btn" onclick="showNewAdRow()">添加广告</button>
+            
+            <button type="submit">保存更改</button>
+        </form>
+
+        <!-- 修改密码的独立表单 -->
+        <div id="passwordChangeForm" style="margin-top: 20px;">
+            <h2 class="menu-label">修改密码</h2>
+            <label for="currentPassword">当前密码</label>
+            <input type="password" id="currentPassword" name="currentPassword">
+            <label for="newPassword">新密码</label>
+            <input type="password" id="newPassword" name="newPassword">
+            <button type="button" onclick="changePassword()">修改密码</button>
+        </div>
+    </div>
+
+    <div class="login-modal" id="loginModal">
+        <div class="login-content">
+            <h2>登录</h2>
+            <label for="username">用户名</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">密码</label>
+            <input type="password" id="password" name="password" required>
+            <button type="button" onclick="login()">登录</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js"></script>
+    <script>
+        let menuItems = [];
+        let adImages = [];
+        let isLoggedIn = false;
+        let editingIndex = -1; // 用于记录当前编辑的菜单项索引
+
+        function getMenuItems() {
+            return menuItems;
+        }
+
+        function setMenuItems(items) {
+            menuItems = items;
+            renderMenuItems();
+        }
+
+        function renderMenuItems() {
+            const tbody = document.getElementById('menuTableBody');
+            tbody.innerHTML = '';
+            menuItems.forEach((item, index) => {
+                const row = `
+                    <tr data-index="${index}">
+                        <td><input type="text" class="menu-text" value="${item.text}" disabled></td>
+                        <td><input type="url" class="menu-link" value="${item.link || ''}" disabled></td>
+                        <td>
+                            <select class="menu-newtab" disabled>
+                                <option value="false" ${item.newTab ? '' : 'selected'}>否</option>
+                                <option value="true" ${item.newTab ? 'selected' : ''}>是</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="action-btn edit-btn">编辑</button>
+                            <button type="button" class="action-btn delete-btn">删除</button>
+                            <span class="drag-handle" style="cursor: move;">☰</span>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            setupDragAndDrop();
+            setupEditButtons();
+            setupDeleteButtons();
+        }
+
+        function setupEditButtons() {
+            const editButtons = document.querySelectorAll('.edit-btn');
+            editButtons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    const row = button.closest('tr');
+                    const textInput = row.querySelector('.menu-text');
+                    const linkInput = row.querySelector('.menu-link');
+                    const newTabSelect = row.querySelector('.menu-newtab');
+
+                    if (textInput.disabled) {
+                        textInput.disabled = false;
+                        linkInput.disabled = false;
+                        newTabSelect.disabled = false;
+                        button.textContent = '保存';
+                        editingIndex = row.getAttribute('data-index');
+                    } else {
+                        const text = textInput.value;
+                        const link = linkInput.value;
+                        const newTab = newTabSelect.value === 'true';
+
+                        if (text) {
+                            menuItems[editingIndex] = { text, link, newTab };
+                            renderMenuItems();
+                            editingIndex = -1;
+                        } else {
+                            alert('请填写菜单项文本');
+                        }
+                    }
+                });
+            });
+        }
+
+        function setupDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    const row = button.closest('tr');
+                    const index = row.getAttribute('data-index');
+                    menuItems.splice(index, 1);
+                    renderMenuItems();
+                });
+            });
+        }
+
+        function showNewMenuItemRow() {
+            const tbody = document.getElementById('menuTableBody');
+            const newRow = `
+                <tr id="newMenuItemRow">
+                    <td><input type="text" id="newMenuItemText" placeholder="菜单项文本"></td>
+                    <td><input type="url" id="newMenuItemLink" placeholder="菜单项链接 (可选)"></td>
+                    <td>
+                        <select id="newMenuItemNewTab">
+                            <option value="false">否</option>
+                            <option value="true">是</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="button" class="action-btn" onclick="saveNewMenuItem()">保存</button>
+                        <button type="button" class="action-btn" onclick="cancelNewMenuItem()">取消</button>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', newRow);
+        }
+
+        function saveNewMenuItem() {
+            const text = document.getElementById('newMenuItemText').value;
+            const link = document.getElementById('newMenuItemLink').value;
+            const newTab = document.getElementById('newMenuItemNewTab').value === 'true';
+            
+            if (text) {
+                menuItems.push({ text, link, newTab });
+                renderMenuItems();
+                cancelNewMenuItem();
+            } else {
+                alert('请填写菜单项文本');
+            }
+        }
+
+        function cancelNewMenuItem() {
+            const newRow = document.getElementById('newMenuItemRow');
+            if (newRow) {
+                newRow.remove();
+            }
+        }
+
+        function showNewAdRow() {
+            const tbody = document.getElementById('adTableBody');
+            const newRow = `
+                <tr id="newAdRow">
+                    <td><input type="url" id="newAdUrl" placeholder="广告URL"></td>
+                    <td><input type="url" id="newAdLink" placeholder="跳转URL"></td>
+                    <td>
+                        <button type="button" class="action-btn" onclick="saveNewAd()">保存</button>
+                        <button type="button" class="action-btn" onclick="cancelNewAd()">取消</button>
+                    </td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', newRow);
+        }
+
+        function renderAdItems() {
+            const tbody = document.getElementById('adTableBody');
+            tbody.innerHTML = '';
+            adImages.forEach((ad, index) => {
+                const row = `
+                    <tr data-index="${index}">
+                        <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
+                        <td><input type="url" class="ad-link" value="${ad.link}" disabled></td>
+                        <td>
+                            <button type="button" class="action-btn edit-btn">编辑</button>
+                            <button type="button" class="action-btn delete-btn">删除</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            setupAdEditButtons();
+            setupAdDeleteButtons();
+        }       
+
+
+        function saveNewAd() {
+            const url = document.getElementById('newAdUrl').value || '';
+            const link = document.getElementById('newAdLink').value || '';
+
+            adImages.push({ url, link });
+            renderAdItems();
+            cancelNewAd();
+        }
+
+        function cancelNewAd() {
+            const newRow = document.getElementById('newAdRow');
+            if (newRow) {
+                newRow.remove();
+            }
+        }
+
+        function renderAdItems() {
+            const tbody = document.getElementById('adTableBody');
+            tbody.innerHTML = '';
+            adImages.forEach((ad, index) => {
+                const row = `
+                    <tr data-index="${index}">
+                        <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
+                        <td><input type="url" class="ad-link" value="${ad.link}" disabled></td>
+                        <td>
+                            <button type="button" class="action-btn edit-btn">编辑</button>
+                            <button type="button" class="action-btn delete-btn">删除</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            setupAdEditButtons();
+            setupAdDeleteButtons();
+        }
+
+        function setupAdEditButtons() {
+            const editButtons = document.querySelectorAll('.edit-btn');
+            editButtons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    const row = button.closest('tr');
+                    const urlInput = row.querySelector('.ad-url');
+                    const linkInput = row.querySelector('.ad-link');
+
+                    if (urlInput.disabled) {
+                        urlInput.disabled = false;
+                        linkInput.disabled = false;
+                        button.textContent = '保存';
+                        editingIndex = row.getAttribute('data-index');
+                    } else {
+                        const url = urlInput.value || '';
+                        const link = linkInput.value || '';
+
+                        adImages[editingIndex] = { url, link };
+                        renderAdItems();
+                        editingIndex = -1;
+                    }
+                });
+            });
+        }
+
+        function setupAdDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    const row = button.closest('tr');
+                    const index = row.getAttribute('data-index');
+                    adImages.splice(index, 1);
+                    renderAdItems();
+                });
+            });
+        }
+
+        async function saveConfig() {
+            const config = {
+                logo: document.getElementById('logoUrl').value,
+                proxyDomain: document.getElementById('proxyDomain').value,
+                menuItems: getMenuItems(),
+                adImages: adImages
+            };
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                if (response.ok) {
+                    alert('配置已保存');
+                } else {
+                    throw new Error('保存失败');
+                }
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                document.getElementById('logoUrl').value = config.logo || '';
+                document.getElementById('proxyDomain').value = config.proxyDomain || '';
+                setMenuItems(config.menuItems || []);
+                adImages = config.adImages || [];
+                renderAdItems();
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                if (response.ok) {
+                    isLoggedIn = true;
+                    localStorage.setItem('isLoggedIn', 'true');  // 存储登录状态
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('adminContainer').classList.remove('hidden');
+                    loadConfig();
+                } else {
+                    alert('登录失败');
+                }
+            } catch (error) {
+                alert('登录失败: ' + error.message);
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (!currentPassword || !newPassword) {
+                alert('请填写当前密码和新密码');
+                return;
+            }
+            try {
+                const response = await fetch('/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                if (response.ok) {
+                    alert('密码已修改');
+                } else {
+                    alert('修改密码失败');
+                }
+            } catch (error) {
+                alert('修改密码失败: ' + error.message);
+            }
+        }
+
+        // 页面加载时检查登录状态
+        window.onload = async function() {
+            try {
+                const response = await fetch('/api/check-session');
+                if (response.ok) {
+                    isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';  // 读取登录状态
+                    if (isLoggedIn) {
+                        document.getElementById('loginModal').style.display = 'none';
+                        document.getElementById('adminContainer').classList.remove('hidden');
+                        loadConfig();
+                    } else {
+                        document.getElementById('loginModal').style.display = 'block';
+                    }
+                } else {
+                    localStorage.removeItem('isLoggedIn');  // 清除登录状态
+                    document.getElementById('loginModal').style.display = 'block';
+                }
+            } catch (error) {
+                localStorage.removeItem('isLoggedIn');  // 清除登录状态
+                document.getElementById('loginModal').style.display = 'block';
+            }
+        };
+
+        // 表单提交事件监听器
+        document.getElementById('adminForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await saveConfig();
+        });
+
+        function setupDragAndDrop() {
+            const drake = dragula([document.getElementById('menuTableBody')], {
+                moves: function (el, container, handle) {
+                    return handle.classList.contains('drag-handle');
+                }
+            });
+
+            drake.on('drop', (el, target, source, sibling) => {
+                const newIndex = Array.from(target.children).indexOf(el);
+                const oldIndex = el.getAttribute('data-index');
+                const movedItem = menuItems.splice(oldIndex, 1)[0];
+                menuItems.splice(newIndex, 0, movedItem);
+                renderMenuItems();
+            });
+        }
+
+        function updateAdImage(adImages) {
+            const adContainer = document.getElementById('adContainer');
+            adContainer.innerHTML = '';
+            if (adImages && adImages.length > 0) {
+                adImages.forEach(ad => {
+                    const adLink = document.createElement('a');
+                    adLink.href = ad.link;
+                    adLink.target = '_blank';
+                    const adImage = document.createElement('img');
+                    adImage.src = ad.url;
+                    adImage.alt = ad.alt || '广告图片';
+                    adLink.appendChild(adImage);
+                    adContainer.appendChild(adLink);
+                });
+
+                // 轮播功能
+                let currentAdIndex = 0;
+                setInterval(() => {
+                    currentAdIndex = (currentAdIndex + 1) % adImages.length;
+                    adImages.forEach((ad, index) => {
+                        const adImage = adContainer.children[index];
+                        if (index === currentAdIndex) {
+                            adImage.style.display = 'block';
+                        } else {
+                            adImage.style.display = 'none';
+                        }
+                    });
+                }, 5000); // 每5秒切换一次广告
+            }
+        }
+    </script>
+</body>
+</html>
