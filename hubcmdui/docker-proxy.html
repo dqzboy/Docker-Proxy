@@ -53,10 +53,11 @@
         }
         .container {
             max-width: 800px;
-            width: 90%;
+            min-width: 800px; /* 固定容器宽度 */
+            width: 100%;
             margin: 20px auto;
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             flex-grow: 1;
@@ -96,15 +97,20 @@
         button:hover {
             background-color: #2c974b;
         }
+        /* 广告容器样式 */
         .ad-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 30px;
+            margin-top: 90px; /* 与获取命令按钮之间的间距 */
             margin-bottom: 30px;
+            max-width: 800px;
+            min-width: 800px;
         }
         .ad-container img {
             max-width: 100%;
+            width: 750; /* 广告图片宽度 */
+            height: 300px; /* 广告图片高度 */
             border-radius: 8px;
         }
         pre {
@@ -114,27 +120,20 @@
             overflow: auto;
             font-size: 14px;
             border: 1px solid #e1e4e8;
-            position: relative;
         }
         .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
+            float: right;
             padding: 6px 12px;
             font-size: 12px;
-            background-color: #f0f0f0;
-            color: #333;
+            margin-top: -5px;
+            background-color: #0366d6;
+            color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-            font-family: 'Arial', sans-serif;
-            font-weight: 500;
-            border-radius: 12px;
         }
         .copy-btn:hover {
-            background-color: #e0e0e0;
-            color: #000;
+            background-color: #0256b9;
         }
         .step {
             margin-bottom: 25px;
@@ -179,6 +178,10 @@
         #backToTopBtn:hover {
             background-color: #0256b9;
         }
+        #backToTopBtn:before {
+            display: inline-block;
+            font-size: 20px;
+        }
         #backToTopBtn::after {
             content: '返回顶部';
             display: none;
@@ -193,33 +196,6 @@
         }
         #backToTopBtn:hover::after {
             display: block;
-        }
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-            }
-            .header-content {
-                flex-direction: column;
-            }
-            .logo {
-                margin-bottom: 10px;
-            }
-            .input-group {
-                flex-direction: column;
-            }
-            .container {
-                width: 100%;
-                padding: 10px;
-            }
-            .ad-container img {
-                width: 100%;
-                height: auto;
-            }
-        }
-        @media (min-width: 769px) {
-            .nav-menu {
-                display: flex;
-            }
         }
     </style>
 </head>
@@ -247,7 +223,7 @@
         <!-- 广告容器 -->
         <div class="ad-container" id="adContainer">
             <a href="https://example.com" target="_blank">
-                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/guanggao.png?text=Ad+Banner" alt="广告图片">
+                <img src="https://github.com/user-attachments/assets/595f645a-e4da-49fd-bd67-db93566a6152?text=Ad+Banner" alt="广告图片">
             </a>
         </div>
         <!-- 结果容器 -->
@@ -268,8 +244,6 @@
         // 设置当前年份
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-        let proxyDomain = 'your_domain'; // 默认代理加速地址
-
         // 生成加速命令
         function generateCommands() {
             const imageInput = document.getElementById('imageInput').value.trim();
@@ -277,6 +251,8 @@
                 alert('请输入 Docker 镜像');
                 return;
             }
+            // docker镜像加速地址，请把下面your_domain改为你实际的加速地址
+            const proxyDomain = 'your_domain'; //例如：hub.baidu.com
             let [imageName, tag] = imageInput.split(':');
             tag = tag || 'latest';
             
@@ -306,7 +282,8 @@
                 cmdDiv.className = 'step';
                 cmdDiv.innerHTML = `
                     <h3>${index + 1}. ${command.title}</h3>
-                    <pre><code>${command.cmd}</code><button class="copy-btn" onclick="copyToClipboard('${command.cmd}')">复制</button></pre>
+                    <pre><code>${command.cmd}</code></pre>
+                    <button class="copy-btn" onclick="copyToClipboard('${command.cmd}')">复制</button>
                 `;
                 container.appendChild(cmdDiv);
             });
@@ -333,46 +310,6 @@
                 behavior: 'smooth'
             });
         }
-
-        // 获取并加载配置
-        async function loadConfig() {
-            try {
-                const response = await fetch('/api/config');
-                const config = await response.json();
-                if (config.logo) {
-                    document.querySelector('.logo').src = config.logo;
-                }
-                if (config.menuItems && Array.isArray(config.menuItems)) {
-                    const navMenu = document.querySelector('.nav-menu');
-                    navMenu.innerHTML = ''; // 清空菜单
-                    config.menuItems.forEach(item => {
-                        const a = document.createElement('a');
-                        a.href = item.link;
-                        a.textContent = item.text;
-                        if (item.newTab) {
-                            a.target = '_blank';
-                        }
-                        navMenu.appendChild(a);
-                    });
-                }
-                if (config.adImage && config.adImage.url) {
-                    const adContainer = document.getElementById('adContainer');
-                    const adLink = adContainer.querySelector('a');
-                    const adImage = adContainer.querySelector('img');
-                    adLink.href = config.adImage.link;
-                    adImage.src = config.adImage.url;
-                    adImage.alt = config.adImage.alt || '广告图片';
-                    adContainer.style.display = 'flex';
-                }
-                if (config.proxyDomain) {
-                    proxyDomain = config.proxyDomain;
-                }
-            } catch (error) {
-                console.error('加载配置失败:', error);
-            }
-        }
-
-        loadConfig();
     </script>
 </body>
 </html>
