@@ -81,7 +81,7 @@ docker run -d -p 3000:3000 --name hubcmdui-server hubcmd-ui
     </tr>
 </table>
 
-> 浏览器输入 `服务器地址/admin:3000` 访问后端页面
+> 浏览器输入 `服务器地址/admin:3000` 访问后端页面，默认登入账号密码: root/admin
 
 <table>
     <tr>
