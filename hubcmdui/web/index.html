@@ -247,7 +247,7 @@
         <!-- 广告容器 -->
         <div class="ad-container" id="adContainer">
             <a href="https://example.com" target="_blank">
-                <img src="https://github.com/user-attachments/assets/595f645a-e4da-49fd-bd67-db93566a6152?text=Ad+Banner" alt="广告图片">
+                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/guanggao.png?text=Ad+Banner" alt="广告图片">
             </a>
         </div>
         <!-- 结果容器 -->
@@ -268,6 +268,8 @@
         // 设置当前年份
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
+        let proxyDomain = 'your_domain'; // 默认代理加速地址
+
         // 生成加速命令
         function generateCommands() {
             const imageInput = document.getElementById('imageInput').value.trim();
@@ -275,8 +277,6 @@
                 alert('请输入 Docker 镜像');
                 return;
             }
-            // docker镜像加速地址，请把下面your_domain改为你实际的加速地址
-            const proxyDomain = 'your_domain'; //例如：hub.baidu.com
             let [imageName, tag] = imageInput.split(':');
             tag = tag || 'latest';
             
@@ -333,6 +333,46 @@
                 behavior: 'smooth'
             });
         }
+
+        // 获取并加载配置
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                if (config.logo) {
+                    document.querySelector('.logo').src = config.logo;
+                }
+                if (config.menuItems && Array.isArray(config.menuItems)) {
+                    const navMenu = document.querySelector('.nav-menu');
+                    navMenu.innerHTML = ''; // 清空菜单
+                    config.menuItems.forEach(item => {
+                        const a = document.createElement('a');
+                        a.href = item.link;
+                        a.textContent = item.text;
+                        if (item.newTab) {
+                            a.target = '_blank';
+                        }
+                        navMenu.appendChild(a);
+                    });
+                }
+                if (config.adImage && config.adImage.url) {
+                    const adContainer = document.getElementById('adContainer');
+                    const adLink = adContainer.querySelector('a');
+                    const adImage = adContainer.querySelector('img');
+                    adLink.href = config.adImage.link;
+                    adImage.src = config.adImage.url;
+                    adImage.alt = config.adImage.alt || '广告图片';
+                    adContainer.style.display = 'flex';
+                }
+                if (config.proxyDomain) {
+                    proxyDomain = config.proxyDomain;
+                }
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
+        }
+
+        loadConfig();
     </script>
 </body>
 </html>
