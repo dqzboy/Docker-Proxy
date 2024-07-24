@@ -5,4 +5,4 @@ services:
     image: dqzboy/hubcmd-ui:latest
     restart: always
     ports:
-      - 3000:3000
+      - 30080:3000
