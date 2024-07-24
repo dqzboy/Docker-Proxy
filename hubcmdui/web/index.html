@@ -221,6 +221,21 @@
                 display: flex;
             }
         }
+        .notification {
+            display: none;
+            position: absolute;
+            top: 15px; /* Adjust the position as needed */
+            left: 85%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -300,7 +315,9 @@
                 cmdDiv.className = 'step';
                 cmdDiv.innerHTML = `
                     <h3>${index + 1}. ${command.title}</h3>
-                    <pre><code>${command.cmd}</code><button class="copy-btn" onclick="copyToClipboard('${command.cmd}')">复制</button></pre>
+                    <pre><code>${command.cmd}</code>
+                    <div id="copyNotification${index}" class="notification">已复制!</div>
+                    <button class="copy-btn" onclick="copyToClipboard('${command.cmd}', 'copyNotification${index}')">复制</button></pre>
                 `;
                 container.appendChild(cmdDiv);
             });
@@ -312,9 +329,19 @@
         }
 
         // 复制命令到剪贴板
-        function copyToClipboard(text) {
+        function copyToClipboard(text, notificationId) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('命令已复制到剪贴板');
+                var notification = document.getElementById(notificationId);
+                notification.style.display = 'block';
+                notification.style.opacity = '1';
+
+                // 在2秒后隐藏提示
+                setTimeout(function() {
+                    notification.style.opacity = '0';
+                    setTimeout(function() {
+                        notification.style.display = 'none';
+                    }, 500);
+                }, 2000);
             }, (err) => {
                 console.error('无法复制文本: ', err);
             });
