@@ -224,14 +224,14 @@
         .notification {
             display: none;
             position: absolute;
-            top: 15px; /* Adjust the position as needed */
-            left: 85%;
+            top: 7px; /* Adjust the position as needed */
+            left: 87%;
             transform: translateX(-50%);
             background-color: #333;
             color: #fff;
-            padding: 10px 20px;
+            padding: 5px 10px;
             border-radius: 5px;
-            font-size: 14px;
+            font-size: 12px;
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
             z-index: 1000;
@@ -314,10 +314,7 @@
                 const cmdDiv = document.createElement('div');
                 cmdDiv.className = 'step';
                 cmdDiv.innerHTML = `
-                    <h3>${index + 1}. ${command.title}</h3>
-                    <pre><code>${command.cmd}</code>
-                    <div id="copyNotification${index}" class="notification">已复制!</div>
-                    <button class="copy-btn" onclick="copyToClipboard('${command.cmd}', 'copyNotification${index}')">复制</button></pre>
+                    <h3>${index + 1}. ${command.title}</h3> <pre><code>${command.cmd}</code><div id="copyNotification${index}" class="notification">已复制!</div><button class="copy-btn" onclick="copyToClipboard('${command.cmd}', 'copyNotification${index}')">复制</button></pre>
                 `;
                 container.appendChild(cmdDiv);
             });
