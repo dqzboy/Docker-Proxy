@@ -1,0 +1,17 @@
+{
+  "logo": "",
+  "proxyDomain": "dqzboy.github.io",
+  "menuItems": [
+    {
+      "text": "首页",
+      "link": "",
+      "newTab": false
+    },
+    {
+      "text": "项目",
+      "link": "https://github.com/dqzboy/Docker-Proxy",
+      "newTab": true
+    }
+  ],
+  "adImages": []
+}

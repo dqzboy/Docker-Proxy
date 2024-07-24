@@ -327,21 +327,36 @@
 
         // 复制命令到剪贴板
         function copyToClipboard(text, notificationId) {
-            navigator.clipboard.writeText(text).then(() => {
-                var notification = document.getElementById(notificationId);
-                notification.style.display = 'block';
-                notification.style.opacity = '1';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification(notificationId);
+                }, (err) => {
+                    console.error('无法复制文本: ', err);
+                });
+            } else {
+                // 回退方案：使用临时的 <textarea> 元素
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showNotification(notificationId);
+            }
+        }
 
-                // 在2秒后隐藏提示
+        function showNotification(notificationId) {
+            var notification = document.getElementById(notificationId);
+            notification.style.display = 'block';
+            notification.style.opacity = '1';
+
+            // 在2秒后隐藏提示
+            setTimeout(function() {
+                notification.style.opacity = '0';
                 setTimeout(function() {
-                    notification.style.opacity = '0';
-                    setTimeout(function() {
-                        notification.style.display = 'none';
-                    }, 500);
-                }, 2000);
-            }, (err) => {
-                console.error('无法复制文本: ', err);
-            });
+                    notification.style.display = 'none';
+                }, 500);
+            }, 2000);
         }
 
         // 滚动到顶部

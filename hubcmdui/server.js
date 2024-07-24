@@ -26,8 +26,19 @@ const USERS_FILE = path.join(__dirname, 'users.json');
 async function readConfig() {
   try {
     const data = await fs.readFile(CONFIG_FILE, 'utf8');
+    // 确保 data 不为空或不完整
+    if (!data.trim()) {
+      console.warn('Config file is empty, returning default config');
+      return {
+        logo: '',
+        menuItems: [],
+        adImage: { url: '', link: '' }
+      };
+    }
+    console.log('Config read successfully');
     return JSON.parse(data);
   } catch (error) {
+    console.error('Failed to read config:', error);
     if (error.code === 'ENOENT') {
       return {
         logo: '',
@@ -41,7 +52,13 @@ async function readConfig() {
 
 // 写入配置
 async function writeConfig(config) {
-  await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+  try {
+      await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+      console.log('Config saved successfully');
+  } catch (error) {
+      console.error('Failed to save config:', error);
+      throw error;
+  }
 }
 
 // 读取用户
@@ -116,10 +133,10 @@ app.get('/api/config', async (req, res) => {
 // API 端点：保存配置
 app.post('/api/config', requireLogin, async (req, res) => {
   try {
-    await writeConfig(req.body);
-    res.json({ success: true });
+      await writeConfig(req.body);
+      res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to save config' });
+      res.status(500).json({ error: 'Failed to save config' });
   }
 });
 
