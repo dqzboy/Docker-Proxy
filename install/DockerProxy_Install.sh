@@ -507,6 +507,8 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        # 下面参数为了解决开启认证授权后,配置了daemon.json 无法通过docker pull 直接拉取镜像的问题
+        #header_up Authorization \"Basic auth_dockerhub\"
     }
 }"
             record_templates[ghcr]="ghcr.$caddy_domain {
@@ -515,6 +517,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_ghcr\"
     }
 }"
             record_templates[gcr]="gcr.$caddy_domain {
@@ -523,6 +526,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_gcr\"
     }
 }"
             record_templates[k8sgcr]="k8sgcr.$caddy_domain {
@@ -531,6 +535,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_k8sgcr\"
     }
 }"
             record_templates[k8s]="k8s.$caddy_domain {
@@ -539,6 +544,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_k8s\"
     }
 }"
             record_templates[quay]="quay.$caddy_domain {
@@ -547,6 +553,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_quay \"
     }
 }"
             record_templates[mcr]="mcr.$caddy_domain {
@@ -555,6 +562,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_mcr\"
     }
 }"
             record_templates[elastic]="elastic.$caddy_domain {
@@ -563,6 +571,7 @@ while true; do
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
         header_up X-Nginx-Proxy true
+        #header_up Authorization \"Basic auth_elastic\"
     }
 }"
             > /etc/caddy/Caddyfile
@@ -774,6 +783,8 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        # 下面参数为了解决开启认证授权后,配置了daemon.json 无法通过docker pull 直接拉取镜像的问题
+        #proxy_set_header Authorization \"Basic auth_hub_base64\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -801,6 +812,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_ghcr\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -828,6 +840,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_gcr\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -855,6 +868,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_k8sgcr\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -882,6 +896,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_k8s\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -909,6 +924,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_quay\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -936,6 +952,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_mcr\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -963,6 +980,7 @@ while true; do
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
         proxy_set_header X-Nginx-Proxy true;
+        #proxy_set_header Authorization \"Basic auth_elastic\";
         proxy_buffering off;
         proxy_redirect off;
     }
@@ -1405,7 +1423,7 @@ function DOWN_CONFIG() {
         fi
     fi
 
-    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
+    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0禁用缓存过期${RESET}"
     read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
     while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
         WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
@@ -2218,7 +2236,7 @@ MODIFY_SERVICE_CONFIG() {
     fi
 
     if [ ${#existing_files[@]} -gt 0 ]; then
-        WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0表示禁用${RESET}"
+        WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0禁用缓存过期${RESET}"
         read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
         while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
             WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
@@ -2713,7 +2731,6 @@ else
             return
         fi
     done
-
 
     WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_CYAN}配置认证后,执行镜像拉取需先通过 docker login登入后使用.访问UI需输入账号密码${RESET}"
     read -e -p "$(INFO "是否需要配置镜像仓库访问账号和密码? ${PROMPT_YES_NO}")" enable_auth
