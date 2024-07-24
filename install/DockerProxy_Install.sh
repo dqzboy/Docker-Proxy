@@ -297,8 +297,7 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
             done
 
             if kill -0 $install_pid &>/dev/null; then
-                WARN "$package 的安装时间超过 ${LIGHT_YELLOW}$TIMEOUT 秒${RESET}。是否继续? [${LIGHT_GREEN}y${RESET}/${LIGHT_YELLOW}n${RESET}]"
-                read -r continue_install
+                read -e -p "$(WARN "$package 的安装时间超过 ${LIGHT_YELLOW}$TIMEOUT 秒${RESET}。是否继续? ${PROMPT_YES_NO}")" continue_install
                 if [ "$continue_install" != "y" ]; then
                     ERROR "$package 的安装超时。退出脚本。"
                     exit 1
@@ -1377,7 +1376,7 @@ function DOWN_CONFIG() {
         done
         selected_all=true
     elif [[ "$choices_reg" == "0" ]]; then
-        WARN "退出下载配置! 首次安装如果没有配置无法启动服务,只能启动UI服务"
+        WARN "退出下载配置! ${LIGHT_YELLOW}首次安装如果没有配置无法启动服务,只能启动UI服务${RESET}"
         return
     else
         for choice in ${choices_reg}; do
@@ -2611,7 +2610,7 @@ else
         done
 
         for server in "${selected_services[@]}"; do
-            htpasswd -Bbn "$username" "$password" > ${PROXY_DIR}/${server}_htpasswd
+            htpasswd -Bbc ${PROXY_DIR}/${server}_htpasswd "$username" "$password" 2>/dev/null
             ADD_AUTH_COMPOSE "${server}"
         done
     fi
