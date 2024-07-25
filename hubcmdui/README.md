@@ -64,7 +64,7 @@ docker build -t hubcmd-ui .
 # 拉取镜像！如果你手动构建了镜像此步骤跳过
 docker pull dqzboy/hubcmd-ui:latest
 
-docker run -d -p 3000:3000 --name hubcmdui-server hubcmd-ui
+docker run -d -p 30080:3000 --name hubcmdui-server hubcmd-ui
 ```
 
 
@@ -87,7 +87,7 @@ docker logs -f [容器ID或名称]
 
 - 默认监听3000端口
 
-> 浏览器输入 `服务器地址:3000` 访问前端
+> 浏览器输入 `服务器地址:30080` 访问前端
 
 <table>
     <tr>
@@ -95,7 +95,13 @@ docker logs -f [容器ID或名称]
     </tr>
 </table>
 
-> 浏览器输入 `服务器地址/admin:3000` 访问后端页面，默认登入账号密码: root/admin
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f6a515eb-5b63-498e-b288-6b2a20e1139f"?raw=true"></td>
+    </tr>
+</table>
+
+> 浏览器输入 `服务器地址/admin:30080` 访问后端页面，默认登入账号密码: root/admin
 
 <table>
     <tr>
@@ -105,7 +111,7 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c3551c10-a2b4-431b-87b9-f5d408162e61"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/914aebb1-8668-40a6-89bc-9d8bf29a34a2"?raw=true"></td>
     </tr>
 </table>
 
