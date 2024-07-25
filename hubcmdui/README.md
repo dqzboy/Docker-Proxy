@@ -70,7 +70,7 @@ docker run -d -p 30080:3000 --name hubcmdui-server hubcmd-ui
 
 ## Docker Compose 部署
 
-#### 1. 下载 [docker-compose.yaml](https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/hubcmdui/docker-compose.yaml) 文件到你本地机器上
+#### 1. 下载 [docker-compose.yaml](https://github.com/dqzboy/Docker-Proxy/blob/main/hubcmdui/docker-compose.yaml) 文件到你本地机器上
 
 #### 2. 执行 `docker compose` 或 `docker-compose` 命令启动容器服务
 
@@ -85,7 +85,7 @@ docker logs -f [容器ID或名称]
 
 ## UI
 
-- 默认监听3000端口
+- 默认容器监听`3000`端口，映射宿主机端口`30080`
 
 > 浏览器输入 `服务器地址:30080` 访问前端
 
