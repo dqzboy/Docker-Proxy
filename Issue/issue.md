@@ -90,4 +90,4 @@ http {
  - [x] **已知问题：** Docker-Proxy部署的服务器上的存储空间不足。宿主机默认的挂载目录 `./registry/data`
 
  #### 10、开启认证后，配置`daemon.json`指定了代理地址，可以正常登入，但是`docker pull`镜像时无法拉取镜像
-  - [x] **已知问题：** 需要在Nginx或者Caddy 显性的配置`proxy_set_header Authorization` 认证信息，然后传递给后端服务 [issues](https://github.com/dqzboy/Docker-Proxy/issues/15)
+ - [x] **已知问题：** 目前确实是这样的，等待官方是否会进行修复
