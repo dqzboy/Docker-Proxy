@@ -269,7 +269,7 @@ Thanks to everyone who has contributed!
 
 
 ## License
-MIT © [DingQinZheng](./LICENSE)
+Docker-Proxy is available under the [Apache 2 license](./LICENSE)
 
 ---
 

@@ -118,3 +118,8 @@ docker run -d -p 3000:3000 --name hubcmdui-server hubcmd-ui
 ## 😺 其他
 
 开源不易,若你参考此项目或基于此项目修改可否麻烦在你的项目文档中标识此项目？谢谢你！
+
+---
+
+## License
+Docker-Proxy is available under the [Apache 2 license](./LICENSE)

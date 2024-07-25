@@ -270,7 +270,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 
 
 ## License
-MIT © [DingQinZheng](./LICENSE)
+Docker-Proxy is available under the [Apache 2 license](./LICENSE)
 
 ---
 
