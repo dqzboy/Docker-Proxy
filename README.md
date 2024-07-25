@@ -108,7 +108,7 @@ bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/Do
 
 **2.** 下载[docker-compose.yaml](https://github.com/dqzboy/Docker-Proxy/blob/main/docker-compose.yaml)文件到你本地机器上，并且与配置文件同级目录下
 
-**3.** 执行 `docker compose` 命令启动容器服务
+**3.** 执行 `docker compose` 或 `docker-compose` 命令启动容器服务
 ```shell
 docker compose up -d
 
