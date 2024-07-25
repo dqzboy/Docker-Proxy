@@ -1844,6 +1844,31 @@ INSTALL_HUBCMDUI() {
     fi
 }
 
+
+UPDATE_HUBCMDUI() {
+    if [ -d "${CMDUI_DIR}" ]; then
+        if [ -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" ]; then
+            INFO "正在更新HubCMD-UI容器"
+            docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" pull
+            if [ $? -ne 0 ]; then
+                WARN "HubCMD-UI ${LIGHT_YELLOW}镜像拉取失败${RESET},请稍后重试!"
+                HUBCMDUI
+            fi
+            docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d --force-recreate
+            if [ $? -ne 0 ]; then
+                WARN "HubCMD-UI ${LIGHT_YELLOW}服务启动失败${RESET},请稍后重试!"
+                HUBCMDUI
+            else
+                INFO "HubCMD-UI ${LIGHT_GREEN}服务更新并启动完成${RESET}"
+            fi
+        else
+            WARN "${LIGHT_YELLOW}文件${CMDUI_DIR}/${DOCKER_COMPOSE_FILE} 不存在，无法进行更新操作！${RESET}"
+        fi
+    else
+        WARN "${LIGHT_YELLOW}目录 ${CMDUI_DIR} 不存在，无法进行更新操作！${RESET}"
+    fi
+}
+
 UNINSTALL_HUBCMDUI() {
 WARN "${LIGHT_RED}注意:${RESET} ${LIGHT_YELLOW}请执行删除之前确定是否需要备份配置文件${RESET}"
 while true; do
@@ -1865,7 +1890,8 @@ done
 SEPARATOR "HubCMD-UI管理"
 echo -e "1) ${BOLD}${LIGHT_GREEN}安装${RESET}HubCMD-UI"
 echo -e "2) ${BOLD}${LIGHT_YELLOW}卸载${RESET}HubCMD-UI"
-echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "3) ${BOLD}${LIGHT_CYAN}更新${RESET}HubCMD-UI"
+echo -e "4) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")"  cmdui_choice
@@ -1880,13 +1906,17 @@ case $cmdui_choice in
         HUBCMDUI
         ;;
     3)
+        UPDATE_HUBCMDUI
+        HUBCMDUI
+        ;;
+    4)
         main_menu
         ;;
     0)
         exit 1
         ;;
     *)
-        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-8${RESET}的选项."
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-4${RESET}的选项."
         HUBCMDUI
         ;;
 esac

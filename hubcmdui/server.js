@@ -3,6 +3,9 @@ const fs = require('fs').promises;
 const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const logger = require('morgan'); // 引入 morgan 作为日志工具
 
 const app = express();
 app.use(express.json());
@@ -14,6 +17,7 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false } // 设置为true如果使用HTTPS
 }));
+app.use(logger('dev')); // 使用 morgan 记录请求日志
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'admin.html'));
@@ -32,7 +36,7 @@ async function readConfig() {
       return {
         logo: '',
         menuItems: [],
-        adImage: { url: '', link: '' }
+        adImages: []
       };
     }
     console.log('Config read successfully');
@@ -43,7 +47,7 @@ async function readConfig() {
       return {
         logo: '',
         menuItems: [],
-        adImage: { url: '', link: '' }
+        adImages: []
       };
     }
     throw error;
@@ -68,9 +72,10 @@ async function readUsers() {
     return JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
-      return {
-        users: [{ username: 'root', password: 'admin' }]
-      };
+      console.warn('Users file does not exist, creating default user');
+      const defaultUser = { username: 'root', password: bcrypt.hashSync('admin', 10) };
+      await writeUsers([defaultUser]);
+      return { users: [defaultUser] };
     }
     throw error;
   }
@@ -78,19 +83,35 @@ async function readUsers() {
 
 // 写入用户
 async function writeUsers(users) {
-  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+  await fs.writeFile(USERS_FILE, JSON.stringify({ users }, null, 2), 'utf8');
 }
 
 // 登录验证
 app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, captcha } = req.body;
+  console.log(`Received login request for user: ${username}`); // 打印登录请求的用户名
+
+  if (req.session.captcha !== parseInt(captcha)) {
+    console.log(`Captcha verification failed for user: ${username}`); // 打印验证码验证失败
+    return res.status(401).json({ error: '验证码错误' });
+  }
+
   const users = await readUsers();
-  const user = users.users.find(u => u.username === username && u.password === password);
-  if (user) {
+  const user = users.users.find(u => u.username === username);
+
+  if (!user) {
+    console.log(`User ${username} not found`); // 打印用户未找到
+    return res.status(401).json({ error: '用户名或密码错误' });
+  }
+
+  console.log(`User ${username} found, comparing passwords`); // 打印用户找到，开始比较密码
+  if (bcrypt.compareSync(password, user.password)) {
+    console.log(`User ${username} logged in successfully`); // 打印登录成功
     req.session.user = user;
     res.json({ success: true });
   } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+    console.log(`Login failed for user: ${username}, password mismatch`); // 打印密码不匹配
+    res.status(401).json({ error: '用户名或密码错误' });
   }
 });
 
@@ -100,11 +121,14 @@ app.post('/api/change-password', async (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
   const { currentPassword, newPassword } = req.body;
+  if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must be 8-16 characters long and contain at least one letter and one number' });
+  }
   const users = await readUsers();
   const user = users.users.find(u => u.username === req.session.user.username);
-  if (user && user.password === currentPassword) {
-    user.password = newPassword;
-    await writeUsers(users);
+  if (user && bcrypt.compareSync(currentPassword, user.password)) {
+    user.password = bcrypt.hashSync(newPassword, 10);
+    await writeUsers(users.users);
     res.json({ success: true });
   } else {
     res.status(401).json({ error: 'Invalid current password' });
@@ -133,10 +157,12 @@ app.get('/api/config', async (req, res) => {
 // API 端点：保存配置
 app.post('/api/config', requireLogin, async (req, res) => {
   try {
-      await writeConfig(req.body);
-      res.json({ success: true });
+    const currentConfig = await readConfig();
+    const newConfig = { ...currentConfig, ...req.body };
+    await writeConfig(newConfig);
+    res.json({ success: true });
   } catch (error) {
-      res.status(500).json({ error: 'Failed to save config' });
+    res.status(500).json({ error: 'Failed to save config' });
   }
 });
 
@@ -147,6 +173,15 @@ app.get('/api/check-session', (req, res) => {
   } else {
     res.status(401).json({ error: 'Not logged in' });
   }
+});
+
+// API 端点：生成验证码
+app.get('/api/captcha', (req, res) => {
+  const num1 = Math.floor(Math.random() * 10);
+  const num2 = Math.floor(Math.random() * 10);
+  const captcha = `${num1} + ${num2} = ?`;
+  req.session.captcha = num1 + num2;
+  res.json({ captcha });
 });
 
 // 启动服务器

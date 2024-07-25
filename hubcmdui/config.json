@@ -1,6 +1,5 @@
 {
   "logo": "",
-  "proxyDomain": "dqzboy.github.io",
   "menuItems": [
     {
       "text": "首页",
@@ -8,10 +7,16 @@
       "newTab": false
     },
     {
-      "text": "项目",
+      "text": "GitHub",
       "link": "https://github.com/dqzboy/Docker-Proxy",
       "newTab": true
     }
   ],
-  "adImages": []
+  "adImages": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/guanggao.png",
+      "link": "https://www.dqzboy.com"
+    }
+  ],
+  "proxyDomain": "dqzboy.github.io"
 }

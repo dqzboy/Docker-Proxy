@@ -157,18 +157,24 @@
             font-size: 24px;
             color: #0366d6;
         }
+        .password-hint {
+            color: gray;
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container hidden" id="adminContainer">
         <h1 class="admin-title">Docker 镜像代理加速 - 管理面板</h1>
-        <p></h1>配置添加或修改后，点击【保存更改】保存配置</p>
         <form id="adminForm">
             <label for="logoUrl">Logo URL: (可选)</label>
             <input type="url" id="logoUrl" name="logoUrl">
+            <button type="button" onclick="saveLogo()">保存 Logo</button>
             
             <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
             <input type="text" id="proxyDomain" name="proxyDomain" required>
+            <button type="button" onclick="saveProxyDomain()">保存代理地址</button>
             
             <h2 class="menu-label">菜单项管理</h2>
             <table id="menuTable">
@@ -200,19 +206,19 @@
                 </tbody>
             </table>
             <button type="button" class="add-btn" onclick="showNewAdRow()">添加广告</button>
-            
-            <button type="submit">保存更改</button>
-        </form>
 
-        <!-- 修改密码的独立表单 -->
-        <div id="passwordChangeForm" style="margin-top: 20px;">
-            <h2 class="menu-label">修改密码</h2>
-            <label for="currentPassword">当前密码</label>
-            <input type="password" id="currentPassword" name="currentPassword">
-            <label for="newPassword">新密码</label>
-            <input type="password" id="newPassword" name="newPassword">
-            <button type="button" onclick="changePassword()">修改密码</button>
-        </div>
+            <!-- 修改密码的独立表单 -->
+            <div id="passwordChangeForm" style="margin-top: 20px;">
+                <h2 class="menu-label">修改密码</h2>
+                <label for="currentPassword">当前密码</label>
+                <input type="password" id="currentPassword" name="currentPassword">
+                <label for="newPassword">新密码</label>
+                <span class="password-hint" id="passwordHint">密码必须包含至少一个字母和一个数字，长度在8到16个字符之间</span>
+                <input type="password" id="newPassword" name="newPassword" oninput="checkPasswordStrength()">
+                <span id="passwordStrength" style="color: red;"></span>
+                <button type="button" onclick="changePassword()">修改密码</button>
+            </div>
+        </form>
     </div>
 
     <div class="login-modal" id="loginModal">
@@ -222,6 +228,11 @@
             <input type="text" id="username" name="username" required>
             <label for="password">密码</label>
             <input type="password" id="password" name="password" required>
+            <label for="captcha">验证码</label>
+            <div style="display: flex; align-items: center;">
+                <input type="text" id="captcha" name="captcha" required style="flex: 1;">
+                <span id="captchaText" onclick="refreshCaptcha()" style="margin-left: 10px; cursor: pointer;">点击刷新验证码</span>
+            </div>
             <button type="button" onclick="login()">登录</button>
         </div>
     </div>
@@ -264,7 +275,8 @@
                         if (text) {
                             const rowIndex = row.getAttribute('data-index');
                             menuItems[rowIndex] = { text, link, newTab };
-                            renderMenuItems();
+                            saveMenuItem(rowIndex, { text, link, newTab });
+                            renderMenuItems(); // 重新渲染菜单项
                         } else {
                             alert('请填写菜单项文本');
                         }
@@ -290,13 +302,11 @@
                         <td>
                             <button type="button" class="action-btn edit-btn">编辑</button>
                             <button type="button" class="action-btn delete-btn">删除</button>
-                            <span class="drag-handle" style="cursor: move;">☰</span>
                         </td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
             });
-            setupDragAndDrop();
             setupEditButtons();
             setupDeleteButtons();
         }
@@ -308,8 +318,7 @@
                 button.addEventListener('click', () => {
                     const row = button.closest('tr');
                     const index = row.getAttribute('data-index');
-                    menuItems.splice(index, 1);
-                    renderMenuItems();
+                    deleteMenuItem(index);
                 });
             });
         }
@@ -347,8 +356,10 @@
             const newTab = newTabSelect.value === 'true';
 
             if (text) {
-                menuItems.push({ text, link, newTab }); // 确保新菜单项被添加到 menuItems 数组中
-                renderMenuItems();
+                const newItem = { text, link, newTab };
+                menuItems.push(newItem);
+                renderMenuItems(); // 先更新页面
+                saveMenuItem(menuItems.length - 1, newItem);
                 cancelNewMenuItem();
             } else {
                 alert('请填写菜单项文本');
@@ -402,8 +413,10 @@
             const url = document.getElementById('newAdUrl').value || '';
             const link = document.getElementById('newAdLink').value || '';
 
-            adImages.push({ url, link });
-            renderAdItems();
+            const newAd = { url, link };
+            adImages.push(newAd);
+            renderAdItems(); // 先更新页面
+            saveAd(adImages.length - 1, newAd);
             cancelNewAd();
         }
 
@@ -452,7 +465,8 @@
                         const link = linkInput.value || '';
 
                         adImages[editingIndex] = { url, link };
-                        renderAdItems();
+                        renderAdItems(); // 重新渲染广告项
+                        saveAd(editingIndex, { url, link });
                         editingIndex = -1;
                     }
                 });
@@ -465,33 +479,76 @@
                 button.addEventListener('click', () => {
                     const row = button.closest('tr');
                     const index = row.getAttribute('data-index');
-                    adImages.splice(index, 1);
-                    renderAdItems();
+                    deleteAd(index);
                 });
             });
         }
 
-        async function saveConfig() {
-            const config = {
-                logo: document.getElementById('logoUrl').value,
-                proxyDomain: document.getElementById('proxyDomain').value,
-                menuItems: menuItems,
-                adImages: adImages
-            };
+        async function saveLogo() {
+            const logoUrl = document.getElementById('logoUrl').value;
+            if (!logoUrl) {
+                alert('Logo URL 不可为空');
+                return;
+            }
+            try {
+                await saveConfig({ logo: logoUrl });
+                alert('Logo 保存成功');
+            } catch (error) {
+                alert('Logo 保存失败: ' + error.message);
+            }
+        }
 
+        async function saveProxyDomain() {
+            const proxyDomain = document.getElementById('proxyDomain').value;
+            if (!proxyDomain) {
+                alert('Docker镜像代理地址不可为空');
+                return;
+            }
+            try {
+                await saveConfig({ proxyDomain });
+                alert('代理地址保存成功');
+            } catch (error) {
+                alert('代理地址保存失败: ' + error.message);
+            }
+        }
+
+        async function saveMenuItem(index, item) {
+            const config = { menuItems: menuItems };
+            config.menuItems[index] = item;
+            await saveConfig(config);
+        }
+
+        async function deleteMenuItem(index) {
+            menuItems.splice(index, 1);
+            renderMenuItems(); // 先更新页面
+            await saveConfig({ menuItems: menuItems });
+        }
+
+        async function saveAd(index, ad) {
+            const config = { adImages: adImages };
+            config.adImages[index] = ad;
+            await saveConfig(config);
+        }
+
+        async function deleteAd(index) {
+            adImages.splice(index, 1);
+            renderAdItems(); // 先更新页面
+            await saveConfig({ adImages: adImages });
+        }
+
+        async function saveConfig(partialConfig) {
             try {
                 const response = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
+                    body: JSON.stringify(partialConfig)
                 });
-                if (response.ok) {
-                    alert('配置已保存');
-                } else {
+                if (!response.ok) {
                     throw new Error('保存失败');
                 }
             } catch (error) {
-                alert('保存失败: ' + error.message);
+                console.error('保存失败: ' + error.message);
+                throw error;
             }
         }      
 
@@ -512,11 +569,12 @@
         async function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const captcha = document.getElementById('captcha').value;
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username, password, captcha })
                 });
                 if (response.ok) {
                     isLoggedIn = true;
@@ -525,7 +583,8 @@
                     document.getElementById('adminContainer').classList.remove('hidden');
                     loadConfig();
                 } else {
-                    alert('登录失败');
+                    const errorData = await response.json();
+                    alert(errorData.error);
                 }
             } catch (error) {
                 alert('登录失败: ' + error.message);
@@ -537,6 +596,10 @@
             const newPassword = document.getElementById('newPassword').value;
             if (!currentPassword || !newPassword) {
                 alert('请填写当前密码和新密码');
+                return;
+            }
+            if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(newPassword)) {
+                alert('密码必须包含至少一个字母和一个数字，长度在8到16个字符之间');
                 return;
             }
             try {
@@ -555,6 +618,16 @@
             }
         }
 
+        function checkPasswordStrength() {
+            const newPassword = document.getElementById('newPassword');
+            const passwordHint = document.getElementById('passwordHint');
+            if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(newPassword.value)) {
+                passwordHint.style.display = 'block';
+            } else {
+                passwordHint.style.display = 'none';
+            }
+        }
+
         // 页面加载时检查登录状态
         window.onload = async function() {
         try {
@@ -567,38 +640,19 @@
                 loadConfig();
             } else {
                 document.getElementById('loginModal').style.display = 'block';
+                refreshCaptcha();
             }
             } else {
             localStorage.removeItem('isLoggedIn');
             document.getElementById('loginModal').style.display = 'block';
+            refreshCaptcha();
             }
           } catch (error) {
             localStorage.removeItem('isLoggedIn');
             document.getElementById('loginModal').style.display = 'block';
+            refreshCaptcha();
           }
         };
-
-        // 表单提交事件监听器
-        document.getElementById('adminForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await saveConfig();
-        });
-
-        function setupDragAndDrop() {
-            const drake = dragula([document.getElementById('menuTableBody')], {
-                moves: function (el, container, handle) {
-                    return handle.classList.contains('drag-handle');
-                }
-            });
-
-            drake.on('drop', (el, target, source, sibling) => {
-                const newIndex = Array.from(target.children).indexOf(el);
-                const oldIndex = el.getAttribute('data-index');
-                const movedItem = menuItems.splice(oldIndex, 1)[0];
-                menuItems.splice(newIndex, 0, movedItem);
-                renderMenuItems();
-            });
-        }
 
         function updateAdImage(adImages) {
             const adContainer = document.getElementById('adContainer');
@@ -628,6 +682,16 @@
                         }
                     });
                 }, 5000); // 每5秒切换一次广告
+            }
+        }
+
+        async function refreshCaptcha() {
+            try {
+                const response = await fetch('/api/captcha');
+                const data = await response.json();
+                document.getElementById('captchaText').textContent = data.captcha;
+            } catch (error) {
+                console.error('刷新验证码失败:', error);
             }
         }
     </script>
