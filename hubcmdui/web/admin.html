@@ -132,12 +132,14 @@
             background-color: rgba(0,0,0,0.4);
         }
         .login-content {
-            background-color: #fefefe;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
             margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 30%;
             border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .user-management {
             position: absolute;
@@ -213,7 +215,7 @@
                 <label for="currentPassword">当前密码</label>
                 <input type="password" id="currentPassword" name="currentPassword">
                 <label for="newPassword">新密码</label>
-                <span class="password-hint" id="passwordHint">密码必须包含至少一个字母和一个数字，长度在8到16个字符之间</span>
+                <span class="password-hint" id="passwordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
                 <input type="password" id="newPassword" name="newPassword" oninput="checkPasswordStrength()">
                 <span id="passwordStrength" style="color: red;"></span>
                 <button type="button" onclick="changePassword()">修改密码</button>
@@ -246,6 +248,44 @@
 
         function getMenuItems() {
             return menuItems;
+        }
+
+        function setupDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    const row = button.closest('tr');
+                    const index = row.getAttribute('data-index');
+                    console.log(`Deleting menu item at index: ${index}`); // 添加日志输出
+                    deleteMenuItem(index);
+                });
+            });
+        }
+
+        function renderMenuItems() {
+            const tbody = document.getElementById('menuTableBody');
+            tbody.innerHTML = '';
+            menuItems.forEach((item, index) => {
+                const row = `
+                    <tr data-index="${index}">
+                        <td><input type="text" class="menu-text" value="${item.text}" disabled></td>
+                        <td><input type="url" class="menu-link" value="${item.link || ''}" disabled></td>
+                        <td>
+                            <select class="menu-newtab" disabled>
+                                <option value="false" ${item.newTab ? '' : 'selected'}>否</option>
+                                <option value="true" ${item.newTab ? 'selected' : ''}>是</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="action-btn edit-btn">编辑</button>
+                            <button type="button" class="action-btn delete-btn">删除</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            setupEditButtons();
+            setupDeleteButtons();
         }
 
         function setMenuItems(items) {
@@ -284,44 +324,7 @@
                 });
             });
         }
- 
-        function renderMenuItems() {
-            const tbody = document.getElementById('menuTableBody');
-            tbody.innerHTML = '';
-            menuItems.forEach((item, index) => {
-                const row = `
-                    <tr data-index="${index}">
-                        <td><input type="text" class="menu-text" value="${item.text}" disabled></td>
-                        <td><input type="url" class="menu-link" value="${item.link || ''}" disabled></td>
-                        <td>
-                            <select class="menu-newtab" disabled>
-                                <option value="false" ${item.newTab ? '' : 'selected'}>否</option>
-                                <option value="true" ${item.newTab ? 'selected' : ''}>是</option>
-                            </select>
-                        </td>
-                        <td>
-                            <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn">删除</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            setupEditButtons();
-            setupDeleteButtons();
-        }
         
-
-        function setupDeleteButtons() {
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach((button, index) => {
-                button.addEventListener('click', () => {
-                    const row = button.closest('tr');
-                    const index = row.getAttribute('data-index');
-                    deleteMenuItem(index);
-                });
-            });
-        }
 
         function showNewMenuItemRow() {
             const tbody = document.getElementById('menuTableBody');
@@ -406,45 +409,6 @@
             });
             setupAdEditButtons();
             setupAdDeleteButtons();
-        }       
-
-
-        function saveNewAd() {
-            const url = document.getElementById('newAdUrl').value || '';
-            const link = document.getElementById('newAdLink').value || '';
-
-            const newAd = { url, link };
-            adImages.push(newAd);
-            renderAdItems(); // 先更新页面
-            saveAd(adImages.length - 1, newAd);
-            cancelNewAd();
-        }
-
-        function cancelNewAd() {
-            const newRow = document.getElementById('newAdRow');
-            if (newRow) {
-                newRow.remove();
-            }
-        }
-
-        function renderAdItems() {
-            const tbody = document.getElementById('adTableBody');
-            tbody.innerHTML = '';
-            adImages.forEach((ad, index) => {
-                const row = `
-                    <tr data-index="${index}">
-                        <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
-                        <td><input type="url" class="ad-link" value="${ad.link}" disabled></td>
-                        <td>
-                            <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn">删除</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            setupAdEditButtons();
-            setupAdDeleteButtons();
         }
 
         function setupAdEditButtons() {
@@ -482,6 +446,49 @@
                     deleteAd(index);
                 });
             });
+        }   
+
+        function saveNewAd() {
+            const url = document.getElementById('newAdUrl').value || '';
+            const link = document.getElementById('newAdLink').value || '';
+
+            if (!url) {
+                alert('广告URL为必填项');
+                return;
+            }
+
+            const newAd = { url, link };
+            adImages.push(newAd);
+            renderAdItems(); // 先更新页面
+            saveAd(adImages.length - 1, newAd);
+            cancelNewAd();
+        }
+
+        function cancelNewAd() {
+            const newRow = document.getElementById('newAdRow');
+            if (newRow) {
+                newRow.remove();
+            }
+        }
+
+        function renderAdItems() {
+            const tbody = document.getElementById('adTableBody');
+            tbody.innerHTML = '';
+            adImages.forEach((ad, index) => {
+                const row = `
+                    <tr data-index="${index}">
+                        <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
+                        <td><input type="url" class="ad-link" value="${ad.link}" disabled></td>
+                        <td>
+                            <button type="button" class="action-btn edit-btn">编辑</button>
+                            <button type="button" class="action-btn delete-btn">删除</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+            setupAdEditButtons();
+            setupAdDeleteButtons();
         }
 
         async function saveLogo() {
@@ -519,9 +526,23 @@
         }
 
         async function deleteMenuItem(index) {
-            menuItems.splice(index, 1);
-            renderMenuItems(); // 先更新页面
-            await saveConfig({ menuItems: menuItems });
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ menuItems: menuItems.filter((_, i) => i !== parseInt(index)) })
+                });
+                if (response.ok) {
+                    menuItems.splice(index, 1);
+                    renderMenuItems(); // 先更新页面
+                    await loadConfig(); // 重新加载配置
+                } else {
+                    alert('删除菜单项失败');
+                }
+            } catch (error) {
+                console.error('删除菜单项失败: ' + error.message);
+                alert('删除菜单项失败: ' + error.message);
+            }
         }
 
         async function saveAd(index, ad) {
@@ -531,9 +552,23 @@
         }
 
         async function deleteAd(index) {
-            adImages.splice(index, 1);
-            renderAdItems(); // 先更新页面
-            await saveConfig({ adImages: adImages });
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adImages: adImages.filter((_, i) => i !== parseInt(index)) })
+                });
+                if (response.ok) {
+                    adImages.splice(index, 1);
+                    renderAdItems(); // 先更新页面
+                    await loadConfig(); // 重新加载配置
+                } else {
+                    alert('删除广告项失败');
+                }
+            } catch (error) {
+                console.error('删除广告项失败: ' + error.message);
+                alert('删除广告项失败: ' + error.message);
+            }
         }
 
         async function saveConfig(partialConfig) {
@@ -550,7 +585,7 @@
                 console.error('保存失败: ' + error.message);
                 throw error;
             }
-        }      
+        }
 
         async function loadConfig() {
         try {
@@ -594,12 +629,14 @@
         async function changePassword() {
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+
             if (!currentPassword || !newPassword) {
                 alert('请填写当前密码和新密码');
                 return;
             }
-            if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(newPassword)) {
-                alert('密码必须包含至少一个字母和一个数字，长度在8到16个字符之间');
+            if (!passwordRegex.test(newPassword)) {
+                alert('密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间');
                 return;
             }
             try {
@@ -619,9 +656,12 @@
         }
 
         function checkPasswordStrength() {
-            const newPassword = document.getElementById('newPassword');
+            const newPassword = document.getElementById('newPassword').value;
             const passwordHint = document.getElementById('passwordHint');
-            if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(newPassword.value)) {
+
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+
+            if (!passwordRegex.test(newPassword)) {
                 passwordHint.style.display = 'block';
             } else {
                 passwordHint.style.display = 'none';

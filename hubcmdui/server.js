@@ -156,14 +156,14 @@ app.get('/api/config', async (req, res) => {
 
 // API 端点：保存配置
 app.post('/api/config', requireLogin, async (req, res) => {
-  try {
-    const currentConfig = await readConfig();
-    const newConfig = { ...currentConfig, ...req.body };
-    await writeConfig(newConfig);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to save config' });
-  }
+    try {
+        const currentConfig = await readConfig();
+        const newConfig = { ...currentConfig, ...req.body };
+        await writeConfig(newConfig);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to save config' });
+    }
 });
 
 // API 端点：检查会话状态
