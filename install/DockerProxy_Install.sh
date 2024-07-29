@@ -2537,6 +2537,9 @@ INSTALL_OR_UPDATE_CMD() {
             WARN "正在安装脚本中,请稍等..."
         else
             WARN "正在进行脚本更新,请稍等..."
+            if [ -f "$TARGET_PATH" ]; then
+                rm -f "$TARGET_PATH" &>/dev/null
+            fi
         fi
         
         wget -q -O "$TARGET_PATH" "$DOWNLOAD_URL" &>/dev/null
