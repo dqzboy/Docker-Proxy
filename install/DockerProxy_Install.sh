@@ -2588,6 +2588,7 @@ services=(
 container_names=$(docker ps --filter "name=reg-" --filter "status=running" --format "{{.Names}}")
 
 auth_containers=()
+non_auth_containers=()
 
 for container_name in $container_names; do
     specified_name=${services[$container_name]}
@@ -2596,6 +2597,8 @@ for container_name in $container_names; do
     fi
     if docker exec $container_name grep -q "auth" /etc/distribution/config.yml; then
         auth_containers+=("$specified_name")
+    else
+        non_auth_containers+=("$specified_name")
     fi
 done
 
@@ -2603,6 +2606,12 @@ if [ ${#auth_containers[@]} -gt 0 ]; then
     INFO "当前运行的 Docker 容器中${LIGHT_GREEN}包含认证${RESET}的容器有: ${LIGHT_CYAN}${auth_containers[*]}${RESET}"
 else
     WARN "当前运行的 Docker 容器中${LIGHT_YELLOW}没有包含认证${RESET}的容器"
+fi
+
+if [ ${#non_auth_containers[@]} -gt 0 ]; then
+    WARN "当前运行的 Docker 容器中${LIGHT_YELLOW}没有包含认证${RESET}的容器有: ${LIGHT_BLUE}${non_auth_containers[*]}${RESET}"
+else
+    INFO "当前运行的 Docker 容器中${LIGHT_GREEN}所有容器都包含认证${RESET}"
 fi
 }
 
@@ -2839,7 +2848,7 @@ case $auth_choice in
     1)
         ENABLE_AUTH
         if [ ${#selected_services[@]} -eq 0 ]; then
-            WARN "没有运行任何选择的服务，请${LIGHT_CYAN}重新选择运行${RESET}的服务"
+            WARN "退出认证授权，请${LIGHT_CYAN}重新选择${RESET}服务认证的操作"
             AUTH_SERVICE_CONFIG # 没有服务运行调用函数
         else
             docker-compose down ${selected_services[*]}
@@ -2850,7 +2859,7 @@ case $auth_choice in
     2)
         DELETE_AUTH
         if [ ${#selected_services[@]} -eq 0 ]; then
-            WARN "没有运行任何选择的服务，请${LIGHT_CYAN}重新选择运行${RESET}的服务"
+            WARN "退出认证授权，请${LIGHT_CYAN}重新选择${RESET}服务认证的操作"
             AUTH_SERVICE_CONFIG # 没有服务运行调用函数
         else
             docker-compose down ${selected_services[*]}
