@@ -1523,7 +1523,7 @@ fi
 }
 
 
-# 一键部署时调用START_CONTAINER
+# 一键部署、安装指定容器加速服务时调用START_CONTAINER
 function START_CONTAINER() {
     if [ "$modify_config" = "y" ] || [ "$modify_config" = "Y" ]; then
         ADD_DOCKERD_PROXY
@@ -1536,15 +1536,17 @@ function START_CONTAINER() {
         docker-compose up -d --force-recreate
         # 检查命令执行是否成功
         if [ $? -ne 0 ]; then
-          ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
+          ERROR "Docker 容器${LIGHT_RED}启动失败${RESET}，请通过查看日志确认启动失败原因"
           exit 1
         fi
     else
         docker-compose up -d "${selected_names[@]}" registry-ui
         # 检查命令执行是否成功
         if [ $? -ne 0 ]; then
-          ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
+          ERROR "Docker 容器${LIGHT_RED}启动失败${RESET}，请通过查看日志确认启动失败原因"
           exit 1
+        else 
+           INFO "容器${LIGHT_GREEN}安装完成${RESET}，并${LIGHT_GREEN}成功启动${RESET}"
         fi
     fi
 }
@@ -1745,7 +1747,8 @@ case $proxy_install in
         ALL_IN_ONE
         ;;
     2)
-        ADD_DOCKER_SERVICE       
+        ADD_DOCKER_SERVICE
+        INSTALL_PROXY     
         ;;
     3)
         main_menu
