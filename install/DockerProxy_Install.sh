@@ -1761,30 +1761,32 @@ esac
 }
 
 function REMOVE_CMDUI() {
-    if [ -d "${CMDUI_DIR}" ]; then
-        if [ -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" ]; then
-            INFO "停止和移除HubCMD-UI容器"
-            docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
-            rm -rf "${CMDUI_DIR}"
-        else
-            WARN "${LIGHT_YELLOW}文件${CMDUI_DIR}/${DOCKER_COMPOSE_FILE} 不存在，无需进行删除操作！${RESET}"
-        fi
+CMDUI_NAME="hubcmd-ui"
+CMDUI_DIR="${PROXY_DIR}/hubcmdui"
+if [ -d "${CMDUI_DIR}" ]; then
+    if [ -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" ]; then
+        INFO "停止和移除HubCMD-UI容器"
+        docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
+        rm -rf "${CMDUI_DIR}"
     else
-        WARN "${LIGHT_YELLOW}目录 ${CMDUI_DIR} 不存在，无需进行删除操作！${RESET}"
+        WARN "${LIGHT_YELLOW}文件${CMDUI_DIR}/${DOCKER_COMPOSE_FILE} 不存在，无需进行删除操作！${RESET}"
     fi
+else
+    WARN "${LIGHT_YELLOW}目录 ${CMDUI_DIR} 不存在，无需进行删除操作！${RESET}"
+fi
 
-    docker images | grep "^${CMDUI_IMAGE_NAME}.*<none>" | awk '{print $3}' | xargs -r docker rmi
+docker images | grep "^${CMDUI_IMAGE_NAME}.*<none>" | awk '{print $3}' | xargs -r docker rmi
 
-    images=$(docker images ${CMDUI_IMAGE_NAME} --format '{{.Repository}}:{{.Tag}}')
-    latest=$(echo "$images" | sort -V | tail -n1)
-    for image in $images; do
-        if [ "$image" != "$latest" ]; then
-            docker rmi $image
-        fi
-    done
+images=$(docker images ${CMDUI_IMAGE_NAME} --format '{{.Repository}}:{{.Tag}}')
+latest=$(echo "$images" | sort -V | tail -n1)
+for image in $images; do
+    if [ "$image" != "$latest" ]; then
+        docker rmi $image
+    fi
+done
 
-    # 强制移除所有相关镜像
-    docker rmi --force $(docker images -q ${CMDUI_IMAGE_NAME}) &>/dev/null
+# 强制移除所有相关镜像
+docker rmi --force $(docker images -q ${CMDUI_IMAGE_NAME}) &>/dev/null
 }
 
 
