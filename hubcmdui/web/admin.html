@@ -392,13 +392,14 @@
         }
 
         function renderAdItems() {
+            console.log('Rendering ad items:', adImages);
             const tbody = document.getElementById('adTableBody');
             tbody.innerHTML = '';
             adImages.forEach((ad, index) => {
                 const row = `
                     <tr data-index="${index}">
                         <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
-                        <td><input type="url" class="ad-link" value="${ad.link}" disabled></td>
+                        <td><input type="url" class="ad-link" value="${ad.link || ''}" disabled></td>
                         <td>
                             <button type="button" class="action-btn edit-btn">编辑</button>
                             <button type="button" class="action-btn delete-btn">删除</button>
@@ -424,6 +425,7 @@
                         linkInput.disabled = false;
                         button.textContent = '保存';
                         editingIndex = row.getAttribute('data-index');
+                        console.log(`Editing ad at index ${editingIndex}:`, { url: urlInput.value, link: linkInput.value });
                     } else {
                         const url = urlInput.value || '';
                         const link = linkInput.value || '';
@@ -546,6 +548,7 @@
         }
 
         async function saveAd(index, ad) {
+            console.log(`Saving ad at index ${index}:`, ad);
             const config = { adImages: adImages };
             config.adImages[index] = ad;
             await saveConfig(config);
@@ -629,7 +632,7 @@
         async function changePassword() {
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
-            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&])[A-Za-z\d.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&]{8,16}$/;
 
             if (!currentPassword || !newPassword) {
                 alert('请填写当前密码和新密码');
@@ -647,6 +650,17 @@
                 });
                 if (response.ok) {
                     alert('密码已修改');
+                    // 清除当前会话并显示登录模态框
+                    localStorage.removeItem('isLoggedIn');
+                    isLoggedIn = false;
+                    document.getElementById('loginModal').style.display = 'block';
+                    document.getElementById('adminContainer').classList.add('hidden');
+                    refreshCaptcha();
+
+                    // 清除登录表单中的输入数据
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                    document.getElementById('captcha').value = '';
                 } else {
                     alert('修改密码失败');
                 }
@@ -659,7 +673,7 @@
             const newPassword = document.getElementById('newPassword').value;
             const passwordHint = document.getElementById('passwordHint');
 
-            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&])[A-Za-z\d.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&]{8,16}$/;
 
             if (!passwordRegex.test(newPassword)) {
                 passwordHint.style.display = 'block';
@@ -670,28 +684,28 @@
 
         // 页面加载时检查登录状态
         window.onload = async function() {
-        try {
-            const response = await fetch('/api/check-session');
-            if (response.ok) {
-            isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            if (isLoggedIn) {
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('adminContainer').classList.remove('hidden');
-                loadConfig();
-            } else {
+            try {
+                const response = await fetch('/api/check-session');
+                if (response.ok) {
+                    isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                    if (isLoggedIn) {
+                        document.getElementById('loginModal').style.display = 'none';
+                        document.getElementById('adminContainer').classList.remove('hidden');
+                        loadConfig();
+                    } else {
+                        document.getElementById('loginModal').style.display = 'block';
+                        refreshCaptcha();
+                    }
+                } else {
+                    localStorage.removeItem('isLoggedIn');
+                    document.getElementById('loginModal').style.display = 'block';
+                    refreshCaptcha();
+                }
+            } catch (error) {
+                localStorage.removeItem('isLoggedIn');
                 document.getElementById('loginModal').style.display = 'block';
                 refreshCaptcha();
             }
-            } else {
-            localStorage.removeItem('isLoggedIn');
-            document.getElementById('loginModal').style.display = 'block';
-            refreshCaptcha();
-            }
-          } catch (error) {
-            localStorage.removeItem('isLoggedIn');
-            document.getElementById('loginModal').style.display = 'block';
-            refreshCaptcha();
-          }
         };
 
         function updateAdImage(adImages) {

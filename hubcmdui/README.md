@@ -91,7 +91,7 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/142ac19b-933f-46e8-85f9-5cb60a14c5cd"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/80b347b6-cfb4-43ec-b473-7e38943fe517"?raw=true"></td>
     </tr>
 </table>
 
@@ -101,7 +101,7 @@ docker logs -f [容器ID或名称]
     </tr>
 </table>
 
-> 浏览器输入 `服务器地址/admin:30080` 访问后端页面，默认登入账号密码: root/admin
+> 浏览器输入 `服务器地址/admin:30080` 访问后端页面，默认登入账号密码: root/admin@123
 
 <table>
     <tr>

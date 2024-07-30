@@ -121,8 +121,9 @@ app.post('/api/change-password', async (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
   const { currentPassword, newPassword } = req.body;
-  if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/.test(newPassword)) {
-    return res.status(400).json({ error: 'Password must be 8-16 characters long and contain at least one letter and one number' });
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&])[A-Za-z\d.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&]{8,16}$/;
+  if (!passwordRegex.test(newPassword)) {
+    return res.status(400).json({ error: 'Password must be 8-16 characters long and contain at least one letter, one number, and one special character' });
   }
   const users = await readUsers();
   const user = users.users.find(u => u.username === req.session.user.username);
