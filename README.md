@@ -52,8 +52,16 @@
 
 **方案三：** 如果你是在国内的服务器部署，那么你可以在执行一键部署时配置代理，同时会帮你解决国内无法安装Docker的问题
 
+**方案四：** 使用本项目作者自建的付费加速服务，无黑白名单、不限速
+<details>
+<summary><strong>付费镜像加速服务</strong></summary>
+<div>
+<a href ="https://www.dqzboy.com/17834.html"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy-vip.png"></a>
 </details>
 
+</details>
+
+---
 
 > **部署过程中出现的问题或者疑问，请点击这里 [问题总结](Issue/issue.md)，查看是否有你遇到的情况！尝试先自己解决。**
 
