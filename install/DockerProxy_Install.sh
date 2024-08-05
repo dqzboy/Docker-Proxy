@@ -1810,7 +1810,7 @@ INFO "公网访问地址: ${UNDERLINE}http://$PUBLIC_IP:30080${RESET}"
 INFO "内网访问地址: ${UNDERLINE}http://$INTERNAL_IP:30080${RESET}"
 INFO
 INFO "后端访问地址: 地址后面跟admin，例: ${UNDERLINE}http://$INTERNAL_IP:30080/admin${RESET}"
-INFO "默认账号密码: ${LIGHT_GREEN}root${RESET}/${LIGHT_CYAN}admin${RESET}"
+INFO "默认账号密码: ${LIGHT_GREEN}root${RESET}/${LIGHT_CYAN}admin@123${RESET}"
 INFO
 INFO "服务安装路径: ${LIGHT_BLUE}${CMDUI_DIR}${RESET}"
 INFO 
