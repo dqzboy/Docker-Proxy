@@ -90,7 +90,7 @@ http {
  - [x] **已知问题：** Docker-Proxy部署的服务器上的存储空间不足。宿主机默认的挂载目录 `./registry/data`
 
  #### 10、开启认证后，配置`daemon.json`指定了代理地址，可以正常登入，但是`docker pull`镜像时无法拉取镜像
- - [x] **已知问题：** 因为对于私有镜像仓库，docker客户端对镜像的相关操作，比如pull push支持不友好（历史遗留问题，我看官方也不会去解决这个问题了）
+ - [x] **已知问题：** 因为对于私有镜像仓库，docker客户端对镜像的相关操作，比如pull push支持不友好（历史遗留问题）相关 [issues](https://github.com/docker/cli/issues/3793#issuecomment-1269051403)
 
  - [x] **最终解决方案：** 
  - - （1）首先通过docker login <私有镜像地址>  登入私有镜像仓库，登入成功之后，会在对应的用户家目录下生成 `.docker/config.json` 配置文件

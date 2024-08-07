@@ -27,7 +27,7 @@
 ---
 
 ## 📝 准备工作
-⚠️  **重要**：选择一台国外服务器，并且未被墙。对于域名，无需进行国内备案。你也可以通过[CLouDNS](https://www.cloudns.net/)申请免费域名。在一键部署过程中，如果选择安装Caddy，它将自动配置HTTPS。若选择部署Nginx服务，则需要自行申请一个免费的SSL证书，或者通过其他方式来实现SSL加密。
+⚠️  **重要**：选择一台国外服务器，并且未被墙。对于域名，无需进行国内备案。你也可以通过一些平台申请免费域名。在一键部署过程中，如果选择安装Caddy，它将自动配置HTTPS。若选择部署Nginx服务，则需要自行申请一个免费的SSL证书，或者通过其他方式来实现SSL加密。
 
 <details>
 <summary><strong>免费域名证书申请</strong></summary>
@@ -155,15 +155,11 @@ docker logs -f [容器ID或名称]
 ```shell
 ~]# vim /etc/docker/daemon.json
 {
-    "registry-mirrors": [ "https://hub.your_domain_name" ],
-    "log-opts": {
-      "max-size": "100m",
-      "max-file": "5"
-    }
+    "registry-mirrors": [ "https://hub.your_domain_name" ]
 }
 ```
 
-> **说明：** 配置了daemon.json之后，现在拉取镜像无需指定你的加速地址，直接执行docker pull 拉取你需要的镜像即可。下面的步骤是你在没有配置daemon.json的时候，拉取镜像需要加上你的加速地址才可以正常拉取。
+> **说明：** 配置了`daemon.json`之后，现在拉取镜像无需指定你的加速地址，直接执行`docker pull`拉取你需要的镜像即可。下面的步骤是你在没有配置`daemon.json`的时候，拉取镜像需要加上你的加速地址才可以正常拉取。
 
 ---
 
@@ -213,6 +209,9 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 </table>
 
 ## 💻 UI
+
+> HubCMD-UI 手动安装教程：[点击查看教程](hubcmdui/README.md)
+
 <br/>
 <table>
     <tr>
