@@ -37,14 +37,14 @@
 
 | 镜像 | 平台 |
 |-------|---------------|
-| hubdqzboy/mirror-hub:latest   | docker hub
-| hubdqzboy/mirror-gcr:latest      | Google Container Registry
-| hubdqzboy/mirror-ghcr:latest     | GitHub Container Registry
-| hubdqzboy/mirror-k8sgcr:latest  | Kubernetes Container Registry
-| hubdqzboy/mirror-k8sreg:latest      | Kubernetes's container image registry
-| hubdqzboy/mirror-quay:latest     | Quay Container Registry
-| hubdqzboy/mirror-elastic:latest     | Microsoft Container Registry
-| hubdqzboy/mirror-mcr:latest     | Elastic Stack
+| mirhub/mirror-hub:latest   | docker hub
+| mirhub/mirror-gcr:latest      | Google Container Registry
+| mirhub/mirror-ghcr:latest     | GitHub Container Registry
+| mirhub/mirror-k8sgcr:latest  | Kubernetes Container Registry
+| mirhub/mirror-k8sreg:latest      | Kubernetes's container image registry
+| mirhub/mirror-quay:latest     | Quay Container Registry
+| mirhub/mirror-elastic:latest     | Microsoft Container Registry
+| mirhub/mirror-mcr:latest     | Elastic Stack
 
 <table>
     <tr>
