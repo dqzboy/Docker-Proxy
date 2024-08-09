@@ -26,7 +26,7 @@ cat << EOF
 EOF
 
 echo "----------------------------------------------------------------------------------------------------------"
-echo -e "\033[32m机场推荐\033[0m(\033[34m按量不限时，解锁ChatGPT\033[0m)：\033[34;4mhttps://mojie.mx/#/register?code=CG6h8Irm\033[0m"
+echo -e "\033[32mVPS 推荐\033[0m(\033[34mRackNerd 高性价比便宜VPS\033[0m)：\033[34;4mhttps://my.racknerd.com/aff.php?aff=12151\033[0m"
 echo "----------------------------------------------------------------------------------------------------------"
 echo
 echo
@@ -1694,6 +1694,8 @@ INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
 INFO  
 INFO "若用云服务器并设域名及证书，需在安全组开放80、443端口；否则开放对应服务监听端口"
 INFO
+INFO "VPS推荐: https://my.racknerd.com/aff.php?aff=12151"
+INFO
 INFO "================================================================"
 }
 
@@ -1817,6 +1819,8 @@ INFO
 INFO "作者博客: https://dqzboy.com"
 INFO "技术交流: https://t.me/dqzboyblog"
 INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
+INFO
+INFO "VPS推荐: https://my.racknerd.com/aff.php?aff=12151"
 INFO
 INFO "================================================================"
 }
