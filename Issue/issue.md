@@ -19,6 +19,8 @@
 
 - [x] **issues：** [#3853](https://github.com/distribution/distribution/issues/3853)
 
+- [x] **代码片段：**  [configure as a pull through cache](https://github.com/distribution/distribution/blob/main/registry/handlers/app.go#L349)
+
 #### 2、搭建好了，但是国内拉取速度不理想
 - [x] **已知问题：** 你的国外服务器到国内的网络线路不理想
 
