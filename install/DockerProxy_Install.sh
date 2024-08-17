@@ -167,6 +167,16 @@ function CHECK_PKG_MANAGER() {
     fi
 }
 
+function CHECK_COMPOSE_CMD() {
+if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+else
+    WARN "未检查到Docker Compose客户端工具,请通过脚本安装部署!"
+fi
+}
+
 function CHECKMEM() {
 memory_usage=$(free | awk '/^Mem:/ {printf "%.2f", $3/$2 * 100}')
 memory_usage=${memory_usage%.*}
@@ -1533,14 +1543,14 @@ function START_CONTAINER() {
 
     # DOWN_CONFIG函数执行后判断selected_all变量
     if [ "$selected_all" = true ]; then
-        docker-compose up -d --force-recreate
+        $DOCKER_COMPOSE_CMD up -d --force-recreate
         # 检查命令执行是否成功
         if [ $? -ne 0 ]; then
           ERROR "Docker 容器${LIGHT_RED}启动失败${RESET}，请通过查看日志确认启动失败原因"
           exit 1
         fi
     else
-        docker-compose up -d "${selected_names[@]}" registry-ui
+        $DOCKER_COMPOSE_CMD up -d "${selected_names[@]}" registry-ui
         # 检查命令执行是否成功
         if [ $? -ne 0 ]; then
           ERROR "Docker 容器${LIGHT_RED}启动失败${RESET}，请通过查看日志确认启动失败原因"
@@ -1555,14 +1565,14 @@ function START_CONTAINER() {
 function RESTART_CONTAINER() {
     # DOWN_CONFIG函数执行后判断selected_all变量
     if [ "$selected_all" = true ]; then
-        docker-compose restart
+        $DOCKER_COMPOSE_CMD restart
         # 检查命令执行是否成功
         if [ $? -ne 0 ]; then
           ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
           exit 1
         fi
     else
-        docker-compose restart "${selected_names[@]}"
+        $DOCKER_COMPOSE_CMD restart "${selected_names[@]}"
         # 检查命令执行是否成功
         if [ $? -ne 0 ]; then
           ERROR "Docker 容器启动失败,请通过查看日志确认启动失败原因"
@@ -1587,7 +1597,7 @@ START_CONTAINER
 function STOP_REMOVE_CONTAINER() {
     if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
         INFO "停止和移除所有容器"
-        docker-compose -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
+        $DOCKER_COMPOSE_CMD -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
     else 
         WARN "${LIGHT_YELLOW}容器目前未处于运行状态，无需进行删除操作！${RESET}"
         exit 1
@@ -1704,6 +1714,7 @@ ALL_IN_ONE() {
 CHECK_OS
 CHECK_PACKAGE_MANAGER
 CHECK_PKG_MANAGER
+CHECK_COMPOSE_CMD
 CHECKMEM
 CHECKFIRE
 CHECKBBR
@@ -1771,7 +1782,7 @@ CMDUI_DIR="${PROXY_DIR}/hubcmdui"
 if [ -d "${CMDUI_DIR}" ]; then
     if [ -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" ]; then
         INFO "停止和移除HubCMD-UI容器"
-        docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
+        $DOCKER_COMPOSE_CMD -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
         rm -rf "${CMDUI_DIR}"
     else
         WARN "${LIGHT_YELLOW}文件${CMDUI_DIR}/${DOCKER_COMPOSE_FILE} 不存在，无需进行删除操作！${RESET}"
@@ -1831,10 +1842,10 @@ INSTALL_HUBCMDUI() {
     INFO "正在安装HubCMD-UI服务，请稍等！安装路径 ${LIGHT_CYAN}${CMDUI_DIR}${RESET}"
 
     if [[ -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
-        if docker-compose ps --services 2>/dev/null | grep -q "^${CMDUI_NAME}$"; then
+        if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${CMDUI_NAME}$"; then
             INFO "${CMDUI_NAME} 已经安装并启动，无需重复执行安装！"              
         else
-            docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d
+            $DOCKER_COMPOSE_CMD -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d
         fi
     else 
         wget -NP ${CMDUI_DIR}/ ${CMDUI_COMPOSE_FILE} &>/dev/null
@@ -1842,7 +1853,7 @@ INSTALL_HUBCMDUI() {
             WARN "下载${LIGHT_YELLOW}docker-compose.yaml 文件失败${RESET},请稍后重试!"
             HUBCMDUI
         fi
-        docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d
+        $DOCKER_COMPOSE_CMD -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d
         if [ $? -eq 0 ]; then
             CMDUI_PROMPT
             exit 1
@@ -1858,12 +1869,12 @@ UPDATE_HUBCMDUI() {
     if [ -d "${CMDUI_DIR}" ]; then
         if [ -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" ]; then
             INFO "正在更新HubCMD-UI容器"
-            docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" pull
+            $DOCKER_COMPOSE_CMD -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" pull
             if [ $? -ne 0 ]; then
                 WARN "HubCMD-UI ${LIGHT_YELLOW}镜像拉取失败${RESET},请稍后重试!"
                 HUBCMDUI
             fi
-            docker-compose -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d --force-recreate
+            $DOCKER_COMPOSE_CMD -f "${CMDUI_DIR}/${DOCKER_COMPOSE_FILE}" up -d --force-recreate
             if [ $? -ne 0 ]; then
                 WARN "HubCMD-UI ${LIGHT_YELLOW}服务启动失败${RESET},请稍后重试!"
                 HUBCMDUI
@@ -2073,7 +2084,7 @@ RESTART_SERVICE() {
 
     if [[ "$restart_service" == "9" ]]; then
         for service_name in "${services[@]}"; do
-            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+            if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")               
             else
                 WARN "服务 ${service_name}未运行，跳过重启。"
@@ -2087,7 +2098,7 @@ RESTART_SERVICE() {
         for choice in ${restart_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+                if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")                  
                 else
                     WARN "服务 ${service_name} 未运行，跳过重启。"
@@ -2123,7 +2134,7 @@ UPDATE_SERVICE() {
 
     if [[ "$choices_service" == "9" ]]; then
         for service_name in "${services[@]}"; do
-            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+            if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")               
             else
                 WARN "服务 ${service_name}未运行，跳过更新。"
@@ -2137,7 +2148,7 @@ UPDATE_SERVICE() {
         for choice in ${choices_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+                if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
                 else
                     WARN "服务 ${service_name} 未运行，跳过更新。"
@@ -2176,7 +2187,7 @@ CONTAIENR_LOGS() {
         for choice in ${restart_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
                 service_name="${services[$((choice -1))]}"
-                if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+                if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
                 else
                     WARN "服务 ${service_name} 未运行，无法查看容器日志。"
@@ -2243,7 +2254,7 @@ MODIFY_SERVICE_TTL_CONFIG() {
             non_existing_files+=("$file_name")
         fi
         
-        if ! docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+        if ! $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
             WARN "服务 ${service_name} 未运行。"
         fi
     done
@@ -2418,7 +2429,7 @@ if [ -d "${PROXY_DIR}" ]; then
         START_NEW_SERVER_DOWN_CONFIG
         PROXY_HTTP
         INFO "正在启动新的容器服务,请稍等..."
-        docker-compose -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" up -d "${selected_names[@]}"
+        $DOCKER_COMPOSE_CMD -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" up -d "${selected_names[@]}"
         if [ $? -ne 0 ]; then
             WARN "${selected_names[*]} ${LIGHT_YELLOW}服务启动失败${RESET},请排查!"         
         else
@@ -2451,8 +2462,8 @@ case $ser_choice in
             ERROR "没有需要重启的服务,请重新选择"
             RESTART_SERVICE
         else
-            docker-compose stop ${selected_services[*]}
-            docker-compose up -d --force-recreate ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD stop ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD up -d --force-recreate ${selected_services[*]}
         fi
         SVC_MGMT
         ;;
@@ -2462,8 +2473,8 @@ case $ser_choice in
             ERROR "没有需要更新的服务,请重新选择"
             UPDATE_SERVICE
         else
-            docker-compose pull ${selected_services[*]}
-            docker-compose up -d --force-recreate ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD pull ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD up -d --force-recreate ${selected_services[*]}
         fi
         SVC_MGMT
         ;;
@@ -2474,7 +2485,7 @@ case $ser_choice in
             CONTAIENR_LOGS
         else
             # 查看最近30条日志
-            docker-compose logs --tail=30 ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD logs --tail=30 ${selected_services[*]}
         fi
         SVC_MGMT
         ;;
@@ -2484,7 +2495,7 @@ case $ser_choice in
             ERROR "修改的服务未运行,请重新选择"
             MODIFY_SERVICE_TTL_CONFIG
         else
-            docker-compose restart ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD restart ${selected_services[*]}
         fi
         SVC_MGMT
         ;;
@@ -2638,7 +2649,7 @@ else
             file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             
-            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+            if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
             else
                 WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，但将尝试删除相关文件。"
@@ -2660,7 +2671,7 @@ else
     # 一次性删除所有选中的服务
     if [ ${#selected_services[@]} -gt 0 ]; then
         INFO "删除的服务: ${LIGHT_RED}${selected_services[*]}${RESET}"
-        docker-compose down ${selected_services[*]}
+        $DOCKER_COMPOSE_CMD down ${selected_services[*]}
     fi
 fi
 }
@@ -2909,7 +2920,7 @@ else
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             selected_files+=("$file_name")
 
-            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+            if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
             else
                 WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，无法添加认证授权"
@@ -2975,7 +2986,7 @@ else
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             selected_files+=("$file_name")
 
-            if docker-compose ps --services 2>/dev/null | grep -q "^${service_name}$"; then
+            if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")
             else
                 WARN "服务 ${LIGHT_MAGENTA}${service_name} 未运行${RESET}，无法添加认证授权"                
@@ -3015,8 +3026,8 @@ case $auth_choice in
             WARN "退出认证授权，请${LIGHT_CYAN}重新选择${RESET}服务认证的操作"
             AUTH_SERVICE_CONFIG # 没有服务运行调用函数
         else
-            docker-compose down ${selected_services[*]}
-            docker-compose up -d --force-recreate ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD down ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD up -d --force-recreate ${selected_services[*]}
         fi
         AUTH_SERVICE_CONFIG
         ;;
@@ -3026,8 +3037,8 @@ case $auth_choice in
             WARN "退出认证授权，请${LIGHT_CYAN}重新选择${RESET}服务认证的操作"
             AUTH_SERVICE_CONFIG # 没有服务运行调用函数
         else
-            docker-compose down ${selected_services[*]}
-            docker-compose up -d --force-recreate ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD down ${selected_services[*]}
+            $DOCKER_COMPOSE_CMD up -d --force-recreate ${selected_services[*]}
         fi
         AUTH_SERVICE_CONFIG
         ;;
