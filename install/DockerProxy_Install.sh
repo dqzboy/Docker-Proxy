@@ -1176,13 +1176,13 @@ docker_ver="docker-27.1.2.tgz"
 
 case $cpu_arch in
   "arm64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/686ed74bf10e53fbec21f4c8d0eb4ae68b458198/$docker_ver"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/2ce4d6bc245ab1c4525b3e6f55db7d710681e56f/$docker_ver"
     ;;
   "aarch64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/686ed74bf10e53fbec21f4c8d0eb4ae68b458198/$docker_ver"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/2ce4d6bc245ab1c4525b3e6f55db7d710681e56f/$docker_ver"
     ;;
   "x86_64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/f4cf4ec4167a4e6e4debc61d7b0be0d9b729a93a/$docker_ver"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/179729785ed2c4a8c99aeb546fb6ac2864d7da5c/$docker_ver"
     ;;
   *)
     ERROR "不支持的CPU架构: $cpu_arch"
@@ -1257,13 +1257,13 @@ save_path="/usr/local/bin"
 
 case $cpu_arch in
   "arm64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/b373da5a65a002691d78cf8d279704e85253d18a/docker-compose-linux-aarch64"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/b7be39a4442a103749c769ca48740e8e1a93a16c/docker-compose-linux-aarch64"
     ;;
   "aarch64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/b373da5a65a002691d78cf8d279704e85253d18a/docker-compose-linux-aarch64"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/b7be39a4442a103749c769ca48740e8e1a93a16c/docker-compose-linux-aarch64"
     ;;
   "x86_64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/3cd18cebe93acf81597b9c18f6770bf1bc5fa6dc/docker-compose-linux-x86_64"
+    url="https://raw.gitcode.com/dqzboy/docker/blobs/df1b7935ced481a20d16141d97e163823ee793f5/docker-compose-linux-x86_64"
     ;;
   *)
     ERROR "不支持的CPU架构: $cpu_arch"
@@ -1535,6 +1535,7 @@ fi
 
 # 一键部署、安装指定容器加速服务时调用START_CONTAINER
 function START_CONTAINER() {
+    CHECK_COMPOSE_CMD
     if [ "$modify_config" = "y" ] || [ "$modify_config" = "Y" ]; then
         ADD_DOCKERD_PROXY
     else
@@ -1563,6 +1564,7 @@ function START_CONTAINER() {
 
 # 使用函数UPDATE_CONFIG时调用RESTART_CONTAINER
 function RESTART_CONTAINER() {
+    CHECK_COMPOSE_CMD
     # DOWN_CONFIG函数执行后判断selected_all变量
     if [ "$selected_all" = true ]; then
         $DOCKER_COMPOSE_CMD restart
@@ -1595,6 +1597,7 @@ START_CONTAINER
 }
 
 function STOP_REMOVE_CONTAINER() {
+    CHECK_COMPOSE_CMD
     if [[ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]]; then
         INFO "停止和移除所有容器"
         $DOCKER_COMPOSE_CMD -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" down --remove-orphans
@@ -1777,6 +1780,7 @@ esac
 }
 
 function REMOVE_CMDUI() {
+CHECK_COMPOSE_CMD
 CMDUI_NAME="hubcmd-ui"
 CMDUI_DIR="${PROXY_DIR}/hubcmdui"
 if [ -d "${CMDUI_DIR}" ]; then
@@ -1807,6 +1811,7 @@ docker rmi --force $(docker images -q ${CMDUI_IMAGE_NAME}) &>/dev/null
 
 
 function HUBCMDUI() {
+CHECK_COMPOSE_CMD
 CMDUI_NAME="hubcmd-ui"
 CMDUI_DIR="${PROXY_DIR}/hubcmdui"
 
@@ -1944,6 +1949,7 @@ esac
 
 
 function COMP_INST() {
+CHECK_COMPOSE_CMD
 SEPARATOR "安装组件"
 echo -e "1) ${BOLD}安装${LIGHT_GREEN}环境依赖${RESET}"
 echo -e "2) ${BOLD}安装${LIGHT_CYAN}Docker${RESET}"
@@ -2047,6 +2053,7 @@ esac
 
 
 function SVC_MGMT() {
+CHECK_COMPOSE_CMD
 # 定义Docker容器服务名称
 CONTAINER_SERVICES() {
     services=(
@@ -2606,6 +2613,7 @@ esac
 
 
 function UNI_DOCKER_SERVICE() {
+CHECK_COMPOSE_CMD
 RM_SERVICE() {
 
 selected_containers=()
@@ -2743,6 +2751,7 @@ esac
 
 
 function AUTH_SERVICE_CONFIG() {
+CHECK_COMPOSE_CMD
 CHECK_REG_AUTH() {
 if ! command -v docker &> /dev/null; then
     ERROR "docker 命令未找到，请确保 Docker 已正确安装"
@@ -2761,6 +2770,23 @@ services=(
 )
 
 container_names=$(docker ps --filter "name=reg-" --filter "status=running" --format "{{.Names}}")
+
+# 检查哪些容器正在运行
+for container_name in "${!services[@]}"; do
+    if docker ps --filter "name=$container_name" --filter "status=running" --format "{{.Names}}" | grep -q "$container_name"; then
+        running_containers+=("${services[$container_name]}")
+    else
+        stopped_containers+=("${services[$container_name]}")
+    fi
+done
+
+if [ ${#running_containers[@]} -gt 0 ]; then
+    INFO "当前运行的 Docker 容器有: ${LIGHT_CYAN}${running_containers[*]}${RESET}"
+else
+    WARN "当前没有运行的 Docker 容器"
+    AUTH_SERVICE_CONFIG  # 如果没有运行的容器，直接返回
+fi
+
 
 auth_containers=()
 non_auth_containers=()
