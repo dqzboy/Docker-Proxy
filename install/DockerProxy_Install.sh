@@ -1172,7 +1172,7 @@ success=false
 cpu_arch=$(uname -m)
 save_path="/opt/docker_tgz"
 mkdir -p $save_path
-docker_ver="docker-26.1.4.tgz"
+docker_ver="docker-27.1.2.tgz"
 
 case $cpu_arch in
   "arm64")
