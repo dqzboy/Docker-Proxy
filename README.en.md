@@ -29,7 +29,7 @@
 ## 📝 Preparation
 ⚠️  **Important:** Choose a server located abroad and not blocked in your region. For the domain name, there is no need to register it with domestic authorities. You can also apply for a free domain through various platforms. During the one-click deployment process, if you choose to install Caddy, it will automatically configure HTTPS. If you opt to deploy Nginx, you'll need to apply for a free SSL certificate yourself or use other methods to implement SSL encryption.
 
-> High-Cost-Effective Overseas VPS Recommendation: [Click to View](Ad/README.md) 
+> High-Cost-Effective Overseas VPS Recommendation: [Click to View](https://my.racknerd.com/aff.php?aff=12151) 
 
 <details>
 <summary><strong>Free domain certificate application</strong></summary>
