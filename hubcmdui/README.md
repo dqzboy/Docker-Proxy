@@ -83,7 +83,7 @@ docker logs -f [容器ID或名称]
 
 ---
 
-## UI
+## UI界面
 
 - 默认容器监听`3000`端口，映射宿主机端口`30080`
 
@@ -91,7 +91,7 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/80b347b6-cfb4-43ec-b473-7e38943fe517"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/637756c0-65b3-4f1a-b65d-14f522fd1660"?raw=true"></td>
     </tr>
 </table>
 
@@ -101,17 +101,17 @@ docker logs -f [容器ID或名称]
     </tr>
 </table>
 
-> 浏览器输入 `服务器地址/admin:30080` 访问后端页面，默认登入账号密码: root/admin@123
+> 浏览器输入 `服务器地址:30080/admin` 访问后端页面，默认登入账号密码: root/admin@123
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/d5d97581-42c1-4a21-9c3a-fddf3bfc67cd"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/8c4241a5-e5cc-418c-8020-75eebe7f2fd1"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/914aebb1-8668-40a6-89bc-9d8bf29a34a2"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/4690d899-0ee3-40e5-b5a2-861e750210ed"?raw=true"></td>
     </tr>
 </table>
 

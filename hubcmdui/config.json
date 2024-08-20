@@ -16,6 +16,14 @@
     {
       "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/reacknerd-ad.png",
       "link": "https://my.racknerd.com/aff.php?aff=12151"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/racknerd_vps.png",
+      "link": "https://my.racknerd.com/aff.php?aff=12151"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy-vip.png",
+      "link": "https://www.dqzboy.com/17834.html"
     }
   ],
   "proxyDomain": "dqzboy.github.io"
