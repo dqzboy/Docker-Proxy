@@ -105,13 +105,13 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/8c4241a5-e5cc-418c-8020-75eebe7f2fd1"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/e69f0473-04c1-473d-a580-6e9a85c4053c"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/4690d899-0ee3-40e5-b5a2-861e750210ed"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/7f3196c6-5da7-409a-ab49-1037ad0db1d6"?raw=true"></td>
     </tr>
 </table>
 
@@ -119,8 +119,6 @@ docker logs -f [容器ID或名称]
 
 ## 🫶 赞助
 如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊
-
-> 项目作者自建公益服务：[服务地址查看](https://uk.dqzboy.xyz/)
 
 <table>
     <tr>

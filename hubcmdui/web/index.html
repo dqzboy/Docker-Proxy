@@ -36,20 +36,51 @@
         .logo {
             max-height: 70px;
         }
+        .logo-link {
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .logo-link:hover {
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
         .nav-menu {
             display: flex;
-            gap: 20px;
+            gap: 10px;
             font-size: 18px;
             margin-left: auto;
         }
+
         .nav-menu a {
             color: #0366d6;
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 5px;
+            position: relative;
         }
+
         .nav-menu a:hover {
-            color: #0056b3;
+            color: #0366d6;
+            background-color: rgba(3, 102, 214, 0.1);
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: #0366d6;
+            transition: all 0.3s ease;
+        }
+
+        .nav-menu a:hover::after {
+            width: 100%;
+            left: 0;
         }
         .container {
             max-width: 800px;
@@ -238,32 +269,34 @@
         @media (max-width: 768px) {
             .nav-menu {
                 display: none;
-            }
-            .header-content {
                 flex-direction: column;
-            }
-            .logo {
-                margin-bottom: 10px;
-            }
-            .input-group {
-                flex-direction: column;
-            }
-            .container {
+                position: absolute;
+                top: 100%;
+                left: 0;
                 width: 100%;
-                padding: 10px;
+                background-color: #ffffff;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                padding: 10px 0;
             }
-            .carousel {
-                height: 300px;
+
+            .nav-menu.active {
+                display: flex;
             }
-            .carousel-item {
-                width: 80%;
-                height: 70%;
-                left: 10%;
+
+            .nav-menu a {
+                padding: 10px 20px;
+            }
+
+            .menu-toggle {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
             }
         }
+
         @media (min-width: 769px) {
-            .nav-menu {
-                display: flex;
+            .menu-toggle {
+                display: none;
             }
         }
         .notification {
@@ -287,7 +320,10 @@
     <!-- 页眉 -->
     <header class="header">
         <div class="header-content">
-            <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" alt="Logo" class="logo">
+            <a href="/" class="logo-link">
+                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" alt="Logo" class="logo">
+            </a>
+            <div class="menu-toggle" id="menuToggle">☰</div>
             <nav class="nav-menu" id="navMenu">
                 <!-- 菜单项将通过 JavaScript 动态加载 -->
             </nav>
@@ -326,6 +362,15 @@
         // 设置当前年份
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const menuToggle = document.getElementById('menuToggle');
+            const navMenu = document.getElementById('navMenu');
+
+            menuToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+            });
+        });
+        
         let proxyDomain = ''; // 默认代理加速地址
         let currentIndex = 0;
         let items = [];

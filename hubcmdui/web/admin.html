@@ -15,12 +15,9 @@
             background-color: #f6f8fa;
         }
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
         }
         h1, h2 {
             border-bottom: 2px solid #eaecef;
@@ -121,25 +118,74 @@
             display: none;
         }
         .login-modal {
-            display: none;
+            display: flex;
             position: fixed;
-            z-index: 1;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            justify-content: center;
+            align-items: center;
         }
         .login-content {
             background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
             margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 30%;
-            border-radius: 8px;
+            width: 300px;
+            border-radius: 5px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .login-header h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .login-form button:hover {
+            background-color: #45a049;
+        }
+        .captcha-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .captcha-container input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .captcha-container span {
+            padding: 12px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
         }
         .user-management {
             position: absolute;
@@ -164,78 +210,281 @@
             font-size: 12px;
             margin-top: 5px;
         }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #f6f8fa;
+            border-right: 1px solid #e1e4e8;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            padding: 0 20px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #24292e;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #0366d6;
+        }
+
+        .sidebar li:hover {
+            background-color: #f1f8ff;
+        }
+
+        .sidebar li.active {
+            background-color: #f1f8ff;
+            font-weight: bold;
+            border-right: 1px solid #e1e4e8;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 20px 30px;
+        }
+
+        .content-section {
+            background-color: transparent;
+            box-shadow: none;
+            padding: 0;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+
+        /* 全局样式 */
+        .content-section {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .content-section h1.admin-title {
+            font-size: 24px;
+            color: #24292e;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        .content-section h2.menu-label {
+            font-size: 18px;
+            color: #0366d6;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        /* 表单元素样式 */
+        .content-section label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #24292e;
+        }
+
+        .content-section input[type="text"],
+        .content-section input[type="url"],
+        .content-section input[type="password"] {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .content-section input[type="text"],
+        .content-section input[type="url"],
+        .content-section input[type="password"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .content-section button {
+            background-color: #2ea44f;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            margin-top: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        .content-section button:hover {
+            background-color: #2c974b;
+        }
+        /* 表格样式优化 */
+        .content-section table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+        }
+
+        .content-section th,
+        .content-section td {
+            border: 1px solid #e1e4e8;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .content-section th {
+            background-color: #f6f8fa;
+            font-weight: 600;
+            color: #24292e;
+        }
+
+        .content-section tr:nth-child(even) {
+            background-color: #f6f8fa;
+        }
+
+        /* 特定功能区域样式 */
+        #basic-config input[type="url"],
+        #basic-config input[type="text"] {
+            max-width: 400px;
+        }
+
+        #password-change .password-hint {
+            font-size: 12px;
+            color: #6a737d;
+            margin-top: 5px;
+            display: block;
+        }
+
+        #password-change #passwordStrength {
+            font-size: 14px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .content-section h1.admin-title {
+                font-size: 20px;
+            }
+
+            .content-section input[type="text"],
+            .content-section input[type="url"],
+            .content-section input[type="password"] {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container hidden" id="adminContainer">
-        <h1 class="admin-title">Docker 镜像代理加速 - 管理面板</h1>
-        <form id="adminForm">
-            <label for="logoUrl">Logo URL: (可选)</label>
-            <input type="url" id="logoUrl" name="logoUrl">
-            <button type="button" onclick="saveLogo()">保存 Logo</button>
-            
-            <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
-            <input type="text" id="proxyDomain" name="proxyDomain" required>
-            <button type="button" onclick="saveProxyDomain()">保存代理地址</button>
-            
-            <h2 class="menu-label">菜单项管理</h2>
-            <table id="menuTable">
-                <thead>
-                    <tr>
-                        <th>文本</th>
-                        <th>链接 (可选)</th>
-                        <th>新标签页打开</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="menuTableBody">
-                    <!-- 菜单项将在这里动态添加 -->
-                </tbody>
-            </table>
-            <button type="button" class="add-btn" onclick="showNewMenuItemRow()">添加菜单项</button>
-            
-            <h2 class="menu-label">广告管理</h2>
-            <table id="adTable">
-                <thead>
-                    <tr>
-                        <th>广告URL</th>
-                        <th>跳转URL</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="adTableBody">
-                    <!-- 广告项将在这里动态添加 -->
-                </tbody>
-            </table>
-            <button type="button" class="add-btn" onclick="showNewAdRow()">添加广告</button>
+    <div class="admin-container hidden" id="adminContainer">
+        <div class="sidebar">
+            <h2>管理面板</h2>
+            <ul>
+                <li class="active" data-section="basic-config">基本配置</li>
+                <li data-section="menu-management">菜单管理</li>
+                <li data-section="ad-management">广告管理</li>
+                <li data-section="password-change">修改密码</li>
+            </ul>
+        </div>
+        <div class="content-area">
+            <div class="container">
+                <!-- 将原有的内容分成四个部分，每个部分对应一个侧边栏项目 -->
+                <div id="basic-config" class="content-section active">
+                    <label for="logoUrl">Logo URL: (可选)</label>
+                    <input type="url" id="logoUrl" name="logoUrl">
+                    <button type="button" onclick="saveLogo()">保存 Logo</button>
 
-            <!-- 修改密码的独立表单 -->
-            <div id="passwordChangeForm" style="margin-top: 20px;">
-                <h2 class="menu-label">修改密码</h2>
-                <label for="currentPassword">当前密码</label>
-                <input type="password" id="currentPassword" name="currentPassword">
-                <label for="newPassword">新密码</label>
-                <span class="password-hint" id="passwordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
-                <input type="password" id="newPassword" name="newPassword" oninput="checkPasswordStrength()">
-                <span id="passwordStrength" style="color: red;"></span>
-                <button type="button" onclick="changePassword()">修改密码</button>
+                    <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
+                    <input type="text" id="proxyDomain" name="proxyDomain" required>
+                    <button type="button" onclick="saveProxyDomain()">保存代理地址</button>
+                </div>
+                
+                <div id="menu-management" class="content-section">
+                    <h2 class="menu-label">菜单项管理</h2>
+                    <table id="menuTable">
+                        <thead>
+                            <tr>
+                                <th>文本</th>
+                                <th>链接 (可选)</th>
+                                <th>新标签页打开</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menuTableBody">
+                            <!-- 菜单项将在这里动态添加 -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="add-btn" onclick="showNewMenuItemRow()">添加菜单项</button>
+                </div>
+                
+                <div id="ad-management" class="content-section">
+                    <h2 class="menu-label">广告管理</h2>
+                    <table id="adTable">
+                        <thead>
+                            <tr>
+                                <th>广告图片URL</th>
+                                <th>跳转URL</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adTableBody">
+                            <!-- 广告项将在这里动态添加 -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="add-btn" onclick="showNewAdRow()">添加广告</button>
+                </div>
+                
+                <div id="password-change" class="content-section">
+                    <h2 class="menu-label">修改密码</h2>
+                    <label for="currentPassword">当前密码</label>
+                    <input type="password" id="currentPassword" name="currentPassword">
+                    <label for="newPassword">新密码</label>
+                    <span class="password-hint" id="passwordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
+                    <input type="password" id="newPassword" name="newPassword" oninput="checkPasswordStrength()">
+                    <span id="passwordStrength" style="color: red;"></span>
+                    <button type="button" onclick="changePassword()">修改密码</button>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 
     <div class="login-modal" id="loginModal">
         <div class="login-content">
-            <h2>登录</h2>
-            <label for="username">用户名</label>
-            <input type="text" id="username" name="username" required>
-            <label for="password">密码</label>
-            <input type="password" id="password" name="password" required>
-            <label for="captcha">验证码</label>
-            <div style="display: flex; align-items: center;">
-                <input type="text" id="captcha" name="captcha" required style="flex: 1;">
-                <span id="captchaText" onclick="refreshCaptcha()" style="margin-left: 10px; cursor: pointer;">点击刷新验证码</span>
+            <div class="login-header">
+                <h2>登入</h2>
             </div>
-            <button type="button" onclick="login()">登录</button>
+            <form class="login-form">
+                <input type="text" id="username" name="username" placeholder="用户名" required>
+                <input type="password" id="password" name="password" placeholder="密码" required>
+                <div class="captcha-container">
+                    <input type="text" id="captcha" name="captcha" placeholder="验证码" required>
+                    <span id="captchaText" onclick="refreshCaptcha()">点击刷新验证码</span>
+                </div>
+                <button type="button" onclick="login()">登录</button>
+            </form>
         </div>
     </div>
 
@@ -250,14 +499,16 @@
             return menuItems;
         }
 
-        function setupDeleteButtons() {
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach((button, index) => {
+        function setupMenuDeleteButtons() {
+            const deleteButtons = document.querySelectorAll('.menu-delete-btn');
+            deleteButtons.forEach((button) => {
                 button.addEventListener('click', () => {
                     const row = button.closest('tr');
-                    const index = row.getAttribute('data-index');
-                    console.log(`Deleting menu item at index: ${index}`); // 添加日志输出
-                    deleteMenuItem(index);
+                    const index = parseInt(row.getAttribute('data-index'));
+                    const menuText = row.querySelector('.menu-text').value;
+                    if (confirm(`确定要删除菜单项 "${menuText}" 吗？`)) {
+                        deleteMenuItem(index);
+                    }
                 });
             });
         }
@@ -278,14 +529,14 @@
                         </td>
                         <td>
                             <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn">删除</button>
+                            <button type="button" class="action-btn delete-btn menu-delete-btn">删除</button>
                         </td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
             });
             setupEditButtons();
-            setupDeleteButtons();
+            setupMenuDeleteButtons();
         }
 
         function setMenuItems(items) {
@@ -380,7 +631,7 @@
             const tbody = document.getElementById('adTableBody');
             const newRow = `
                 <tr id="newAdRow">
-                    <td><input type="url" id="newAdUrl" placeholder="广告URL"></td>
+                    <td><input type="url" id="newAdUrl" placeholder="广告图片URL"></td>
                     <td><input type="url" id="newAdLink" placeholder="跳转URL"></td>
                     <td>
                         <button type="button" class="action-btn" onclick="saveNewAd()">保存</button>
@@ -398,11 +649,11 @@
             adImages.forEach((ad, index) => {
                 const row = `
                     <tr data-index="${index}">
-                        <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
+                        <td><input type="url" class="ad-url" value="${ad.url || ''}" disabled></td>
                         <td><input type="url" class="ad-link" value="${ad.link || ''}" disabled></td>
                         <td>
                             <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn">删除</button>
+                            <button type="button" class="action-btn delete-btn ad-delete-btn">删除</button>
                         </td>
                     </tr>
                 `;
@@ -414,7 +665,7 @@
 
         function setupAdEditButtons() {
             const editButtons = document.querySelectorAll('.edit-btn');
-            editButtons.forEach((button, index) => {
+            editButtons.forEach((button) => {
                 button.addEventListener('click', () => {
                     const row = button.closest('tr');
                     const urlInput = row.querySelector('.ad-url');
@@ -424,44 +675,50 @@
                         urlInput.disabled = false;
                         linkInput.disabled = false;
                         button.textContent = '保存';
-                        editingIndex = row.getAttribute('data-index');
-                        console.log(`Editing ad at index ${editingIndex}:`, { url: urlInput.value, link: linkInput.value });
                     } else {
+                        const index = parseInt(row.getAttribute('data-index'));
                         const url = urlInput.value || '';
                         const link = linkInput.value || '';
 
-                        adImages[editingIndex] = { url, link };
-                        renderAdItems(); // 重新渲染广告项
-                        saveAd(editingIndex, { url, link });
-                        editingIndex = -1;
+                        if (url) {
+                            adImages[index] = { url, link };
+                            saveAd(index, { url, link });
+                            urlInput.disabled = true;
+                            linkInput.disabled = true;
+                            button.textContent = '编辑';
+                        } else {
+                            alert('广告URL不能为空');
+                        }
                     }
                 });
             });
         }
 
         function setupAdDeleteButtons() {
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach((button, index) => {
+            const deleteButtons = document.querySelectorAll('.ad-delete-btn');
+            deleteButtons.forEach((button) => {
                 button.addEventListener('click', () => {
                     const row = button.closest('tr');
-                    const index = row.getAttribute('data-index');
-                    deleteAd(index);
+                    const index = parseInt(row.getAttribute('data-index'));
+                    const adUrl = row.querySelector('.ad-url').value;
+                    if (confirm(`确定要删除广告 "${adUrl}" 吗？`)) {
+                        deleteAd(index);
+                    }
                 });
             });
-        }   
+        }
 
         function saveNewAd() {
             const url = document.getElementById('newAdUrl').value || '';
             const link = document.getElementById('newAdLink').value || '';
 
             if (!url) {
-                alert('广告URL为必填项');
+                alert('广告图片URL为必填项');
                 return;
             }
 
             const newAd = { url, link };
             adImages.push(newAd);
-            renderAdItems(); // 先更新页面
             saveAd(adImages.length - 1, newAd);
             cancelNewAd();
         }
@@ -471,26 +728,6 @@
             if (newRow) {
                 newRow.remove();
             }
-        }
-
-        function renderAdItems() {
-            const tbody = document.getElementById('adTableBody');
-            tbody.innerHTML = '';
-            adImages.forEach((ad, index) => {
-                const row = `
-                    <tr data-index="${index}">
-                        <td><input type="url" class="ad-url" value="${ad.url}" disabled></td>
-                        <td><input type="url" class="ad-link" value="${ad.link}" disabled></td>
-                        <td>
-                            <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn">删除</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            setupAdEditButtons();
-            setupAdDeleteButtons();
         }
 
         async function saveLogo() {
@@ -529,47 +766,60 @@
 
         async function deleteMenuItem(index) {
             try {
+                menuItems.splice(index, 1);
                 const response = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ menuItems: menuItems.filter((_, i) => i !== parseInt(index)) })
+                    body: JSON.stringify({ menuItems: menuItems })
                 });
                 if (response.ok) {
-                    menuItems.splice(index, 1);
-                    renderMenuItems(); // 先更新页面
-                    await loadConfig(); // 重新加载配置
+                    console.log('Menu item deleted successfully');
+                    renderMenuItems(); // 重新渲染菜单项
                 } else {
-                    alert('删除菜单项失败');
+                    throw new Error('Failed to delete menu item');
                 }
             } catch (error) {
-                console.error('删除菜单项失败: ' + error.message);
+                console.error('删除菜单项失败:', error);
                 alert('删除菜单项失败: ' + error.message);
             }
         }
 
         async function saveAd(index, ad) {
             console.log(`Saving ad at index ${index}:`, ad);
-            const config = { adImages: adImages };
-            config.adImages[index] = ad;
-            await saveConfig(config);
-        }
-
-        async function deleteAd(index) {
             try {
                 const response = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adImages: adImages.filter((_, i) => i !== parseInt(index)) })
+                    body: JSON.stringify({ adImages: adImages })
                 });
                 if (response.ok) {
-                    adImages.splice(index, 1);
-                    renderAdItems(); // 先更新页面
-                    await loadConfig(); // 重新加载配置
+                    console.log('Ad saved successfully');
+                    renderAdItems(); // 重新渲染广告项
                 } else {
-                    alert('删除广告项失败');
+                    throw new Error('Failed to save ad');
                 }
             } catch (error) {
-                console.error('删除广告项失败: ' + error.message);
+                console.error('保存广告失败:', error);
+                alert('保存广告失败: ' + error.message);
+            }
+        }
+
+        async function deleteAd(index) {
+            try {
+                adImages.splice(index, 1);
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adImages: adImages })
+                });
+                if (response.ok) {
+                    console.log('Ad deleted successfully');
+                    renderAdItems(); // 重新渲染广告项
+                } else {
+                    throw new Error('Failed to delete ad');
+                }
+            } catch (error) {
+                console.error('删除广告项失败:', error);
                 alert('删除广告项失败: ' + error.message);
             }
         }
@@ -748,6 +998,35 @@
                 console.error('刷新验证码失败:', error);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const sidebarItems = document.querySelectorAll('.sidebar li');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        function showSection(sectionId) {
+            contentSections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+        }
+
+        sidebarItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const sectionId = this.getAttribute('data-section');
+                
+                sidebarItems.forEach(si => si.classList.remove('active'));
+                this.classList.add('active');
+                
+                showSection(sectionId);
+            });
+        });
+
+        // 初始化：显示第一个部分
+        showSection(sidebarItems[0].getAttribute('data-section'));
+    });
     </script>
 </body>
 </html>
