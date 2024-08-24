@@ -314,6 +314,88 @@
             transition: opacity 0.5s ease-in-out;
             z-index: 1000;
         }
+
+        /* 搜索样式 */
+        .search-container {
+            margin-top: 20px;
+        }
+        #searchResults {
+            margin-top: 20px;
+            display: none;
+        }
+        .search-result-item {
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .search-result-item h3 {
+            margin-top: 0;
+        }
+        .search-result-item p {
+            margin-bottom: 5px;
+        }
+        .use-image-btn {
+            background-color: #0366d6;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .use-image-btn:hover {
+            background-color: #0256b9;
+        }
+        .official-image {
+            background-color: #e6f3ff;
+            border-left: 5px solid #0366d6;
+            padding-left: 15px;
+        }
+        .search-result-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+        }
+        .search-result-item h3 {
+            margin-top: 0;
+            color: #0366d6;
+        }
+        .official-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .stars {
+            color: #586069;
+            font-size: 14px;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #d1d5da;
+            background-color: #f6f8fa;
+            color: #24292e;
+        }
+        .tab.active {
+            background-color: #0366d6;
+            color: white;
+            border-color: #0366d6;
+        }
+        .content {
+            display: none;
+        }
+        .content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -329,13 +411,38 @@
             </nav>
         </div>
     </header>
+
     <!-- 内容容器 -->
     <div class="container">
-        <h1>Docker 镜像代理加速</h1>
-        <div class="input-group">
-            <input type="text" id="imageInput" placeholder="输入 Docker 镜像，例如：nginx 或 mysql:5.7">
-            <button onclick="generateCommands()">获取加速命令</button>
+        <h1>Docker 镜像加速和镜像搜索</h1>
+        <!-- 标签切换 -->
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('accelerate')">镜像加速</div>
+            <div class="tab" onclick="switchTab('search')">镜像搜索</div>
         </div>
+
+        <!-- 镜像加速内容 -->
+        <div id="accelerateContent" class="content active">
+            <div class="input-group">
+                <input type="text" id="imageInput" placeholder="请输入 Docker 镜像名称，例如：nginx 或 mysql:5.7">
+                <button onclick="generateCommands(document.getElementById('imageInput').value.trim())">获取加速命令</button>
+            </div>
+            <!-- 结果容器 -->
+            <div id="result" style="display:none;">
+                <h2>加速命令</h2>
+                <div id="commandsContainer"></div>
+            </div>
+        </div>
+
+        <!-- 镜像搜索内容 -->
+        <div id="searchContent" class="content">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="请输入 Docker 镜像名称进行搜索">
+                <button onclick="searchDockerHub()">搜索Docker镜像</button>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+
         <!-- 广告容器 -->
         <div class="carousel" id="carousel">
             <div class="carousel-inner" id="carouselInner">
@@ -343,11 +450,6 @@
             </div>
             <div class="carousel-control left" onclick="prevSlide()">&#10094;</div>
             <div class="carousel-control right" onclick="nextSlide()">&#10095;</div>
-        </div>
-        <!-- 结果容器 -->
-        <div id="result" style="display:none;">
-            <h2>加速命令</h2>
-            <div id="commandsContainer"></div>
         </div>
     </div>
     <!-- 页脚 -->
@@ -375,11 +477,40 @@
         let currentIndex = 0;
         let items = [];
 
+        // 标签切换功能
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`.tab:nth-child(${tabName === 'accelerate' ? '1' : '2'}`).classList.add('active');
+            document.getElementById(`${tabName}Content`).classList.add('active');
+
+            // 重置显示
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('carousel').style.display = 'flex';
+            document.getElementById('backToTopBtn').style.display = 'none';
+
+            if (tabName === 'accelerate') {
+                const imageInput = document.getElementById('imageInput').value.trim();
+                if (imageInput) {
+                    generateCommands(imageInput);
+                }
+            } else {
+                document.getElementById('searchInput').value = '';
+            }
+        }
+
         // 生成加速命令
-        function generateCommands() {
-            const imageInput = document.getElementById('imageInput').value.trim();
+        function generateCommands(imageInput) {
             if (!imageInput) {
-                alert('请输入 Docker 镜像');
+                imageInput = document.getElementById('imageInput').value.trim();
+            }
+            if (!imageInput) {
+                alert('请输入 Docker 镜像名称');
                 return;
             }
             let [imageName, tag] = imageInput.split(':');
@@ -501,6 +632,82 @@
             startAutoPlay();
         }
 
+        // 搜索功能
+        async function searchDockerHub() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) {
+                alert('请输入搜索关键词');
+                return;
+            }
+
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '正在搜索...';
+            searchResults.style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('carousel').style.display = 'none';
+            document.getElementById('backToTopBtn').style.display = 'block';
+
+            try {
+                const response = await fetch(`/api/search?term=${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const officialImages = data.results.filter(result => result.is_official);
+                    const unofficialImages = data.results.filter(result => !result.is_official)
+                        .sort((a, b) => (b.star_count || 0) - (a.star_count || 0))
+                        .slice(0, 5);
+
+                    searchResults.innerHTML = '';
+                    
+                    // 显示官方镜像
+                    officialImages.forEach(result => {
+                        searchResults.appendChild(createResultItem(result, true));
+                    });
+
+                    // 显示前5个非官方镜像
+                    unofficialImages.forEach(result => {
+                        searchResults.appendChild(createResultItem(result, false));
+                    });
+
+                    if (officialImages.length === 0 && unofficialImages.length === 0) {
+                        searchResults.innerHTML = '未找到匹配的镜像';
+                    }
+                } else {
+                    searchResults.innerHTML = '未找到匹配的镜像';
+                }
+            } catch (error) {
+                console.error('搜索出错:', error);
+                searchResults.innerHTML = '搜索时发生错误，请稍后重试';
+            }
+        }
+
+        function createResultItem(result, isOfficial) {
+            const resultItem = document.createElement('div');
+            resultItem.className = `search-result-item ${isOfficial ? 'official-image' : ''}`;
+            
+            const officialBadge = isOfficial ? '<span class="official-badge">官方</span>' : '';
+            const stars = result.star_count !== undefined ? `<span class="stars">★ ${result.star_count}</span>` : '';
+
+            resultItem.innerHTML = `
+                <h3>${result.name || result.repo_name || '未知名称'} ${officialBadge}</h3>
+                <p>描述: ${result.description || result.short_description || '无描述'}</p>
+                <p>${stars}</p>
+                <button class="use-image-btn" onclick="useImage('${result.name || result.repo_name || ''}')">使用此镜像</button>
+            `;
+            return resultItem;
+        }
+
+        function useImage(imageName) {
+            if (imageName) {
+                document.getElementById('imageInput').value = imageName;
+                switchTab('accelerate');
+                // 直接生成加速命令，无需用户再次点击
+                generateCommands(imageName);
+            } else {
+                alert('无效的 Docker 镜像名称');
+            }
+        }
+
         // 获取并加载配置
         async function loadConfig() {
             try {
@@ -554,9 +761,14 @@
                 if (config.proxyDomain) {
                     proxyDomain = config.proxyDomain;
                 }
+                // 添加对搜索API的支持
+                if (config.searchApiEndpoint) {
+                    window.searchApiEndpoint = config.searchApiEndpoint;
+                }
             } catch (error) {
                 console.error('加载配置失败:', error);
             }
+            switchTab('accelerate');
         }
 
         loadConfig();

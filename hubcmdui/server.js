@@ -6,6 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const logger = require('morgan'); // 引入 morgan 作为日志工具
+const axios = require('axios'); // 用于发送 HTTP 请求
 
 const app = express();
 app.use(express.json());
@@ -21,6 +22,22 @@ app.use(logger('dev')); // 使用 morgan 记录请求日志
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'admin.html'));
+});
+
+// 新增：Docker Hub 搜索 API
+app.get('/api/search', async (req, res) => {
+  const searchTerm = req.query.term;
+  if (!searchTerm) {
+    return res.status(400).json({ error: 'Search term is required' });
+  }
+
+  try {
+    const response = await axios.get(`https://hub.docker.com/v2/search/repositories/?query=${encodeURIComponent(searchTerm)}`);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error searching Docker Hub:', error);
+    res.status(500).json({ error: 'Failed to search Docker Hub' });
+  }
 });
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');

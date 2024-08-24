@@ -6,7 +6,7 @@
   <p align="center">
   <img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c187d66f-152e-4172-8268-e54bd77d48bb" width="230px" height="200px">
       <br>
-      <i>Docker-Proxy 镜像代理加速快速获取命令UI面板.</i>
+      <i>Docker镜像加速命令查询获取和镜像搜索UI面板.</i>
   </p>
 </div>
 
@@ -91,13 +91,19 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/637756c0-65b3-4f1a-b65d-14f522fd1660"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c7e368ca-7f1a-4311-9a10-a5f4f06d86d8"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f6a515eb-5b63-498e-b288-6b2a20e1139f"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/0024d3e7-3b9d-4a10-9079-f2b91633a5f5"?raw=true"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/8569c5c4-4ce6-4cd4-8547-fa9816019049"?raw=true"></td>
     </tr>
 </table>
 

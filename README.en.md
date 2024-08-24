@@ -128,7 +128,7 @@ docker logs -f [Container ID or Name]
 - [x] Automatically checks for and installs required dependency software such as Docker, Nginx/Caddy, etc., and ensures the system environment meets the operational requirements.
 - [x] Automatically renders the corresponding Nginx or Caddy service configuration based on the service you choose to deploy.
 - [x] Automatically cleans up files in the registry upload directory that are no longer referenced by any image or manifest.
-- [x] Support custom configuration of proxy cache time(PROXY_TTL)
+- [x] Support custom configuration of proxy cache time(PROXY_TTL)、Support configuring IP whitelist and blacklist to prevent malicious attacks.
 - [x] Provides features for restarting services, updating services, updating configurations, and uninstalling services, making it convenient for users to perform daily management and maintenance.
 - [x] Supports user selection of whether to provide authentication during deployment.
 - [x] Supports configuration of proxy (HTTP_PROXY), only supports HTTP.
@@ -212,7 +212,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
     </tr>
     <tr>
         <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/2efe5d7e-6542-4867-9e50-17fa0e704b23?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c7e368ca-7f1a-4311-9a10-a5f4f06d86d8?raw=true"></td>
     </tr>
 </table>
 
