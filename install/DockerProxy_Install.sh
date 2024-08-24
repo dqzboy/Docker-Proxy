@@ -78,6 +78,13 @@ function SEPARATOR() {
 }
 
 
+# 检查是否以root权限运行
+if [[ $EUID -ne 0 ]]; then
+   ERROR "此脚本必须以root权限运行!" 
+   exit 1
+fi
+
+
 PROXY_DIR="/data/registry-proxy"
 mkdir -p ${PROXY_DIR}
 cd "${PROXY_DIR}"
@@ -3081,6 +3088,207 @@ case $auth_choice in
 esac
 }
 
+
+# IP 黑白名单
+function IP_BLACKWHITE_LIST() {
+if ! command -v iptables &> /dev/null
+then
+    WARN "iptables 未安装. 请安装后再运行此脚本."
+    exit 1
+fi
+IPTABLES=$(which iptables)
+
+BLACKLIST_CHAIN="IP_BLACKLIST"
+WHITELIST_CHAIN="IP_WHITELIST"
+
+get_chain_name() {
+    local chain=$1
+    case $chain in
+        $BLACKLIST_CHAIN) echo "黑名单" ;;
+        $WHITELIST_CHAIN) echo "白名单" ;;
+        *) echo "未知名单" ;;
+    esac
+}
+
+create_chains() {
+    $IPTABLES -N $BLACKLIST_CHAIN 2>/dev/null
+    $IPTABLES -N $WHITELIST_CHAIN 2>/dev/null
+}
+create_chains
+
+check_ip() {
+    local ip=$1
+    local ipv4_regex='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+    local ipv6_regex='^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$'
+    
+    if [[ $ip =~ $ipv4_regex ]] || [[ $ip =~ $ipv6_regex ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+ip_exists_in_chain() {
+    local ip=$1
+    local chain=$2
+    local action=$3
+    $IPTABLES -C $chain -s $ip -j $action &>/dev/null
+    return $?
+}
+
+clear_chain() {
+    local chain=$1
+    $IPTABLES -F $chain
+}
+
+add_ip_to_chain() {
+    local ip=$1
+    local chain=$2
+    local action=$3
+    local chain_name=$(get_chain_name $chain)
+    if ! ip_exists_in_chain $ip $chain $action; then
+        $IPTABLES -A $chain -s $ip -j $action
+        INFO "${LIGHT_BLUE}$ip${RESET} ${LIGHT_GREEN}已添加${RESET}到$(get_chain_name $chain)"
+    else
+        WARN "${LIGHT_BLUE}$ip${RESET} ${LIGHT_YELLOW}已存在${RESET}于$(get_chain_name $chain)，跳过添加"
+    fi
+}
+
+# 白名单
+handle_whitelist() {
+    if ! $IPTABLES -L $WHITELIST_CHAIN >/dev/null 2>&1; then
+        $IPTABLES -N $WHITELIST_CHAIN
+    fi
+    
+    if $IPTABLES -C INPUT -j $BLACKLIST_CHAIN >/dev/null 2>&1; then
+        read -e -p "$(WARN "${LIGHT_YELLOW}当前使用黑名单模式${RESET},${LIGHT_CYAN}是否切换到白名单模式？(y/n)${RESET}: ")" switch
+        if [[ $switch == "y" ]]; then
+            $IPTABLES -D INPUT -j $BLACKLIST_CHAIN
+            clear_chain $BLACKLIST_CHAIN
+            $IPTABLES -D INPUT -j $WHITELIST_CHAIN 2>/dev/null
+        else
+            return
+        fi
+    fi
+    clear_chain $WHITELIST_CHAIN
+    
+    add_ip_to_chain 127.0.0.1 $WHITELIST_CHAIN ACCEPT
+    
+    read -e -p "$(INFO "${LIGHT_CYAN}请输入白名单IP (用逗号分隔多个IP)${RESET}: ")" ips
+    IFS=',' read -ra ip_array <<< "$ips"
+    
+    for ip in "${ip_array[@]}"; do
+        if check_ip $ip; then
+            add_ip_to_chain $ip $WHITELIST_CHAIN ACCEPT
+        else
+            WARN "无效IP: $ip"
+        fi
+    done
+    
+    $IPTABLES -A $WHITELIST_CHAIN -j DROP
+    $IPTABLES -D INPUT -j $WHITELIST_CHAIN 2>/dev/null
+    $IPTABLES -I INPUT 1 -j $WHITELIST_CHAIN
+    
+    INFO "${LIGHT_YELLOW}白名单已更新${RESET}，只有指定的IP和本地回环可以访问"
+    IP_BLACKWHITE_LIST
+}
+
+# 黑名单
+handle_blacklist() {
+    if ! $IPTABLES -L $BLACKLIST_CHAIN >/dev/null 2>&1; then
+        $IPTABLES -N $BLACKLIST_CHAIN
+    fi
+    
+    if $IPTABLES -C INPUT -j $WHITELIST_CHAIN >/dev/null 2>&1; then
+        read -e -p "$(WARN "${LIGHT_YELLOW}当前使用白名单模式${RESET},${LIGHT_CYAN}是否切换到黑名单模式？(y/n)${RESET}: ")" switch
+        if [[ $switch == "y" ]]; then
+            $IPTABLES -D INPUT -j $WHITELIST_CHAIN
+            clear_chain $WHITELIST_CHAIN
+            $IPTABLES -D INPUT -j $BLACKLIST_CHAIN 2>/dev/null
+        else
+            return
+        fi
+    fi
+    
+    read -e -p "$(INFO "${LIGHT_CYAN}请输入黑名单IP (用逗号分隔多个IP)${RESET}: ")" ips
+    IFS=',' read -ra ip_array <<< "$ips"
+    
+    for ip in "${ip_array[@]}"; do
+        if check_ip $ip; then
+            add_ip_to_chain $ip $BLACKLIST_CHAIN DROP
+        else
+            WARN "无效IP: $ip"
+        fi
+    done
+    
+    $IPTABLES -D INPUT -j $BLACKLIST_CHAIN 2>/dev/null
+    $IPTABLES -I INPUT 1 -j $BLACKLIST_CHAIN
+    
+    INFO "${LIGHT_YELLOW}黑名单已更新${RESET}，黑名单里的IP将无法访问"
+    IP_BLACKWHITE_LIST
+}
+
+
+SEPARATOR "设置IP黑白名单"
+echo -e "1) ${BOLD}设置${LIGHT_GREEN}白名单${RESET}"
+echo -e "2) ${BOLD}设置${LIGHT_CYAN}黑名单${RESET}"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" ipblack_choice
+
+case $ipblack_choice in
+    1)
+        handle_whitelist
+        ;;
+    2)
+        handle_blacklist
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        IP_BLACKWHITE_LIST
+        ;;
+esac
+}
+
+
+# 其他工具
+function OtherTools() {
+echo -e "1) 设置${BOLD}${YELLOW}系统命令${RESET}"
+echo -e "2) 配置${BOLD}${LIGHT_MAGENTA}IP黑白名单${RESET}"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
+
+case $main_choice in
+    1)
+        ADD_SYS_CMD
+        ;;
+    2)
+        IP_BLACKWHITE_LIST
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        sleep 2; main_menu
+        ;;
+esac
+
+}
+
+
 ## 主菜单
 function main_menu() {
 echo -e "╔════════════════════════════════════════════════════╗"
@@ -3101,7 +3309,7 @@ echo -e "4) ${BOLD}${LIGHT_CYAN}更新${RESET}配置"
 echo -e "5) ${BOLD}${LIGHT_RED}卸载${RESET}服务"
 echo -e "6) ${BOLD}${LIGHT_BLUE}认证${RESET}授权"
 echo -e "7) 本机${BOLD}${CYAN}Docker代理${RESET}"
-echo -e "8) 设置成${BOLD}${YELLOW}系统命令${RESET}"
+echo -e "8) 其他${BOLD}${YELLOW}工具${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
@@ -3134,7 +3342,7 @@ case $main_choice in
         SEPARATOR "Docker代理配置完成"
         ;;
     8)
-        ADD_SYS_CMD
+        OtherTools
         ;;
     0)
         exit 1
