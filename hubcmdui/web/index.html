@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Docker 镜像代理加速</title>
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Lato', 'Helvetica', 'Arial', sans-serif;
@@ -419,6 +420,7 @@
         <div class="tab-container">
             <div class="tab active" onclick="switchTab('accelerate')">镜像加速</div>
             <div class="tab" onclick="switchTab('search')">镜像搜索</div>
+            <div class="tab" onclick="switchTab('documentation')">文档教程</div>
         </div>
 
         <!-- 镜像加速内容 -->
@@ -441,6 +443,12 @@
                 <button onclick="searchDockerHub()">搜索Docker镜像</button>
             </div>
             <div id="searchResults"></div>
+        </div>
+
+         <!-- 文档教程内容 -->
+         <div id="documentationContent" class="content">
+            <div id="documentList"></div>
+            <div id="documentationText"></div>
         </div>
 
         <!-- 广告容器 -->
@@ -485,21 +493,23 @@
             tabs.forEach(tab => tab.classList.remove('active'));
             contents.forEach(content => content.classList.remove('active'));
 
-            document.querySelector(`.tab:nth-child(${tabName === 'accelerate' ? '1' : '2'}`).classList.add('active');
+            document.querySelector(`.tab:nth-child(${tabName === 'accelerate' ? '1' : (tabName === 'search' ? '2' : '3')}`).classList.add('active');
             document.getElementById(`${tabName}Content`).classList.add('active');
 
             // 重置显示
             document.getElementById('searchResults').style.display = 'none';
             document.getElementById('result').style.display = 'none';
-            document.getElementById('carousel').style.display = 'flex';
             document.getElementById('backToTopBtn').style.display = 'none';
+            document.getElementById('carousel').style.display = 'flex'; // 默认显示广告
 
-            if (tabName === 'accelerate') {
+            if (tabName === 'documentation') {
+                fetchDocumentation();
+            } else if (tabName === 'accelerate') {
                 const imageInput = document.getElementById('imageInput').value.trim();
                 if (imageInput) {
                     generateCommands(imageInput);
                 }
-            } else {
+            } else if (tabName === 'search') {
                 document.getElementById('searchInput').value = '';
             }
         }
@@ -642,6 +652,8 @@
 
             const searchResults = document.getElementById('searchResults');
             searchResults.innerHTML = '正在搜索...';
+
+            // 显示和隐藏广告逻辑
             searchResults.style.display = 'block';
             document.getElementById('result').style.display = 'none';
             document.getElementById('carousel').style.display = 'none';
@@ -708,11 +720,108 @@
             }
         }
 
+
+        async function fetchDocumentation() {
+            try {
+                const response = await fetch('/api/documentation');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const documents = await response.json();
+                console.log('Fetched documents:', documents);
+
+                const documentList = window.document.getElementById('documentList');
+                const documentationText = window.document.getElementById('documentationText');
+                
+                if (Array.isArray(documents) && documents.length > 0) {
+                    documentList.innerHTML = '<h2>文档列表</h2>';
+                    const ul = window.document.createElement('ul');
+                    documents.forEach(doc => {
+                        if (doc && doc.id && doc.title) {
+                            const li = window.document.createElement('li');
+                            li.innerHTML = `<a href="javascript:void(0);" onclick="showDocument('${doc.id}')">${doc.title}</a>`;
+                            ul.appendChild(li);
+                        }
+                    });
+                    documentList.appendChild(ul);
+                    
+                    // 默认显示第一篇文档
+                    if (documents[0] && documents[0].id) {
+                        showDocument(documents[0].id);
+                    } else {
+                        documentationText.innerHTML = '无法显示文档，文档 ID 无效';
+                    }
+                } else {
+                    documentationText.innerHTML = '暂无文档内容';
+                }
+                window.document.getElementById('carousel').style.display = 'none';
+            } catch (error) {
+                console.error('获取文档列表失败:', error);
+                const documentationText = window.document.getElementById('documentationText');
+                documentationText.innerHTML = '加载文档列表失败，请稍后再试。错误详情: ' + error.message;
+                window.document.getElementById('carousel').style.display = 'flex';
+            }
+        }
+
+        async function showDocument(id) {
+            try {
+                console.log('Attempting to show document with id:', id);
+                const response = await fetch(`/api/documentation/${id}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const document = await response.json();
+                console.log('Fetched document:', document);
+
+                const documentationText = window.document.getElementById('documentationText');
+                
+                if (document && document.content && document.content.trim() !== '') {
+                    documentationText.innerHTML = `<h2>${document.title || '无标题'}</h2>` + marked.parse(document.content);
+                } else {
+                    documentationText.innerHTML = '该文档没有内容或格式不正确';
+                }
+            } catch (error) {
+                console.error('获取文档内容失败:', error);
+                const documentationText = window.document.getElementById('documentationText');
+                documentationText.innerHTML = '加载文档内容失败，请稍后再试。错误详情: ' + error.message;
+            }
+        }
+
         // 获取并加载配置
         async function loadConfig() {
             try {
                 const response = await fetch('/api/config');
                 const config = await response.json();
+
+                if (config.adImages && Array.isArray(config.adImages)) {
+                    const carouselInner = document.getElementById('carouselInner');
+                    carouselInner.innerHTML = ''; // 清空广告容器
+                    config.adImages.forEach((ad, index) => {
+                        const adItem = document.createElement('div');
+                        adItem.className = 'carousel-item';
+                        if (index === 0) {
+                            adItem.classList.add('active');
+                        }
+                        const adImage = document.createElement('img');
+                        adImage.src = ad.url;
+                        adImage.alt = ad.alt || '广告图片';
+                        adImage.style.width = "100%";
+                        adImage.style.height = "100%";
+                        adItem.appendChild(adImage);
+                        carouselInner.appendChild(adItem);
+
+                        // 添加点击事件监听器
+                        adItem.addEventListener('click', function() {
+                            window.open(ad.link, '_blank');
+                        });
+
+                        // 改变鼠标样式，表明可以点击
+                        adItem.style.cursor = 'pointer';
+                    });
+                    items = document.querySelectorAll('.carousel-item');
+                    updateCarousel();
+                    startAutoPlay(); // 启动自动播放
+                }
                 if (config.logo) {
                     document.querySelector('.logo').src = config.logo;
                 }
@@ -781,5 +890,7 @@
             }
         });
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
 </body>
 </html>

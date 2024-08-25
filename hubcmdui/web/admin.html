@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Docker 镜像代理加速 - 管理面板</title>
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/css/editormd.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/editormd.min.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Lato', 'Helvetica', 'Arial', sans-serif;
@@ -399,13 +403,17 @@
     </style>
 </head>
 <body>
-    <div class="admin-container hidden" id="adminContainer">
+    <div id="loadingIndicator" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <p>加载中...</p>
+    </div>
+    <div class="admin-container" id="adminContainer" style="display: none;">
         <div class="sidebar">
             <h2>管理面板</h2>
             <ul>
                 <li class="active" data-section="basic-config">基本配置</li>
                 <li data-section="menu-management">菜单管理</li>
                 <li data-section="ad-management">广告管理</li>
+                <li data-section="documentation-management">文档管理</li>            
                 <li data-section="password-change">修改密码</li>
             </ul>
         </div>
@@ -456,7 +464,32 @@
                     </table>
                     <button type="button" class="add-btn" onclick="showNewAdRow()">添加广告</button>
                 </div>
-                
+  
+                <!-- 文档管理部分 -->
+                <div id="documentation-management" class="content-section">
+                    <h2 class="menu-label">文档管理</h2>
+                    <button type="button" onclick="newDocument()">新建文档</button>
+                    <table id="documentTable">
+                        <thead>
+                            <tr>
+                                <th>文章</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentTableBody">
+                            <!-- 文档列表将在这里动态添加 -->
+                        </tbody>
+                    </table>
+                    <div id="editorContainer" style="display: none;">
+                        <input type="text" id="documentTitle" placeholder="文档标题">
+                        <div id="editormd">
+                            <textarea style="display:none;"></textarea>
+                        </div>
+                        <button type="button" onclick="saveDocument()">保存文档</button>
+                        <button type="button" onclick="cancelEdit()">取消</button>
+                    </div>
+                </div>  
+
                 <div id="password-change" class="content-section">
                     <h2 class="menu-label">修改密码</h2>
                     <label for="currentPassword">当前密码</label>
@@ -471,7 +504,7 @@
         </div>
     </div>
 
-    <div class="login-modal" id="loginModal">
+    <div class="login-modal" id="loginModal" style="display: none;">
         <div class="login-content">
             <div class="login-header">
                 <h2>登入</h2>
@@ -494,6 +527,185 @@
         let adImages = [];
         let isLoggedIn = false;
         let editingIndex = -1; // 用于记录当前编辑的菜单项索引
+        let editor;
+        let currentEditingDoc = null;
+        let documents = [];
+        
+        // 初始化编辑器
+        function initEditor() {
+            if (editor) {
+                console.log('Editor already initialized');
+                return;
+            }
+            try {
+                editor = editormd("editormd", {
+                    width: "100%",
+                    height: 640,
+                    path : "https://cdn.jsdelivr.net/npm/editor.md@1.5.0/lib/",
+                    theme : "default",
+                    previewTheme : "default",
+                    editorTheme : "default",
+                    markdown : "",
+                    codeFold : true,
+                    saveHTMLToTextarea : true,
+                    searchReplace : true,
+                    watch : true, // 开启实时预览
+                    htmlDecode : "style,script,iframe|on*",
+                    toolbar : true,
+                    toolbarIcons : "full",
+                    placeholder: "请输入Markdown格式的文档...",
+                    emoji : true,
+                    taskList : true,
+                    tocm : true,
+                    tex : true,
+                    flowChart : true,
+                    sequenceDiagram : true,
+                    onload : function() {
+                        console.log('Editor.md loaded successfully');
+                        // 在加载完成后，立即切换到编辑模式
+                        this.unwatch();
+                        this.watch();
+                    }
+                });
+                console.log('Editor initialized successfully');
+            } catch (error) {
+                console.error('Error initializing editor:', error);
+            }
+        }
+
+
+        function newDocument() {
+            currentEditingDoc = null;
+            document.getElementById('documentTitle').value = '';
+            editor.setMarkdown('');
+            showEditor();
+        }
+
+        function showEditor() {
+            document.getElementById('documentTable').style.display = 'none';
+            document.getElementById('editorContainer').style.display = 'block';
+            if (editor) {
+                // 确保每次显示编辑器时都切换到编辑模式
+                editor.unwatch();
+                editor.watch();
+            }
+        }
+
+        function hideEditor() {
+            document.getElementById('documentTable').style.display = 'table';
+            document.getElementById('editorContainer').style.display = 'none';
+        }
+
+        function cancelEdit() {
+            hideEditor();
+        }
+
+        async function saveDocument() {
+            const title = document.getElementById('documentTitle').value.trim();
+            const content = editor.getMarkdown();
+            if (!title) {
+                alert('请输入文档标题');
+                return;
+            }
+            try {
+                const response = await fetch('/api/documentation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        id: currentEditingDoc ? currentEditingDoc.id : null, 
+                        title, 
+                        content 
+                    })
+                });
+                if (response.ok) {
+                    alert('文档保存成功');
+                    hideEditor();
+                    loadDocumentList();
+                } else {
+                    throw new Error('保存失败');
+                }
+            } catch (error) {
+                console.error('保存文档失败:', error);
+                alert('保存文档失败: ' + error.message);
+            }
+        }
+
+        async function loadDocumentList() {
+            try {
+                const response = await fetch('/api/documentation-list');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}, details: ${errorData.details}`);
+                }
+                documents = await response.json();
+                console.log('Received documents:', documents);
+                renderDocumentList();
+            } catch (error) {
+                console.error('加载文档列表失败:', error);
+                alert('加载文档列表失败: ' + error.message);
+            }
+        }
+
+        function renderDocumentList() {
+            const tbody = document.getElementById('documentTableBody');
+            tbody.innerHTML = '';
+            if (documents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2">没有找到文档</td></tr>';
+                return;
+            }
+            documents.forEach(doc => {
+                const row = `
+                    <tr>
+                        <td>${doc.title || 'Untitled Document'}</td>
+                        <td>
+                            <button onclick="editDocument('${doc.id}')">编辑</button>
+                            <button onclick="deleteDocument('${doc.id}')">删除</button>
+                            <button onclick="togglePublish('${doc.id}')">${doc.published ? '取消发布' : '发布'}</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function editDocument(id) {
+            currentEditingDoc = documents.find(doc => doc.id === id);
+            document.getElementById('documentTitle').value = currentEditingDoc.title;
+            editor.setMarkdown(currentEditingDoc.content);
+            showEditor();
+        }
+
+        async function deleteDocument(id) {
+            if (confirm('确定要删除这个文档吗？')) {
+                try {
+                    const response = await fetch(`/api/documentation/${id}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        alert('文档删除成功');
+                        loadDocumentList();
+                    } else {
+                        throw new Error('删除失败');
+                    }
+                } catch (error) {
+                    console.error('删除文档失败:', error);
+                    alert('删除文档失败: ' + error.message);
+                }
+            }
+        }
+
+        async function togglePublish(id) {
+            try {
+                const response = await fetch(`/api/documentation/${id}/toggle-publish`, { method: 'POST' });
+                if (response.ok) {
+                    loadDocumentList();
+                } else {
+                    throw new Error('操作失败');
+                }
+            } catch (error) {
+                console.error('更改发布状态失败:', error);
+                alert('更改发布状态失败: ' + error.message);
+            }
+        }
+
 
         function getMenuItems() {
             return menuItems;
@@ -840,18 +1052,82 @@
             }
         }
 
+        // 加载文档的函数
+        async function loadDocumentation() {
+            try {
+                const response = await fetch('/api/documentation');
+                if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const documents = await response.json();
+                console.log('Received documents from server:', documents);
+                if (documents.length > 0) {
+                const firstDocument = documents[0];
+                if (!editor) {
+                    console.warn('Editor not initialized, initializing now');
+                    initEditor();
+                }
+                // 等待一小段时间确保编辑器完全初始化
+                setTimeout(() => {
+                    if (editor && typeof editor.setMarkdown === 'function') {
+                    editor.setMarkdown(firstDocument.content);
+                    console.log('Documentation loaded successfully');
+                    } else {
+                    throw new Error('Editor not properly initialized or setMarkdown method not found');
+                    }
+                }, 500);
+                } else {
+                console.log('No documents found');
+                }
+            } catch (error) {
+                console.error('加载文档失败:', error);
+                alert('加载文档失败: ' + error.message);
+            }
+        }
+
+        // 保存文档的函数
+        async function saveDocumentation() {
+            if (!editor) {
+                console.error('Editor not initialized');
+                return;
+            }
+            const content = editor.getMarkdown();
+            try {
+                const response = await fetch('/api/documentation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.success) {
+                    alert('文档保存成功');
+                } else {
+                    throw new Error('保存失败');
+                }
+            } catch (error) {
+                console.error('保存文档失败:', error);
+                alert('保存文档失败: ' + error.message);
+            }
+        }
+
         async function loadConfig() {
-        try {
-            const response = await fetch('/api/config');
-            const config = await response.json();
-            document.getElementById('logoUrl').value = config.logo || '';
-            document.getElementById('proxyDomain').value = config.proxyDomain || '';
-            setMenuItems(config.menuItems || []);
-            adImages = config.adImages || [];
-            renderAdItems();
-          } catch (error) {
-            console.error('加载配置失败:', error);
-          }
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                document.getElementById('logoUrl').value = config.logo || '';
+                document.getElementById('proxyDomain').value = config.proxyDomain || '';
+                setMenuItems(config.menuItems || []);
+                adImages = config.adImages || [];
+                renderAdItems();
+                loadDocumentation(); // 新增：加载文档
+            } catch (error) {
+                console.error('加载配置失败:', error);
+            }
         }
 
         async function login() {
@@ -866,9 +1142,9 @@
                 });
                 if (response.ok) {
                     isLoggedIn = true;
-                    localStorage.setItem('isLoggedIn', 'true');  // 存储登录状态
+                    localStorage.setItem('isLoggedIn', 'true');
                     document.getElementById('loginModal').style.display = 'none';
-                    document.getElementById('adminContainer').classList.remove('hidden');
+                    document.getElementById('adminContainer').style.display = 'flex';
                     loadConfig();
                 } else {
                     const errorData = await response.json();
@@ -939,24 +1215,27 @@
                 if (response.ok) {
                     isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
                     if (isLoggedIn) {
-                        document.getElementById('loginModal').style.display = 'none';
-                        document.getElementById('adminContainer').classList.remove('hidden');
-                        loadConfig();
+                        loadDocumentList(); // 加载文档列表
+                        document.getElementById('adminContainer').style.display = 'flex';
+                        await loadConfig();
+                        initEditor(); // 初始化编辑器
                     } else {
-                        document.getElementById('loginModal').style.display = 'block';
+                        document.getElementById('loginModal').style.display = 'flex';
                         refreshCaptcha();
                     }
                 } else {
-                    localStorage.removeItem('isLoggedIn');
-                    document.getElementById('loginModal').style.display = 'block';
-                    refreshCaptcha();
+                    throw new Error('Session check failed');
                 }
             } catch (error) {
+                console.error('Error during initialization:', error);
                 localStorage.removeItem('isLoggedIn');
-                document.getElementById('loginModal').style.display = 'block';
+                document.getElementById('loginModal').style.display = 'flex';
                 refreshCaptcha();
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
             }
         };
+
 
         function updateAdImage(adImages) {
             const adContainer = document.getElementById('adContainer');
@@ -1002,7 +1281,9 @@
         document.addEventListener('DOMContentLoaded', function() {
         const sidebarItems = document.querySelectorAll('.sidebar li');
         const contentSections = document.querySelectorAll('.content-section');
-
+        if (isLoggedIn) {
+            initEditor();
+        }
         function showSection(sectionId) {
             contentSections.forEach(section => {
                 if (section.id === sectionId) {

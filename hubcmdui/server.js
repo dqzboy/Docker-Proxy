@@ -42,6 +42,8 @@ app.get('/api/search', async (req, res) => {
 
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
+const DOCUMENTATION_DIR = path.join(__dirname, 'documentation');
+const DOCUMENTATION_FILE = path.join(__dirname, 'documentation.md');
 
 // 读取配置
 async function readConfig() {
@@ -102,6 +104,54 @@ async function readUsers() {
 async function writeUsers(users) {
   await fs.writeFile(USERS_FILE, JSON.stringify({ users }, null, 2), 'utf8');
 }
+
+
+// 确保 documentation 目录存在
+async function ensureDocumentationDir() {
+  try {
+      await fs.access(DOCUMENTATION_DIR);
+  } catch (error) {
+      if (error.code === 'ENOENT') {
+          await fs.mkdir(DOCUMENTATION_DIR);
+      } else {
+          throw error;
+      }
+  }
+}
+
+// 读取文档
+async function readDocumentation() {
+  try {
+    await ensureDocumentationDir();
+    const files = await fs.readdir(DOCUMENTATION_DIR);
+    console.log('Files in documentation directory:', files);  // 添加日志
+
+    const documents = await Promise.all(files.map(async file => {
+      const filePath = path.join(DOCUMENTATION_DIR, file);
+      const content = await fs.readFile(filePath, 'utf8');
+      const doc = JSON.parse(content);
+      return {
+        id: path.parse(file).name,
+        title: doc.title,
+        content: doc.content,
+        published: doc.published
+      };
+    }));
+
+    const publishedDocuments = documents.filter(doc => doc.published);
+    console.log('Published documents:', publishedDocuments);  // 添加日志
+    return publishedDocuments;
+  } catch (error) {
+    console.error('Error reading documentation:', error);
+    throw error;
+  }
+}
+
+// 写入文档
+async function writeDocumentation(content) {
+  await fs.writeFile(DOCUMENTATION_FILE, content, 'utf8');
+}
+
 
 // 登录验证
 app.post('/api/login', async (req, res) => {
@@ -200,6 +250,145 @@ app.get('/api/captcha', (req, res) => {
   const captcha = `${num1} + ${num2} = ?`;
   req.session.captcha = num1 + num2;
   res.json({ captcha });
+});
+
+
+// API端点：获取文档列表
+app.get('/api/documentation-list', requireLogin, async (req, res) => {
+  try {
+      const files = await fs.readdir(DOCUMENTATION_DIR);
+      const documents = await Promise.all(files.map(async file => {
+          const content = await fs.readFile(path.join(DOCUMENTATION_DIR, file), 'utf8');
+          const doc = JSON.parse(content);
+          return { id: path.parse(file).name, ...doc };
+      }));
+      res.json(documents);
+  } catch (error) {
+      res.status(500).json({ error: '读取文档列表失败' });
+  }
+});
+
+// API端点：保存文档
+app.post('/api/documentation', requireLogin, async (req, res) => {
+  try {
+      const { id, title, content } = req.body;
+      const docId = id || Date.now().toString();
+      const docPath = path.join(DOCUMENTATION_DIR, `${docId}.json`);
+      await fs.writeFile(docPath, JSON.stringify({ title, content, published: false }));
+      res.json({ success: true });
+  } catch (error) {
+      res.status(500).json({ error: '保存文档失败' });
+  }
+});
+
+// API端点：删除文档
+app.delete('/api/documentation/:id', requireLogin, async (req, res) => {
+  try {
+      const docPath = path.join(DOCUMENTATION_DIR, `${req.params.id}.json`);
+      await fs.unlink(docPath);
+      res.json({ success: true });
+  } catch (error) {
+      res.status(500).json({ error: '删除文档失败' });
+  }
+});
+
+// API端点：切换文档发布状态
+app.post('/api/documentation/:id/toggle-publish', requireLogin, async (req, res) => {
+  try {
+      const docPath = path.join(DOCUMENTATION_DIR, `${req.params.id}.json`);
+      const content = await fs.readFile(docPath, 'utf8');
+      const doc = JSON.parse(content);
+      doc.published = !doc.published;
+      await fs.writeFile(docPath, JSON.stringify(doc));
+      res.json({ success: true });
+  } catch (error) {
+      res.status(500).json({ error: '更改发布状态失败' });
+  }
+});
+
+// API端点：获取文档
+app.get('/api/documentation', async (req, res) => {
+  try {
+    const documents = await readDocumentation();
+    console.log('Sending documents:', documents);  // 添加日志
+    res.json(documents);
+  } catch (error) {
+    console.error('Error in /api/documentation:', error);
+    res.status(500).json({ error: '读取文档失败', details: error.message });
+  }
+});
+
+// API端点：保存文档
+app.post('/api/documentation', requireLogin, async (req, res) => {
+  try {
+    const { content } = req.body;
+    await writeDocumentation(content);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: '保存文档失败' });
+  }
+});
+
+// 获取文档列表函数
+async function getDocumentList() {
+  try {
+    await ensureDocumentationDir();
+    const files = await fs.readdir(DOCUMENTATION_DIR);
+    console.log('Files in documentation directory:', files);
+
+    const documents = await Promise.all(files.map(async file => {
+      try {
+        const filePath = path.join(DOCUMENTATION_DIR, file);
+        const content = await fs.readFile(filePath, 'utf8');
+        return {
+          id: path.parse(file).name,
+          title: path.parse(file).name, // 使用文件名作为标题
+          content: content,
+          published: true // 假设所有文档都是已发布的
+        };
+      } catch (fileError) {
+        console.error(`Error reading file ${file}:`, fileError);
+        return null;
+      }
+    }));
+
+    const validDocuments = documents.filter(doc => doc !== null);
+    console.log('Valid documents:', validDocuments);
+
+    return validDocuments;
+  } catch (error) {
+    console.error('Error reading document list:', error);
+    throw error; // 重新抛出错误，让上层函数处理
+  }
+}
+
+app.get('/api/documentation-list', async (req, res) => {
+  try {
+    const documents = await getDocumentList();
+    res.json(documents);
+  } catch (error) {
+    console.error('Error in /api/documentation-list:', error);
+    res.status(500).json({ 
+      error: '读取文档列表失败', 
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+app.get('/api/documentation/:id', async (req, res) => {
+  try {
+    const docId = req.params.id;
+    console.log('Fetching document with id:', docId);  // 添加日志
+    const docPath = path.join(DOCUMENTATION_DIR, `${docId}.json`);
+    const content = await fs.readFile(docPath, 'utf8');
+    const doc = JSON.parse(content);
+    console.log('Sending document:', doc);  // 添加日志
+    res.json(doc);
+  } catch (error) {
+    console.error('Error reading document:', error);
+    res.status(500).json({ error: '读取文档失败', details: error.message });
+  }
 });
 
 // 启动服务器

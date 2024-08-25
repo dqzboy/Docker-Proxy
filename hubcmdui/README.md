@@ -6,7 +6,7 @@
   <p align="center">
   <img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c187d66f-152e-4172-8268-e54bd77d48bb" width="230px" height="200px">
       <br>
-      <i>Docker镜像加速命令查询获取和镜像搜索UI面板.</i>
+      <i>Docker镜像加速命令查询获取、镜像搜索、配置教程文档展示UI面板.</i>
   </p>
 </div>
 
@@ -107,6 +107,12 @@ docker logs -f [容器ID或名称]
     </tr>
 </table>
 
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b7efcd39-8757-46f9-ae68-02ca6add40e7"?raw=true"></td>
+    </tr>
+</table>
+
 > 浏览器输入 `服务器地址:30080/admin` 访问后端页面，默认登入账号密码: root/admin@123
 
 <table>
@@ -117,7 +123,7 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/7f3196c6-5da7-409a-ab49-1037ad0db1d6"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/3ffe6a5d-da8c-436a-ae28-033fecf52770"?raw=true"></td>
     </tr>
 </table>
 
