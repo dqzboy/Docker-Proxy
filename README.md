@@ -29,7 +29,10 @@
 ## 📝 准备工作
 ⚠️  **重要**：选择一台国外服务器，并且未被墙。对于域名，无需进行国内备案。你也可以通过一些平台申请免费域名。在一键部署过程中，如果选择安装Caddy，它将自动配置HTTPS。若选择部署Nginx服务，则需要自行申请一个免费的SSL证书，或者通过其他方式来实现SSL加密。
 
-> 高性价比海外VPS: [点击查看](Ad/README.md) 
+> **高性价比海外VPS**：[点击查看](Ad/README.md) 
+> 
+> **[点击查看最新的活动优惠 VPS 清单](https://www.dqzboy.com/18036.html)**
+
 
 <details>
 <summary><strong>免费域名证书申请</strong></summary>
