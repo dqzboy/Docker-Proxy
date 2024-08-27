@@ -7,8 +7,27 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const logger = require('morgan'); // 引入 morgan 作为日志工具
 const axios = require('axios'); // 用于发送 HTTP 请求
-
+const Docker = require('dockerode');
 const app = express();
+const cors = require('cors');
+
+let docker = null;
+
+async function initDocker() {
+  if (docker === null) {
+    docker = new Docker();
+    try {
+      await docker.ping();
+      console.log('成功连接到 Docker 守护进程');
+    } catch (err) {
+      console.error('无法连接到 Docker 守护进程:', err);
+      docker = null;
+    }
+  }
+  return docker;
+}
+
+app.use(cors());
 app.use(express.json());
 app.use(express.static('web'));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -124,7 +143,6 @@ async function readDocumentation() {
   try {
     await ensureDocumentationDir();
     const files = await fs.readdir(DOCUMENTATION_DIR);
-    console.log('Files in documentation directory:', files);  // 添加日志
 
     const documents = await Promise.all(files.map(async file => {
       const filePath = path.join(DOCUMENTATION_DIR, file);
@@ -139,7 +157,6 @@ async function readDocumentation() {
     }));
 
     const publishedDocuments = documents.filter(doc => doc.published);
-    console.log('Published documents:', publishedDocuments);  // 添加日志
     return publishedDocuments;
   } catch (error) {
     console.error('Error reading documentation:', error);
@@ -205,9 +222,11 @@ app.post('/api/change-password', async (req, res) => {
 
 // 需要登录验证的中间件
 function requireLogin(req, res, next) {
+  console.log('Session:', req.session); // 添加这行
   if (req.session.user) {
     next();
   } else {
+    console.log('用户未登录'); // 添加这行
     res.status(401).json({ error: 'Not logged in' });
   }
 }
@@ -310,7 +329,6 @@ app.post('/api/documentation/:id/toggle-publish', requireLogin, async (req, res)
 app.get('/api/documentation', async (req, res) => {
   try {
     const documents = await readDocumentation();
-    console.log('Sending documents:', documents);  // 添加日志
     res.json(documents);
   } catch (error) {
     console.error('Error in /api/documentation:', error);
@@ -379,15 +397,102 @@ app.get('/api/documentation-list', async (req, res) => {
 app.get('/api/documentation/:id', async (req, res) => {
   try {
     const docId = req.params.id;
-    console.log('Fetching document with id:', docId);  // 添加日志
     const docPath = path.join(DOCUMENTATION_DIR, `${docId}.json`);
     const content = await fs.readFile(docPath, 'utf8');
     const doc = JSON.parse(content);
-    console.log('Sending document:', doc);  // 添加日志
     res.json(doc);
   } catch (error) {
     console.error('Error reading document:', error);
     res.status(500).json({ error: '读取文档失败', details: error.message });
+  }
+});
+
+
+
+
+// API端点来获取Docker容器状态
+app.get('/api/docker-status', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const containers = await docker.listContainers({ all: true });
+    const containerStatus = await Promise.all(containers.map(async (container) => {
+      const containerInfo = await docker.getContainer(container.Id).inspect();
+      const stats = await docker.getContainer(container.Id).stats({ stream: false });
+      
+      // 计算 CPU 使用率
+      const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
+      const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
+      const cpuUsage = (cpuDelta / systemDelta) * stats.cpu_stats.online_cpus * 100;
+      
+      // 计算内存使用率
+      const memoryUsage = stats.memory_stats.usage / stats.memory_stats.limit * 100;
+
+      return {
+        id: container.Id.slice(0, 12),
+        name: container.Names[0].replace(/^\//, ''),
+        image: container.Image,
+        state: containerInfo.State.Status,
+        status: container.Status,
+        cpu: cpuUsage.toFixed(2) + '%',
+        memory: memoryUsage.toFixed(2) + '%',
+        created: new Date(container.Created * 1000).toLocaleString()
+      };
+    }));
+    res.json(containerStatus);
+  } catch (error) {
+    console.error('获取 Docker 状态时出错:', error);
+    res.status(500).json({ error: '获取 Docker 状态失败', details: error.message });
+  }
+});
+
+// API端点：重启容器
+app.post('/api/docker/restart/:id', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const container = docker.getContainer(req.params.id);
+    await container.restart();
+    res.json({ success: true });
+  } catch (error) {
+    console.error('重启容器失败:', error);
+    res.status(500).json({ error: '重启容器失败', details: error.message });
+  }
+});
+
+// API端点：停止容器
+app.post('/api/docker/stop/:id', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const container = docker.getContainer(req.params.id);
+    await container.stop();
+    res.json({ success: true });
+  } catch (error) {
+    console.error('停止容器失败:', error);
+    res.status(500).json({ error: '停止容器失败', details: error.message });
+  }
+});
+
+// API端点：获取单个容器的状态
+app.get('/api/docker/status/:id', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const container = docker.getContainer(req.params.id);
+    const containerInfo = await container.inspect();
+    res.json({ state: containerInfo.State.Status });
+  } catch (error) {
+    console.error('获取容器状态失败:', error);
+    res.status(500).json({ error: '获取容器状态失败', details: error.message });
   }
 });
 

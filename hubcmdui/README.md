@@ -127,6 +127,12 @@ docker logs -f [容器ID或名称]
     </tr>
 </table>
 
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c90976d2-ed81-4ed6-aff0-e8642bb6c033"?raw=true"></td>
+    </tr>
+</table>
+
 ---
 
 ## 🫶 赞助

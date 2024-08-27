@@ -86,6 +86,7 @@
             font-family: inherit;
             font-size: inherit;
         }
+
         .action-btn:hover {
             background-color: #0256b9;
         }
@@ -400,6 +401,21 @@
                 max-width: 100%;
             }
         }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #0366d6;
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -415,6 +431,7 @@
                 <li data-section="ad-management">广告管理</li>
                 <li data-section="documentation-management">文档管理</li>            
                 <li data-section="password-change">修改密码</li>
+                <li data-section="docker-status">Docker 服务状态</li>
             </ul>
         </div>
         <div class="content-area">
@@ -490,6 +507,7 @@
                     </div>
                 </div>  
 
+                <!-- 修改密码部分 -->
                 <div id="password-change" class="content-section">
                     <h2 class="menu-label">修改密码</h2>
                     <label for="currentPassword">当前密码</label>
@@ -500,6 +518,28 @@
                     <span id="passwordStrength" style="color: red;"></span>
                     <button type="button" onclick="changePassword()">修改密码</button>
                 </div>
+
+                <!-- Docker服务状态 -->
+                <div id="docker-status" class="content-section">
+                    <h1 class="admin-title">Docker 服务状态</h1>
+                    <table id="dockerStatusTable">
+                      <thead>
+                        <tr>
+                          <th>容器 ID</th>
+                          <th>名称</th>
+                          <th>镜像</th>
+                          <th>状态</th>
+                          <th>CPU</th>
+                          <th>内存</th>
+                          <th>创建时间</th>
+                        </tr>
+                      </thead>
+                      <tbody id="dockerStatusTableBody">
+                        <!-- Docker 容器状态将在这里动态添加 -->
+                      </tbody>
+                    </table>
+                    <button type="button" onclick="refreshDockerStatus()">刷新状态</button>
+                  </div>
             </div>
         </div>
     </div>
@@ -1278,11 +1318,131 @@
             }
         }
 
+        async function loadDockerStatus() {
+            try {
+                const response = await fetch('/api/docker-status');
+                if (!response.ok) {
+                    if (response.status === 503) {
+                        throw new Error('无法连接到 Docker 守护进程');
+                    }
+                    throw new Error('Failed to fetch Docker status');
+                }
+                const containerStatus = await response.json();
+                renderDockerStatus(containerStatus);
+            } catch (error) {
+                console.error('Error loading Docker status:', error);
+                alert('加载 Docker 状态失败: ' + error.message);
+                // 清空状态表格并显示错误信息
+                const tbody = document.getElementById('dockerStatusTableBody');
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">${error.message}</td></tr>`;
+            }
+        }
+
+        function renderDockerStatus(containerStatus) {
+            const tbody = document.getElementById('dockerStatusTableBody');
+            tbody.innerHTML = '';
+            
+            // 添加表头
+            const thead = document.getElementById('dockerStatusTable').getElementsByTagName('thead')[0];
+            thead.innerHTML = `
+                <tr>
+                    <th>容器 ID</th>
+                    <th>名称</th>
+                    <th>镜像</th>
+                    <th>状态</th>
+                    <th>CPU</th>
+                    <th>内存</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            `;
+
+            containerStatus.forEach(container => {
+                const row = `
+                <tr>
+                    <td>${container.id}</td>
+                    <td>${container.name}</td>
+                    <td>${container.image}</td>
+                    <td id="status-${container.id}">${container.state}</td>
+                    <td>${container.cpu}</td>
+                    <td>${container.memory}</td>
+                    <td>${container.created}</td>
+                    <td>
+                        <button onclick="restartContainer('${container.id}')" class="action-btn">重启</button>
+                        <button onclick="stopContainer('${container.id}')" class="action-btn">停止</button>
+                    </td>
+                </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        async function restartContainer(id) {
+            if (confirm('确定要重启这个容器吗？')) {
+                try {
+                    const statusCell = document.getElementById(`status-${id}`);
+                    statusCell.innerHTML = '<div class="loading"></div>';
+                    
+                    const response = await fetch(`/api/docker/restart/${id}`, { method: 'POST' });
+                    if (response.ok) {
+                        await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒，确保状态已更新
+                        const newStatus = await getContainerStatus(id);
+                        statusCell.textContent = newStatus;
+                    } else {
+                        throw new Error('重启失败');
+                    }
+                } catch (error) {
+                    console.error('重启容器失败:', error);
+                    alert('重启容器失败: ' + error.message);
+                    loadDockerStatus(); // 重新加载所有容器状态
+                }
+            }
+        }
+
+        async function stopContainer(id) {
+            if (confirm('确定要停止这个容器吗？')) {
+                try {
+                    const statusCell = document.getElementById(`status-${id}`);
+                    statusCell.innerHTML = '<div class="loading"></div>';
+                    
+                    const response = await fetch(`/api/docker/stop/${id}`, { method: 'POST' });
+                    if (response.ok) {
+                        await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒，确保状态已更新
+                        const newStatus = await getContainerStatus(id);
+                        statusCell.textContent = newStatus;
+                    } else {
+                        throw new Error('停止失败');
+                    }
+                } catch (error) {
+                    console.error('停止容器失败:', error);
+                    alert('停止容器失败: ' + error.message);
+                    loadDockerStatus(); // 重新加载所有容器状态
+                }
+            }
+        }
+
+        async function getContainerStatus(id) {
+            const response = await fetch(`/api/docker/status/${id}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.state;
+            } else {
+                throw new Error('获取容器状态失败');
+            }
+        }
+
+        function refreshDockerStatus() {
+            loadDockerStatus();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
         const sidebarItems = document.querySelectorAll('.sidebar li');
         const contentSections = document.querySelectorAll('.content-section');
         if (isLoggedIn) {
             initEditor();
+        }
+        if (isLoggedIn) {
+            loadDockerStatus();
         }
         function showSection(sectionId) {
             contentSections.forEach(section => {

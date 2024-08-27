@@ -149,6 +149,7 @@ docker logs -f [容器ID或名称]
 - [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
 - [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
 - [x] 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
+- [x] 针对本项目单独开发等Docker Registry管理面板，实现镜像搜索、广告展示、文档教程、容器管理等
 
 ## ✨ 教程
 #### 配置Nginx反向代理
@@ -226,6 +227,14 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
     <tr>
         <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
         <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c7e368ca-7f1a-4311-9a10-a5f4f06d86d8?raw=true"></td>
+    </tr>
+    <tr>
+      <td width="50%" align="center"><b>Docker官方镜像搜索</b></td>
+      <td width="50%" align="center"><b>Docker容器服务管理</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/8569c5c4-4ce6-4cd4-8547-fa9816019049?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c90976d2-ed81-4ed6-aff0-e8642bb6c033?raw=true"></td>
     </tr>
 </table>
 

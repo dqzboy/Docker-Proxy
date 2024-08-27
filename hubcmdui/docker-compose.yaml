@@ -4,5 +4,7 @@ services:
     container_name: hubcmd-ui
     image: dqzboy/hubcmd-ui:latest
     restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 30080:3000
