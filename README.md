@@ -20,7 +20,7 @@
 [![GitHub license](https://img.shields.io/github/license/dqzboy/Docker-Proxy)](https://github.com/dqzboy/Docker-Proxy/blob/main/LICENSE)
 
 
-📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-TG交流群</a> ｜ <a href="https://qm.qq.com/q/lKsVRegm9W" style="font-size: 15px;">Docker Proxy-QQ交流群</a>
+📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-TG交流群</a>
 
 </div>
 
