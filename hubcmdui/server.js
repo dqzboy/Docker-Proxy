@@ -10,6 +10,8 @@ const axios = require('axios'); // 用于发送 HTTP 请求
 const Docker = require('dockerode');
 const app = express();
 const cors = require('cors');
+const WebSocket = require('ws');
+const http = require('http');
 
 let docker = null;
 
@@ -172,11 +174,10 @@ async function writeDocumentation(content) {
 
 // 登录验证
 app.post('/api/login', async (req, res) => {
-  const { username, password, captcha } = req.body;
-  console.log(`Received login request for user: ${username}`); // 打印登录请求的用户名
+  const { username, captcha } = req.body;
 
   if (req.session.captcha !== parseInt(captcha)) {
-    console.log(`Captcha verification failed for user: ${username}`); // 打印验证码验证失败
+    console.log(`Captcha verification failed for user: ${username}`);
     return res.status(401).json({ error: '验证码错误' });
   }
 
@@ -184,17 +185,16 @@ app.post('/api/login', async (req, res) => {
   const user = users.users.find(u => u.username === username);
 
   if (!user) {
-    console.log(`User ${username} not found`); // 打印用户未找到
+    console.log(`User ${username} not found`);
     return res.status(401).json({ error: '用户名或密码错误' });
   }
 
-  console.log(`User ${username} found, comparing passwords`); // 打印用户找到，开始比较密码
-  if (bcrypt.compareSync(password, user.password)) {
-    console.log(`User ${username} logged in successfully`); // 打印登录成功
-    req.session.user = user;
+  if (bcrypt.compareSync(req.body.password, user.password)) {
+    req.session.user = { username: user.username };
+    console.log(`User ${username} logged in successfully`);
     res.json({ success: true });
   } else {
-    console.log(`Login failed for user: ${username}, password mismatch`); // 打印密码不匹配
+    console.log(`Login failed for user: ${username}`);
     res.status(401).json({ error: '用户名或密码错误' });
   }
 });
@@ -222,11 +222,19 @@ app.post('/api/change-password', async (req, res) => {
 
 // 需要登录验证的中间件
 function requireLogin(req, res, next) {
-  console.log('Session:', req.session); // 添加这行
+  // 创建一个新的对象，只包含非敏感信息
+  const sanitizedSession = {
+    cookie: req.session.cookie,
+    captcha: req.session.captcha,
+    user: req.session.user ? { username: req.session.user.username } : undefined
+  };
+
+  console.log('Session:', JSON.stringify(sanitizedSession, null, 2));
+
   if (req.session.user) {
     next();
   } else {
-    console.log('用户未登录'); // 添加这行
+    console.log('用户未登录');
     res.status(401).json({ error: 'Not logged in' });
   }
 }
@@ -496,8 +504,150 @@ app.get('/api/docker/status/:id', requireLogin, async (req, res) => {
   }
 });
 
+
+// API端点：更新容器
+app.post('/api/docker/update/:id', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const container = docker.getContainer(req.params.id);
+    const containerInfo = await container.inspect();
+    const currentImage = containerInfo.Config.Image;
+    const [imageName] = currentImage.split(':');
+    const newImage = `${imageName}:${req.body.tag}`;
+    const containerName = containerInfo.Name.slice(1);  // 去掉开头的 '/'
+
+    console.log(`Updating container ${req.params.id} from ${currentImage} to ${newImage}`);
+
+    // 拉取新镜像
+    console.log(`Pulling new image: ${newImage}`);
+    await new Promise((resolve, reject) => {
+      docker.pull(newImage, (err, stream) => {
+        if (err) return reject(err);
+        docker.modem.followProgress(stream, (err, output) => err ? reject(err) : resolve(output));
+      });
+    });
+
+    // 停止旧容器
+    console.log('Stopping old container');
+    await container.stop();
+
+    // 删除旧容器
+    console.log('Removing old container');
+    await container.remove();
+
+    // 创建新容器
+    console.log('Creating new container');
+    const newContainerConfig = {
+      ...containerInfo.Config,
+      Image: newImage,
+      HostConfig: containerInfo.HostConfig,
+      NetworkingConfig: {
+        EndpointsConfig: containerInfo.NetworkSettings.Networks
+      }
+    };
+    const newContainer = await docker.createContainer({
+      ...newContainerConfig,
+      name: containerName
+    });
+
+    // 启动新容器
+    console.log('Starting new container');
+    await newContainer.start();
+
+    console.log('Container update completed successfully');
+    res.json({ success: true, message: '容器更新成功' });
+  } catch (error) {
+    console.error('更新容器失败:', error);
+    res.status(500).json({ error: '更新容器失败', details: error.message, stack: error.stack });
+  }
+});
+
+// API端点：获取容器日志
+app.get('/api/docker/logs/:id', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const container = docker.getContainer(req.params.id);
+    const logs = await container.logs({
+      stdout: true,
+      stderr: true,
+      tail: 100,  // 获取最后100行日志
+      follow: false
+    });
+    res.send(logs);
+  } catch (error) {
+    console.error('获取容器日志失败:', error);
+    res.status(500).json({ error: '获取容器日志失败', details: error.message });
+  }
+});
+
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws, req) => {
+  const containerId = req.url.split('/').pop();
+  const docker = new Docker();
+  const container = docker.getContainer(containerId);
+
+  container.logs({
+    follow: true,
+    stdout: true,
+    stderr: true,
+    tail: 100
+  }, (err, stream) => {
+    if (err) {
+      ws.send('Error: ' + err.message);
+      return;
+    }
+
+    stream.on('data', (chunk) => {
+      // 移除 ANSI 转义序列
+      const cleanedChunk = chunk.toString('utf8').replace(/\x1B\[[0-9;]*[JKmsu]/g, '');
+      // 移除不可打印字符
+      const printableChunk = cleanedChunk.replace(/[^\x20-\x7E\x0A\x0D]/g, '');
+      ws.send(printableChunk);
+    });
+
+    ws.on('close', () => {
+      stream.destroy();
+    });
+  });
+});
+
+
+// API端点：删除容器
+app.post('/api/docker/delete/:id', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const container = docker.getContainer(req.params.id);
+    
+    // 首先停止容器（如果正在运行）
+    try {
+      await container.stop();
+    } catch (stopError) {
+      console.log('Container may already be stopped:', stopError.message);
+    }
+
+    // 然后删除容器
+    await container.remove();
+    
+    res.json({ success: true, message: '容器已成功删除' });
+  } catch (error) {
+    console.error('删除容器失败:', error);
+    res.status(500).json({ error: '删除容器失败', details: error.message });
+  }
+});
+
 // 启动服务器
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
