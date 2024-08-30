@@ -12,6 +12,8 @@ const app = express();
 const cors = require('cors');
 const WebSocket = require('ws');
 const http = require('http');
+const { exec } = require('child_process'); // 网络测试
+const validator = require('validator');
 
 let docker = null;
 
@@ -644,6 +646,38 @@ app.post('/api/docker/delete/:id', requireLogin, async (req, res) => {
     console.error('删除容器失败:', error);
     res.status(500).json({ error: '删除容器失败', details: error.message });
   }
+});
+
+
+// 网络测试
+const { execSync } = require('child_process');
+
+// 在应用启动时执行
+const pingPath = execSync('which ping').toString().trim();
+const traceroutePath = execSync('which traceroute').toString().trim();
+
+app.post('/api/network-test', requireLogin, (req, res) => {
+  const { domain, testType } = req.body;
+
+  let command;
+  switch (testType) {
+      case 'ping':
+          command = `${pingPath} -c 4 ${domain}`;
+          break;
+      case 'traceroute':
+          command = `${traceroutePath}  -m 10 ${domain}`;
+          break;
+      default:
+          return res.status(400).send('无效的测试类型');
+  }
+
+  exec(command, { timeout: 30000 }, (error, stdout, stderr) => {
+      if (error) {
+          console.error(`执行出错: ${error}`);
+          return res.status(500).send('测试执行失败');
+      }
+      res.send(stdout || stderr);
+  });
 });
 
 // 启动服务器
