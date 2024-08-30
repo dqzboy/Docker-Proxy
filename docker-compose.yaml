@@ -154,7 +154,7 @@ services:
       #- https=http://host:port
     volumes:
       - ./registry/data:/var/lib/registry
-      - ./registry-elastic.yml:/etc/distribution/config.yml
+      - ./registry-nvcr.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 59000:5000

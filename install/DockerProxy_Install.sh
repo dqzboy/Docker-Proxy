@@ -154,17 +154,17 @@ CONTAINER_SERVICES() {
 }
 
 REGISTRY_FILES() {
-	files=(
-	    "dockerhub registry-hub.yml"
-	    "gcr registry-gcr.yml"
-	    "ghcr registry-ghcr.yml"
-	    "quay registry-quay.yml"
-	    "k8sgcr registry-k8sgcr.yml"
-	    "k8s registry-k8s.yml"
-	    "mcr registry-mcr.yml"
-	    "elastic registry-elastic.yml"
-	    "nvcr registry-nvcr.yml"
-	)
+    files=(
+        "dockerhub registry-hub.yml"
+        "gcr registry-gcr.yml"
+        "ghcr registry-ghcr.yml"
+        "quay registry-quay.yml"
+        "k8sgcr registry-k8sgcr.yml"
+        "k8s registry-k8s.yml"
+        "mcr registry-mcr.yml"
+        "elastic registry-elastic.yml"
+        "nvcr registry-nvcr.yml"
+    )
 }
 
 function CHECK_OS() {
@@ -2750,6 +2750,13 @@ if ! command -v docker &> /dev/null; then
     ERROR "docker 命令未找到，请确保 Docker 已正确安装"
     AUTH_SERVICE_CONFIG
 fi
+
+# 重置数组
+running_containers=()
+stopped_containers=()
+auth_containers=()
+non_auth_containers=()
+
 declare -A services
 services=(
     ["reg-docker-hub"]="dockerhub"
@@ -2760,6 +2767,7 @@ services=(
     ["reg-k8s"]="k8s"
     ["reg-mcr"]="mcr"
     ["reg-elastic"]="elastic"
+    ["reg-nvcr"]="nvcr"
 )
 
 container_names=$(docker ps --filter "name=reg-" --filter "status=running" --format "{{.Names}}")
@@ -3310,7 +3318,7 @@ case $main_choice in
         exit 1
         ;;
     *)
-        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-7${RESET}的选项."
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-8${RESET}的选项."
         sleep 2; main_menu
         ;;
 esac
