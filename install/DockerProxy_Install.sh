@@ -1495,7 +1495,7 @@ function DOWN_CONFIG() {
         done
         selected_all=true
     elif [[ "$choices_reg" == "0" ]]; then
-        WARN "退出下载配置! ${LIGHT_YELLOW}首次安装如果没有配置无法启动服务,只能启动UI服务${RESET}"
+        WARN "退出下载配置! ${LIGHT_YELLOW}首次安装如果没有配置无法启动Registry服务,只能启动Registry-UI服务${RESET}"
         return
     else
         for choice in ${choices_reg}; do
@@ -2201,7 +2201,7 @@ RESTART_SERVICE() {
         fi
     elif [[ "$restart_service" == "0" ]]; then
         WARN "退出重启服务!"
-        return
+        SVC_MGMT
     else
         for choice in ${restart_service}; do
             if ((choice > 0 && choice < 10)); then
@@ -2265,7 +2265,7 @@ UPDATE_SERVICE() {
         fi
     elif [[ "$update_service" == "0" ]]; then
         WARN "退出更新服务!"
-        return
+        SVC_MGMT
     else
         for choice in ${update_service}; do
             if ((choice > 0 && choice < 10)); then
@@ -2299,7 +2299,7 @@ CONTAIENR_LOGS() {
 
     if  [[ "$restart_service" == "0" ]]; then
         WARN "退出查看容器服务日志操作!"
-        return
+        SVC_MGMT
     else
         for choice in ${restart_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
@@ -2334,8 +2334,8 @@ MODIFY_SERVICE_TTL_CONFIG() {
 
         read -e -p "$(INFO "输入序号修改服务对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" ttl_service
         if [[ "$ttl_service" == "0" ]]; then
-            WARN "退出修改容器服务配置操作!"
-            return
+            WARN "退出修改容器服务缓存配置!"
+            SVC_MGMT
         elif [[ "$ttl_service" =~ ^([1-8]+[[:space:]]*)+$ ]]; then
             break
         else
@@ -2408,7 +2408,7 @@ START_NEW_SERVER_DOWN_CONFIG() {
 
     if [[ "$choices_newser" == "0" ]]; then
         WARN "退出下载配置! ${LIGHT_YELLOW}没有配置将无法启动服务!!!${RESET}"
-        return
+        SVC_MGMT
     else
         for choice in ${choices_newser}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
