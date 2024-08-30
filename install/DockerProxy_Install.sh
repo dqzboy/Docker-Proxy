@@ -100,9 +100,72 @@ DOCKER_COMPOSE_FILE="docker-compose.yaml"
 CMDUI_IMAGE_NAME="dqzboy/hubcmd-ui"
 CMDUI_COMPOSE_FILE="${GITRAW}/hubcmdui/${DOCKER_COMPOSE_FILE}"
 
+# Registry Domain prefix
+REGISTRY_SLD="ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic、nvcr"
+RECORDS=("ui" "hub" "gcr" "ghcr" "k8sgcr" "k8s" "quay" "mcr" "elastic" "nvcr")
+
 attempts=0
 maxAttempts=3
 
+# registry services
+function REGISTRY_MENU() {
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}nvcr${RESET}"
+    echo -e "${GREEN}10)${RESET} ${BOLD}all${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+}
+function REGISTRY_SER_MENU() {
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
+    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
+    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
+    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
+    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
+    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
+    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
+    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
+    echo -e "${GREEN}9)${RESET} ${BOLD}nvcr${RESET}"
+    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
+    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+}
+
+# 定义Docker容器服务名称
+CONTAINER_SERVICES() {
+    services=(
+        "dockerhub"
+        "gcr"
+        "ghcr"
+        "quay"
+        "k8sgcr"
+        "k8s"
+        "mcr"
+        "elastic"
+        "nvcr"
+    )
+}
+
+REGISTRY_FILES() {
+	files=(
+	    "dockerhub registry-hub.yml"
+	    "gcr registry-gcr.yml"
+	    "ghcr registry-ghcr.yml"
+	    "quay registry-quay.yml"
+	    "k8sgcr registry-k8sgcr.yml"
+	    "k8s registry-k8s.yml"
+	    "mcr registry-mcr.yml"
+	    "elastic registry-elastic.yml"
+	    "nvcr registry-nvcr.yml"
+	)
+}
 
 function CHECK_OS() {
 SEPARATOR "检查环境"
@@ -482,7 +545,7 @@ fi
 function CONFIG_CADDY() {
 SEPARATOR "配置Caddy"
 while true; do
-    INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+    INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}${REGISTRY_SLD}${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
     read -e -p "$(WARN "是否配置Caddy,实现自动HTTPS? 执行前需在DNS服务商对部署服务解析主机记录 ${PROMPT_YES_NO}")" caddy_conf
     case "$caddy_conf" in
@@ -491,7 +554,7 @@ while true; do
             read -e -p "$(INFO "请输入要配置的${LIGHT_MAGENTA}主机记录${RESET}，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
 
             # 验证输入的主机记录
-            local valid_records=("ui" "hub" "gcr" "ghcr" "k8sgcr" "k8s" "quay" "mcr" "elastic")
+            local valid_records=("${RECORDS[@]}")
             IFS=',' read -r -a records_array <<< "$selected_records"
             local invalid_records=()
             for record in "${records_array[@]}"; do
@@ -502,7 +565,7 @@ while true; do
 
             if [[ ${#invalid_records[@]} -gt 0 ]]; then
                 ERROR "无效的主机记录: ${LIGHT_RED}${invalid_records[@]}${RESET}"
-                INFO "请输入有效的主机记录: ${LIGHT_GREEN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+                INFO "请输入有效的主机记录: ${LIGHT_GREEN}${REGISTRY_SLD}${RESET}"
                 continue
             fi
 
@@ -576,6 +639,14 @@ while true; do
 }"
             record_templates[elastic]="elastic.$caddy_domain {
     reverse_proxy localhost:58000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_addr}
+        header_up X-Forwarded-For {remote_addr}
+        header_up X-Nginx-Proxy true
+    }
+}"
+            record_templates[nvcr]="nvcr.$caddy_domain {
+    reverse_proxy localhost:59000 {
         header_up Host {host}
         header_up X-Real-IP {remote_addr}
         header_up X-Forwarded-For {remote_addr}
@@ -715,7 +786,7 @@ function CONFIG_NGINX() {
 SEPARATOR "配置Nginx"
 while true; do
     WARN "自行安装的 Nginx ${LIGHT_RED}请勿执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
-    INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+    INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}${REGISTRY_SLD}${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
     read -e -p "$(WARN "是否配置 Nginx？配置完成后需在DNS服务商解析主机记录 ${PROMPT_YES_NO}")" nginx_conf
     case "$nginx_conf" in
@@ -724,7 +795,7 @@ while true; do
             read -e -p "$(INFO "请输入要配置的${LIGHT_MAGENTA}主机记录${RESET}，用逗号分隔${LIGHT_BLUE}[例: ui,hub]${RESET}: ")" selected_records
 
             # 验证输入的主机记录
-            local valid_records=("ui" "hub" "gcr" "ghcr" "k8sgcr" "k8s" "quay" "mcr" "elastic")
+            local valid_records=("${RECORDS[@]}")
             IFS=',' read -r -a records_array <<< "$selected_records"
             local invalid_records=()
             for record in "${records_array[@]}"; do
@@ -735,7 +806,7 @@ while true; do
 
             if [[ ${#invalid_records[@]} -gt 0 ]]; then
                 ERROR "无效的主机记录: ${LIGHT_RED}${invalid_records[@]}${RESET}"
-                INFO "请输入有效的主机记录: ${LIGHT_GREEN}ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic${RESET}"
+                INFO "请输入有效的主机记录: ${LIGHT_GREEN}${REGISTRY_SLD}${RESET}"
                 continue
             fi
 
@@ -976,6 +1047,33 @@ while true; do
     send_timeout          600;
     location / {
         proxy_pass   http://localhost:58000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
+        proxy_set_header X-Nginx-Proxy true;
+        proxy_buffering off;
+        proxy_redirect off;
+    }
+}"
+            record_templates[nvcr]="server {
+    listen       80;
+    #listen       443 ssl;
+    server_name  nvcr.$nginx_domain;
+    #ssl_certificate /path/to/your_domain_name.crt;
+    #ssl_certificate_key /path/to/your_domain_name.key;
+    #ssl_session_timeout 1d;
+    #ssl_session_cache   shared:SSL:50m;
+    #ssl_session_tickets off;
+    #ssl_protocols TLSv1.2 TLSv1.3;
+    #ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
+    #ssl_prefer_server_ciphers on;
+    #ssl_buffer_size 8k;
+    proxy_connect_timeout 600;
+    proxy_send_timeout    600;
+    proxy_read_timeout    600;
+    send_timeout          600;
+    location / {
+        proxy_pass   http://localhost:59000;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
@@ -1324,7 +1422,6 @@ function update_docker_registry_url() {
     fi
 }
 
-
 function CONFIG_FILES() {
 while true; do
     read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" install_docker_reg
@@ -1339,6 +1436,7 @@ while true; do
                 "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
                 "mcr reg-mcr ${GITRAW}/config/registry-mcr.yml"
                 "elastic reg-elastic ${GITRAW}/config/registry-elastic.yml"
+                "nvcr reg-nvcr ${GITRAW}/config/registry-nvcr.yml"
             )
             break;;
         2 )
@@ -1351,6 +1449,7 @@ while true; do
                 "k8s reg-k8s ${CNGITRAW}/config/registry-k8s.yml"
                 "mcr reg-mcr ${CNGITRAW}/config/registry-mcr.yml"
                 "elastic reg-elastic ${CNGITRAW}/config/registry-elastic.yml"
+                "nvcr reg-nvcr ${CNGITRAW}/config/registry-nvcr.yml"
             )
             break;;
         * )
@@ -1364,27 +1463,27 @@ function DOWN_CONFIG() {
     selected_files=()
     selected_containers=()
 
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-
+    REGISTRY_MENU
     read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET} > ")" choices_reg
-    while [[ ! "$choices_reg" =~ ^([0-9]+[[:space:]]*)+$ ]]; do
-        WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
+    
+    while true; do
+        if [[ "$choices_reg" =~ ^[0-9]+([[:space:]][0-9]+)*$ ]]; then
+            valid=true
+            for choice in $choices_reg; do
+                if ((choice < 0 || choice > 10)); then
+                    valid=false
+                    break
+                fi
+            done
+            if $valid; then
+                break
+            fi
+        fi
+        WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-10 ${RESET}序号"
         read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all下载所有${RESET} > ")" choices_reg
     done
 
-
-    if [[ "$choices_reg" == "9" ]]; then
+    if [[ "$choices_reg" == "10" ]]; then
         for file in "${files[@]}"; do
             file_name=$(echo "$file" | cut -d' ' -f1)
             container_name=$(echo "$file" | cut -d' ' -f2)
@@ -1400,7 +1499,7 @@ function DOWN_CONFIG() {
         return
     else
         for choice in ${choices_reg}; do
-            if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+            if ((choice > 0 && choice < 10)); then
                 file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
                 container_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
                 file_url=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f3-)
@@ -1408,8 +1507,6 @@ function DOWN_CONFIG() {
                 selected_containers+=("$container_name")
                 selected_files+=("$file_url")
                 wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
-            else
-                WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号" 
             fi
         done
 
@@ -2061,19 +2158,6 @@ esac
 
 function SVC_MGMT() {
 CHECK_COMPOSE_CMD
-# 定义Docker容器服务名称
-CONTAINER_SERVICES() {
-    services=(
-        "dockerhub"
-        "gcr"
-        "ghcr"
-        "quay"
-        "k8sgcr"
-        "k8s"
-        "mcr"
-        "elastic"
-    )
-}
 
 RESTART_SERVICE() {
     CONTAINER_SERVICES
@@ -2081,22 +2165,28 @@ RESTART_SERVICE() {
     selected_services=()
 
     WARN "重启服务请在${LIGHT_GREEN}${DOCKER_COMPOSE_FILE}${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    
+    REGISTRY_MENU
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all表示所有${RESET} > ")" restart_service
+    
+    while true; do
+        if [[ "$restart_service" =~ ^[0-9]+([[:space:]][0-9]+)*$ ]]; then
+            valid=true
+            for choice in $restart_service; do
+                if ((choice < 0 || choice > 10)); then
+                    valid=false
+                    break
+                fi
+            done
+            if $valid; then
+                break
+            fi
+        fi
+        WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-10 ${RESET}序号"
+        read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all表示所有${RESET} > ")" restart_service
+    done
 
-    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  restart_service
-
-    if [[ "$restart_service" == "9" ]]; then
+    if [[ "$restart_service" == "10" ]]; then
         for service_name in "${services[@]}"; do
             if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")               
@@ -2104,13 +2194,17 @@ RESTART_SERVICE() {
                 WARN "服务 ${service_name}未运行，跳过重启。"
             fi
         done
-        INFO "重启的服务: ${selected_services[*]}"
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "选择的服务未运行，无需进行重启"
+        else
+            INFO "更新的服务: ${selected_services[*]}"
+        fi
     elif [[ "$restart_service" == "0" ]]; then
         WARN "退出重启服务!"
-        exit 1
+        return
     else
         for choice in ${restart_service}; do
-            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+            if ((choice > 0 && choice < 10)); then
                 service_name="${services[$((choice -1))]}"
                 if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")                  
@@ -2123,7 +2217,11 @@ RESTART_SERVICE() {
                 RESTART_SERVICE # 选择无效重新调用当前函数进行选择
             fi
         done
-        INFO "重启的服务: ${selected_services[*]}"
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "选择的服务未运行，无需进行重启"
+        else
+            INFO "更新的服务: ${selected_services[*]}"
+        fi
     fi
 }
 
@@ -2131,22 +2229,28 @@ UPDATE_SERVICE() {
     CONTAINER_SERVICES
     selected_services=()
     WARN "更新服务请在${LIGHT_GREEN}${DOCKER_COMPOSE_FILE}${RESET}文件存储目录下执行脚本.默认安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}9)${RESET} ${BOLD}all${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
 
-    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  choices_service
+    REGISTRY_MENU
+    read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all表示所有${RESET} > ")" update_service
 
-    if [[ "$choices_service" == "9" ]]; then
+    while true; do
+        if [[ "$update_service" =~ ^[0-9]+([[:space:]][0-9]+)*$ ]]; then
+            valid=true
+            for choice in $update_service; do
+                if ((choice < 0 || choice > 10)); then
+                    valid=false
+                    break
+                fi
+            done
+            if $valid; then
+                break
+            fi
+        fi
+        WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-10 ${RESET}序号"
+        read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all表示所有${RESET} > ")" update_service
+    done
+
+    if [[ "$update_service" == "10" ]]; then
         for service_name in "${services[@]}"; do
             if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                 selected_services+=("$service_name")               
@@ -2154,13 +2258,17 @@ UPDATE_SERVICE() {
                 WARN "服务 ${service_name}未运行，跳过更新。"
             fi
         done
-        INFO "更新的服务: ${selected_services[*]}"
-    elif [[ "$choices_service" == "0" ]]; then
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "选择的服务未运行，无法进行更新"
+        else
+            INFO "更新的服务: ${selected_services[*]}"
+        fi
+    elif [[ "$update_service" == "0" ]]; then
         WARN "退出更新服务!"
-        exit 1
+        return
     else
-        for choice in ${choices_service}; do
-            if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
+        for choice in ${update_service}; do
+            if ((choice > 0 && choice < 10)); then
                 service_name="${services[$((choice -1))]}"
                 if $DOCKER_COMPOSE_CMD ps --services 2>/dev/null | grep -q "^${service_name}$"; then
                     selected_services+=("$service_name")
@@ -2173,30 +2281,25 @@ UPDATE_SERVICE() {
                 UPDATE_SERVICE # 选择无效重新调用当前函数进行选择
             fi
         done
-        INFO "更新的服务: ${selected_services[*]}"
+
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "选择的服务未运行，无法进行更新"
+        else
+            INFO "更新的服务: ${selected_services[*]}"
+        fi
     fi
 }
 
 CONTAIENR_LOGS() {
     CONTAINER_SERVICES
     selected_services=()
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
+    REGISTRY_SER_MENU
 
     read -e -p "$(INFO "输入序号选择对应服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项. ${LIGHT_CYAN}all选择所有${RESET} > ")"  restart_service
 
     if  [[ "$restart_service" == "0" ]]; then
         WARN "退出查看容器服务日志操作!"
-        exit 1
+        return
     else
         for choice in ${restart_service}; do
             if [[ $choice =~ ^[0-9]+$ ]] && ((choice >0 && choice <= ${#services[@]})); then
@@ -2207,11 +2310,15 @@ CONTAIENR_LOGS() {
                     WARN "服务 ${service_name} 未运行，无法查看容器日志。"
                 fi
             else
-                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-8${RESET}的选项" 
+                ERROR "无效的选择: $choice. 请重新${LIGHT_GREEN}选择0-9${RESET}的选项" 
                 CONTAIENR_LOGS # 选择无效重新调用当前函数进行选择
             fi
         done
-        INFO "查看日志的服务: ${selected_services[*]}"
+        if [ ${#selected_services[@]} -eq 0 ]; then
+            WARN "选择的服务未运行，无法查看日志"
+        else
+            INFO "查看日志的服务: ${selected_services[*]}"
+        fi     
     fi
 }
 
@@ -2220,30 +2327,10 @@ MODIFY_SERVICE_TTL_CONFIG() {
     selected_files=()
     existing_files=()
     non_existing_files=()
-
-    files=(
-        "dockerhub registry-hub.yml"
-        "gcr registry-gcr.yml"
-        "ghcr registry-ghcr.yml"
-        "quay registry-quay.yml"
-        "k8sgcr registry-k8sgcr.yml"
-        "k8s registry-k8s.yml"
-        "mcr registry-mcr.yml"
-        "elastic registry-elastic.yml"
-    )
+    REGISTRY_FILES
 
     while true; do
-        echo -e "${YELLOW}-------------------------------------------------${RESET}"
-        echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-        echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-        echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-        echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-        echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-        echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-        echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-        echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-        echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-        echo -e "${YELLOW}-------------------------------------------------${RESET}"
+        REGISTRY_SER_MENU
 
         read -e -p "$(INFO "输入序号修改服务对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" ttl_service
         if [[ "$ttl_service" == "0" ]]; then
@@ -2252,7 +2339,7 @@ MODIFY_SERVICE_TTL_CONFIG() {
         elif [[ "$ttl_service" =~ ^([1-8]+[[:space:]]*)+$ ]]; then
             break
         else
-            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
         fi
     done
 
@@ -2306,93 +2393,14 @@ MODIFY_SERVICE_TTL_CONFIG() {
     fi
 }
 ### 启动新容器
-START_NEW_SERVER_CONFIG_FILES() {
-while true; do
-    read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" install_docker_reg
-    case "$install_docker_reg" in
-        1 )
-            files=(
-                "dockerhub reg-docker-hub ${GITRAW}/config/registry-hub.yml"
-                "gcr reg-gcr ${GITRAW}/config/registry-gcr.yml"
-                "ghcr reg-ghcr ${GITRAW}/config/registry-ghcr.yml"
-                "quay reg-quay ${GITRAW}/config/registry-quay.yml"
-                "k8sgcr reg-k8s-gcr ${GITRAW}/config/registry-k8sgcr.yml"
-                "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
-                "mcr reg-mcr ${GITRAW}/config/registry-mcr.yml"
-                "elastic reg-elastic ${GITRAW}/config/registry-elastic.yml"
-            )
-            break;;
-        2 )
-            files=(
-                "dockerhub reg-docker-hub ${CNGITRAW}/config/registry-hub.yml"
-                "gcr reg-gcr ${CNGITRAW}/config/registry-gcr.yml"
-                "ghcr reg-ghcr ${CNGITRAW}/config/registry-ghcr.yml"
-                "quay reg-quay ${CNGITRAW}/config/registry-quay.yml"
-                "k8sgcr reg-k8s-gcr ${CNGITRAW}/config/registry-k8sgcr.yml"
-                "k8s reg-k8s ${CNGITRAW}/config/registry-k8s.yml"
-                "mcr reg-mcr ${CNGITRAW}/config/registry-mcr.yml"
-                "elastic reg-elastic ${CNGITRAW}/config/registry-elastic.yml"
-            )
-            break;;
-        * )
-            INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
-    esac
-done
-}
-
-START_NEW_SERVER_CONFIG_FILES() {
-while true; do
-    read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" install_docker_reg
-    case "$install_docker_reg" in
-        1 )
-            files=(
-                "dockerhub reg-docker-hub ${GITRAW}/config/registry-hub.yml"
-                "gcr reg-gcr ${GITRAW}/config/registry-gcr.yml"
-                "ghcr reg-ghcr ${GITRAW}/config/registry-ghcr.yml"
-                "quay reg-quay ${GITRAW}/config/registry-quay.yml"
-                "k8sgcr reg-k8s-gcr ${GITRAW}/config/registry-k8sgcr.yml"
-                "k8s reg-k8s ${GITRAW}/config/registry-k8s.yml"
-                "mcr reg-mcr ${GITRAW}/config/registry-mcr.yml"
-                "elastic reg-elastic ${GITRAW}/config/registry-elastic.yml"
-            )
-            break;;
-        2 )
-            files=(
-                "dockerhub reg-docker-hub ${CNGITRAW}/config/registry-hub.yml"
-                "gcr reg-gcr ${CNGITRAW}/config/registry-gcr.yml"
-                "ghcr reg-ghcr ${CNGITRAW}/config/registry-ghcr.yml"
-                "quay reg-quay ${CNGITRAW}/config/registry-quay.yml"
-                "k8sgcr reg-k8s-gcr ${CNGITRAW}/config/registry-k8sgcr.yml"
-                "k8s reg-k8s ${CNGITRAW}/config/registry-k8s.yml"
-                "mcr reg-mcr ${CNGITRAW}/config/registry-mcr.yml"
-                "elastic reg-elastic ${CNGITRAW}/config/registry-elastic.yml"
-            )
-            break;;
-        * )
-            INFO "请输入 ${LIGHT_GREEN}1${RESET} 表示国外 或者 ${LIGHT_YELLOW}2${RESET} 表示大陆";;
-    esac
-done
-}
-
 START_NEW_SERVER_DOWN_CONFIG() {
     selected_names=()
     selected_files=()
     selected_containers=()
 
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-    echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-    echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-    echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-    echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-    echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-    echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-    echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-    echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-    echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-    echo -e "${YELLOW}-------------------------------------------------${RESET}"
-
+    REGISTRY_SER_MENU
     read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" choices_newser
-    while [[ ! "$choices_newser" =~ ^([0-8]+[[:space:]]*)+$ ]]; do
+    while [[ ! "$choices_newser" =~ ^([0-9]+[[:space:]]*)+$ ]]; do
         WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
         read -e -p "$(INFO "输入序号下载对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" choices_newser
     done
@@ -2412,7 +2420,7 @@ START_NEW_SERVER_DOWN_CONFIG() {
                 selected_files+=("$file_url")
                 wget -NP ${PROXY_DIR}/ $file_url &>/dev/null
             else
-                WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号" 
+                WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号" 
             fi
         done
     fi
@@ -2439,7 +2447,7 @@ START_NEW_SERVER_DOWN_CONFIG() {
 START_NEW_DOCKER_SERVICE() {
 if [ -d "${PROXY_DIR}" ]; then
     if [ -f "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" ]; then      
-        START_NEW_SERVER_CONFIG_FILES
+        CONFIG_FILES
         START_NEW_SERVER_DOWN_CONFIG
         PROXY_HTTP
         INFO "正在启动新的容器服务,请稍等..."
@@ -2622,35 +2630,13 @@ esac
 function UNI_DOCKER_SERVICE() {
 CHECK_COMPOSE_CMD
 RM_SERVICE() {
-
 selected_containers=()
-
-files=(
-    "dockerhub registry-hub.yml"
-    "gcr registry-gcr.yml"
-    "ghcr registry-ghcr.yml"
-    "quay registry-quay.yml"
-    "k8sgcr registry-k8sgcr.yml"
-    "k8s registry-k8s.yml"
-    "mcr registry-mcr.yml"
-    "elastic registry-elastic.yml"
-)
-
-echo -e "${YELLOW}-------------------------------------------------${RESET}"
-echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-echo -e "${YELLOW}-------------------------------------------------${RESET}"
+REGISTRY_FILES
+REGISTRY_SER_MENU
 
 read -e -p "$(INFO "输入序号删除服务和对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" rm_service
-while [[ ! "$rm_service" =~ ^([0-8]+[[:space:]]*)+$ ]]; do
-    WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+while [[ ! "$rm_service" =~ ^([0-9]+[[:space:]]*)+$ ]]; do
+    WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
     read -e -p "$(INFO "输入序号删除服务和对应配置文件,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" rm_service
 done
 
@@ -2660,7 +2646,7 @@ if [[ "$rm_service" == "0" ]]; then
 else
     selected_services=()
     for choice in ${rm_service}; do
-        if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+        if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
             file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             
@@ -2677,7 +2663,7 @@ else
                 WARN "配置文件 ${LIGHT_CYAN}${file_name}${RESET} 不存在,${LIGHT_YELLOW}无需删除${RESET}"
             fi
         else
-            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
             UNI_DOCKER_SERVICE
             return
         fi
@@ -2827,32 +2813,11 @@ AUTH_MENU() {
 CHECK_REG_AUTH
 selected_files=()
 selected_services=()
-files=(
-    "dockerhub registry-hub.yml"
-    "gcr registry-gcr.yml"
-    "ghcr registry-ghcr.yml"
-    "quay registry-quay.yml"
-    "k8sgcr registry-k8sgcr.yml"
-    "k8s registry-k8s.yml"
-    "mcr registry-mcr.yml"
-    "elastic registry-elastic.yml"
-)
-
-echo -e "${YELLOW}-------------------------------------------------${RESET}"
-echo -e "${GREEN}1)${RESET} ${BOLD}docker hub${RESET}"
-echo -e "${GREEN}2)${RESET} ${BOLD}gcr${RESET}"
-echo -e "${GREEN}3)${RESET} ${BOLD}ghcr${RESET}"
-echo -e "${GREEN}4)${RESET} ${BOLD}quay${RESET}"
-echo -e "${GREEN}5)${RESET} ${BOLD}k8s-gcr${RESET}"
-echo -e "${GREEN}6)${RESET} ${BOLD}k8s${RESET}"
-echo -e "${GREEN}7)${RESET} ${BOLD}mcr${RESET}"
-echo -e "${GREEN}8)${RESET} ${BOLD}elastic${RESET}"
-echo -e "${GREEN}0)${RESET} ${BOLD}exit${RESET}"
-echo -e "${YELLOW}-------------------------------------------------${RESET}"
-
+REGISTRY_FILES
+REGISTRY_SER_MENU
 read -e -p "$(INFO "输入序号选择添加认证的服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" auth_service
-while [[ ! "$auth_service" =~ ^([0-8]+[[:space:]]*)+$ ]]; do
-    WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+while [[ ! "$auth_service" =~ ^([0-9]+[[:space:]]*)+$ ]]; do
+    WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
     read -e -p "$(INFO "输入序号选择添加认证的服务,${LIGHT_YELLOW}空格分隔${RESET}多个选项 > ")" auth_service
 done
 }
@@ -2948,7 +2913,7 @@ if [[ "$auth_service" == "0" ]]; then
     return
 else
     for choice in ${auth_service}; do
-        if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+        if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
             file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             selected_files+=("$file_name")
@@ -2960,7 +2925,7 @@ else
             fi
 
         else
-            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
             AUTH_MENU
             return
         fi
@@ -3014,7 +2979,7 @@ if [[ "$auth_service" == "0" ]]; then
     return
 else
     for choice in ${auth_service}; do
-        if [[ $choice =~ ^[0-8]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
+        if [[ $choice =~ ^[0-9]+$ ]] && ((choice > 0 && choice <= ${#files[@]})); then
             file_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f2)
             service_name=$(echo "${files[$((choice - 1))]}" | cut -d' ' -f1)
             selected_files+=("$file_name")
@@ -3026,7 +2991,7 @@ else
             fi
 
         else
-            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-8 ${RESET}序号"
+            WARN "无效输入，请重新输入${LIGHT_YELLOW} 0-9 ${RESET}序号"
             AUTH_MENU
             return
         fi
@@ -3257,7 +3222,6 @@ case $ipblack_choice in
 esac
 }
 
-
 # 其他工具
 function OtherTools() {
 echo -e "1) 设置${BOLD}${YELLOW}系统命令${RESET}"
@@ -3285,9 +3249,7 @@ case $main_choice in
         sleep 2; main_menu
         ;;
 esac
-
 }
-
 
 ## 主菜单
 function main_menu() {

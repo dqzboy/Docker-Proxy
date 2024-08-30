@@ -6,7 +6,7 @@
   <p align="center">
   <img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c187d66f-152e-4172-8268-e54bd77d48bb" width="230px" height="200px">
       <br>
-      <i>Self-built Docker image acceleration service, based on the official registry, one-click deployment of Docker, K8s, Quay, Ghcr, Mcr, elastic, and other image acceleration management services.</i>
+      <i>Self-built Docker image acceleration service, based on the official registry, one-click deployment of Docker, K8s, Quay, Ghcr, Mcr, elastic, nvcr and other image acceleration management services.</i>
   </p>
 </div>
 
@@ -183,6 +183,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | quay.io     | quay.your_domain_name  | Quay Container Registry
 | mcr.microsoft.com     | mcr.your_domain_name  | Microsoft Container Registry
 | docker.elastic.co     | elastic.your_domain_name  | Elastic Stack
+| nvcr.io    | nvcr.your_domain_name  | NVIDIA Container Registry
 
 ---
 

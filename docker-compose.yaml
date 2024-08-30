@@ -143,6 +143,24 @@ services:
     networks:
       - registry-net
 
+  ## nvcr.io
+  nvcr:
+    container_name: reg-nvcr
+    image: dqzboy/registry:latest
+    restart: always
+    environment:
+      - OTEL_TRACES_EXPORTER=none
+      #- http=http://host:port
+      #- https=http://host:port
+    volumes:
+      - ./registry/data:/var/lib/registry
+      - ./registry-elastic.yml:/etc/distribution/config.yml
+      #- ./htpasswd:/auth/htpasswd
+    ports:
+      - 59000:5000
+    networks:
+      - registry-net
+
   ## UI
   registry-ui:
     container_name: registry-ui
