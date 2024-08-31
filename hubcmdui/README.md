@@ -129,13 +129,19 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c90976d2-ed81-4ed6-aff0-e8642bb6c033"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/fb30f747-a2af-4fc8-b3cc-05c71a044da0"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
         <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b36d9b53-0696-4e44-b847-1019e7739201"?raw=true"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/34aa808b-2352-4a0c-80d2-88251275495c"?raw=true"></td>
     </tr>
 </table>
 

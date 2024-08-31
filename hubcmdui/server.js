@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const logger = require('morgan'); // 引入 morgan 作为日志工具
 const axios = require('axios'); // 用于发送 HTTP 请求
 const Docker = require('dockerode');
 const app = express();
@@ -14,6 +13,7 @@ const WebSocket = require('ws');
 const http = require('http');
 const { exec } = require('child_process'); // 网络测试
 const validator = require('validator');
+const logger = require('./logger');
 
 let docker = null;
 
@@ -22,9 +22,9 @@ async function initDocker() {
     docker = new Docker();
     try {
       await docker.ping();
-      console.log('成功连接到 Docker 守护进程');
+      logger.success('成功连接到 Docker 守护进程');
     } catch (err) {
-      console.error('无法连接到 Docker 守护进程:', err);
+      logger.error(`无法连接到 Docker 守护进程: ${err.message}`);
       docker = null;
     }
   }
@@ -41,7 +41,7 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false } // 设置为true如果使用HTTPS
 }));
-app.use(logger('dev')); // 使用 morgan 记录请求日志
+app.use(require('morgan')('dev'));
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'web', 'admin.html'));
@@ -58,7 +58,7 @@ app.get('/api/search', async (req, res) => {
     const response = await axios.get(`https://hub.docker.com/v2/search/repositories/?query=${encodeURIComponent(searchTerm)}`);
     res.json(response.data);
   } catch (error) {
-    console.error('Error searching Docker Hub:', error);
+    logger.error('Error searching Docker Hub:', error);
     res.status(500).json({ error: 'Failed to search Docker Hub' });
   }
 });
@@ -72,24 +72,39 @@ const DOCUMENTATION_FILE = path.join(__dirname, 'documentation.md');
 async function readConfig() {
   try {
     const data = await fs.readFile(CONFIG_FILE, 'utf8');
-    // 确保 data 不为空或不完整
+    let config;
     if (!data.trim()) {
-      console.warn('Config file is empty, returning default config');
-      return {
+      config = {
         logo: '',
         menuItems: [],
         adImages: []
       };
+    } else {
+      config = JSON.parse(data);
     }
-    console.log('Config read successfully');
-    return JSON.parse(data);
+    
+    // 确保 monitoringConfig 存在，如果不存在则添加默认值
+    if (!config.monitoringConfig) {
+      config.monitoringConfig = {
+        webhookUrl: '',
+        monitorInterval: 60,
+        isEnabled: false
+      };
+    }
+    
+    return config;
   } catch (error) {
-    console.error('Failed to read config:', error);
+    logger.error('Failed to read config:', error);
     if (error.code === 'ENOENT') {
       return {
         logo: '',
         menuItems: [],
-        adImages: []
+        adImages: [],
+        monitoringConfig: {
+          webhookUrl: '',
+          monitorInterval: 60,
+          isEnabled: false
+        }
       };
     }
     throw error;
@@ -100,9 +115,9 @@ async function readConfig() {
 async function writeConfig(config) {
   try {
       await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
-      console.log('Config saved successfully');
+      logger.success('Config saved successfully');
   } catch (error) {
-      console.error('Failed to save config:', error);
+      logger.error('Failed to save config:', error);
       throw error;
   }
 }
@@ -114,7 +129,7 @@ async function readUsers() {
     return JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
-      console.warn('Users file does not exist, creating default user');
+      logger.warn('Users file does not exist, creating default user');
       const defaultUser = { username: 'root', password: bcrypt.hashSync('admin', 10) };
       await writeUsers([defaultUser]);
       return { users: [defaultUser] };
@@ -127,7 +142,6 @@ async function readUsers() {
 async function writeUsers(users) {
   await fs.writeFile(USERS_FILE, JSON.stringify({ users }, null, 2), 'utf8');
 }
-
 
 // 确保 documentation 目录存在
 async function ensureDocumentationDir() {
@@ -163,7 +177,7 @@ async function readDocumentation() {
     const publishedDocuments = documents.filter(doc => doc.published);
     return publishedDocuments;
   } catch (error) {
-    console.error('Error reading documentation:', error);
+    logger.error('Error reading documentation:', error);
     throw error;
   }
 }
@@ -173,13 +187,12 @@ async function writeDocumentation(content) {
   await fs.writeFile(DOCUMENTATION_FILE, content, 'utf8');
 }
 
-
 // 登录验证
 app.post('/api/login', async (req, res) => {
   const { username, captcha } = req.body;
 
   if (req.session.captcha !== parseInt(captcha)) {
-    console.log(`Captcha verification failed for user: ${username}`);
+    logger.warn(`Captcha verification failed for user: ${username}`);
     return res.status(401).json({ error: '验证码错误' });
   }
 
@@ -187,16 +200,16 @@ app.post('/api/login', async (req, res) => {
   const user = users.users.find(u => u.username === username);
 
   if (!user) {
-    console.log(`User ${username} not found`);
+    logger.warn(`User ${username} not found`);
     return res.status(401).json({ error: '用户名或密码错误' });
   }
 
   if (bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user = { username: user.username };
-    console.log(`User ${username} logged in successfully`);
+    logger.info(`User ${username} logged in successfully`);
     res.json({ success: true });
   } else {
-    console.log(`Login failed for user: ${username}`);
+    logger.warn(`Login failed for user: ${username}`);
     res.status(401).json({ error: '用户名或密码错误' });
   }
 });
@@ -231,12 +244,12 @@ function requireLogin(req, res, next) {
     user: req.session.user ? { username: req.session.user.username } : undefined
   };
 
-  console.log('Session:', JSON.stringify(sanitizedSession, null, 2));
+  logger.info('Session:', JSON.stringify(sanitizedSession, null, 2));
 
   if (req.session.user) {
     next();
   } else {
-    console.log('用户未登录');
+    logger.warn('用户未登录');
     res.status(401).json({ error: 'Not logged in' });
   }
 }
@@ -280,7 +293,6 @@ app.get('/api/captcha', (req, res) => {
   req.session.captcha = num1 + num2;
   res.json({ captcha });
 });
-
 
 // API端点：获取文档列表
 app.get('/api/documentation-list', requireLogin, async (req, res) => {
@@ -341,7 +353,7 @@ app.get('/api/documentation', async (req, res) => {
     const documents = await readDocumentation();
     res.json(documents);
   } catch (error) {
-    console.error('Error in /api/documentation:', error);
+    logger.error('Error in /api/documentation:', error);
     res.status(500).json({ error: '读取文档失败', details: error.message });
   }
 });
@@ -362,7 +374,7 @@ async function getDocumentList() {
   try {
     await ensureDocumentationDir();
     const files = await fs.readdir(DOCUMENTATION_DIR);
-    console.log('Files in documentation directory:', files);
+    logger.info('Files in documentation directory:', files);
 
     const documents = await Promise.all(files.map(async file => {
       try {
@@ -375,17 +387,17 @@ async function getDocumentList() {
           published: true // 假设所有文档都是已发布的
         };
       } catch (fileError) {
-        console.error(`Error reading file ${file}:`, fileError);
+        logger.error(`Error reading file ${file}:`, fileError);
         return null;
       }
     }));
 
     const validDocuments = documents.filter(doc => doc !== null);
-    console.log('Valid documents:', validDocuments);
+    logger.info('Valid documents:', validDocuments);
 
     return validDocuments;
   } catch (error) {
-    console.error('Error reading document list:', error);
+    logger.error('Error reading document list:', error);
     throw error; // 重新抛出错误，让上层函数处理
   }
 }
@@ -395,7 +407,7 @@ app.get('/api/documentation-list', async (req, res) => {
     const documents = await getDocumentList();
     res.json(documents);
   } catch (error) {
-    console.error('Error in /api/documentation-list:', error);
+    logger.error('Error in /api/documentation-list:', error);
     res.status(500).json({ 
       error: '读取文档列表失败', 
       details: error.message,
@@ -412,13 +424,10 @@ app.get('/api/documentation/:id', async (req, res) => {
     const doc = JSON.parse(content);
     res.json(doc);
   } catch (error) {
-    console.error('Error reading document:', error);
+    logger.error('Error reading document:', error);
     res.status(500).json({ error: '读取文档失败', details: error.message });
   }
 });
-
-
-
 
 // API端点来获取Docker容器状态
 app.get('/api/docker-status', requireLogin, async (req, res) => {
@@ -453,7 +462,7 @@ app.get('/api/docker-status', requireLogin, async (req, res) => {
     }));
     res.json(containerStatus);
   } catch (error) {
-    console.error('获取 Docker 状态时出错:', error);
+    logger.error('获取 Docker 状态时出错:', error);
     res.status(500).json({ error: '获取 Docker 状态失败', details: error.message });
   }
 });
@@ -469,7 +478,7 @@ app.post('/api/docker/restart/:id', requireLogin, async (req, res) => {
     await container.restart();
     res.json({ success: true });
   } catch (error) {
-    console.error('重启容器失败:', error);
+    logger.error('重启容器失败:', error);
     res.status(500).json({ error: '重启容器失败', details: error.message });
   }
 });
@@ -485,7 +494,7 @@ app.post('/api/docker/stop/:id', requireLogin, async (req, res) => {
     await container.stop();
     res.json({ success: true });
   } catch (error) {
-    console.error('停止容器失败:', error);
+    logger.error('停止容器失败:', error);
     res.status(500).json({ error: '停止容器失败', details: error.message });
   }
 });
@@ -501,11 +510,10 @@ app.get('/api/docker/status/:id', requireLogin, async (req, res) => {
     const containerInfo = await container.inspect();
     res.json({ state: containerInfo.State.Status });
   } catch (error) {
-    console.error('获取容器状态失败:', error);
+    logger.error('获取容器状态失败:', error);
     res.status(500).json({ error: '获取容器状态失败', details: error.message });
   }
 });
-
 
 // API端点：更新容器
 app.post('/api/docker/update/:id', requireLogin, async (req, res) => {
@@ -521,10 +529,10 @@ app.post('/api/docker/update/:id', requireLogin, async (req, res) => {
     const newImage = `${imageName}:${req.body.tag}`;
     const containerName = containerInfo.Name.slice(1);  // 去掉开头的 '/'
 
-    console.log(`Updating container ${req.params.id} from ${currentImage} to ${newImage}`);
+    logger.info(`Updating container ${req.params.id} from ${currentImage} to ${newImage}`);
 
     // 拉取新镜像
-    console.log(`Pulling new image: ${newImage}`);
+    logger.info(`Pulling new image: ${newImage}`);
     await new Promise((resolve, reject) => {
       docker.pull(newImage, (err, stream) => {
         if (err) return reject(err);
@@ -533,15 +541,15 @@ app.post('/api/docker/update/:id', requireLogin, async (req, res) => {
     });
 
     // 停止旧容器
-    console.log('Stopping old container');
+    logger.info('Stopping old container');
     await container.stop();
 
     // 删除旧容器
-    console.log('Removing old container');
+    logger.info('Removing old container');
     await container.remove();
 
     // 创建新容器
-    console.log('Creating new container');
+    logger.info('Creating new container');
     const newContainerConfig = {
       ...containerInfo.Config,
       Image: newImage,
@@ -556,13 +564,13 @@ app.post('/api/docker/update/:id', requireLogin, async (req, res) => {
     });
 
     // 启动新容器
-    console.log('Starting new container');
+    logger.info('Starting new container');
     await newContainer.start();
 
-    console.log('Container update completed successfully');
+    logger.success('Container update completed successfully');
     res.json({ success: true, message: '容器更新成功' });
   } catch (error) {
-    console.error('更新容器失败:', error);
+    logger.error('更新容器失败:', error);
     res.status(500).json({ error: '更新容器失败', details: error.message, stack: error.stack });
   }
 });
@@ -583,7 +591,7 @@ app.get('/api/docker/logs/:id', requireLogin, async (req, res) => {
     });
     res.send(logs);
   } catch (error) {
-    console.error('获取容器日志失败:', error);
+    logger.error('获取容器日志失败:', error);
     res.status(500).json({ error: '获取容器日志失败', details: error.message });
   }
 });
@@ -621,7 +629,6 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-
 // API端点：删除容器
 app.post('/api/docker/delete/:id', requireLogin, async (req, res) => {
   try {
@@ -635,7 +642,7 @@ app.post('/api/docker/delete/:id', requireLogin, async (req, res) => {
     try {
       await container.stop();
     } catch (stopError) {
-      console.log('Container may already be stopped:', stopError.message);
+      logger.info('Container may already be stopped:', stopError.message);
     }
 
     // 然后删除容器
@@ -643,11 +650,10 @@ app.post('/api/docker/delete/:id', requireLogin, async (req, res) => {
     
     res.json({ success: true, message: '容器已成功删除' });
   } catch (error) {
-    console.error('删除容器失败:', error);
+    logger.error('删除容器失败:', error);
     res.status(500).json({ error: '删除容器失败', details: error.message });
   }
 });
-
 
 // 网络测试
 const { execSync } = require('child_process');
@@ -673,15 +679,328 @@ app.post('/api/network-test', requireLogin, (req, res) => {
 
   exec(command, { timeout: 30000 }, (error, stdout, stderr) => {
       if (error) {
-          console.error(`执行出错: ${error}`);
+          logger.error(`执行出错: ${error}`);
           return res.status(500).send('测试执行失败');
       }
       res.send(stdout || stderr);
   });
 });
 
+// docker 监控
+app.get('/api/monitoring-config', requireLogin, async (req, res) => {
+  try {
+    const config = await readConfig();
+    res.json({
+      webhookUrl: config.monitoringConfig.webhookUrl,
+      monitorInterval: config.monitoringConfig.monitorInterval,
+      isEnabled: config.monitoringConfig.isEnabled
+    });
+  } catch (error) {
+    logger.error('Failed to get monitoring config:', error);
+    res.status(500).json({ error: 'Failed to get monitoring config', details: error.message });
+  }
+});
+
+app.post('/api/monitoring-config', requireLogin, async (req, res) => {
+  try {
+    const { webhookUrl, monitorInterval, isEnabled } = req.body;
+    const config = await readConfig();
+    config.monitoringConfig = { webhookUrl, monitorInterval: parseInt(monitorInterval), isEnabled };
+    await writeConfig(config);
+
+    if (isEnabled) {
+      await startMonitoring();
+    } else {
+      clearInterval(monitoringInterval);
+      monitoringInterval = null;
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Failed to save monitoring config:', error);
+    res.status(500).json({ error: 'Failed to save monitoring config', details: error.message });
+  }
+});
+
+let monitoringInterval;
+// 用于跟踪已发送的告警
+let sentAlerts = new Set();
+
+// 发送告警的函数，包含重试逻辑
+async function sendAlertWithRetry(webhookUrl, containerName, status, maxRetries = 6) {
+  // 移除容器名称前面的斜杠
+  const cleanContainerName = containerName.replace(/^\//, '');
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await axios.post(webhookUrl, {
+        msgtype: 'text',
+        text: {
+          content: `警告: 容器 ${cleanContainerName} ${status}`
+        }
+      }, {
+        timeout: 5000
+      });
+
+      if (response.status === 200 && response.data.errcode === 0) {
+        logger.success(`告警发送成功: ${cleanContainerName} ${status}`);
+        return;
+      } else {
+        throw new Error(`请求成功但返回错误：${response.data.errmsg}`);
+      }
+    } catch (error) {
+      if (attempt === maxRetries) {
+        logger.error(`达到最大重试次数，放弃发送告警: ${cleanContainerName} ${status}`);
+        return;
+      }
+      await new Promise(resolve => setTimeout(resolve, 10000));
+    }
+  }
+}
+
+let containerStates = new Map();
+let lastStopAlertTime = new Map();
+let secondAlertSent = new Set();
+let lastAlertTime = new Map();
+
+async function startMonitoring() {
+  const config = await readConfig();
+  const { webhookUrl, monitorInterval, isEnabled } = config.monitoringConfig || {};
+
+  if (isEnabled && webhookUrl) {
+    const docker = await initDocker();
+    if (docker) {
+      await initializeContainerStates(docker);
+
+      const dockerEventStream = await docker.getEvents();
+
+      dockerEventStream.on('data', async (chunk) => {
+        const event = JSON.parse(chunk.toString());
+        if (event.Type === 'container' && (event.Action === 'start' || event.Action === 'die')) {
+          await handleContainerEvent(docker, event, webhookUrl);
+        }
+      });
+
+      monitoringInterval = setInterval(async () => {
+        await checkContainerStates(docker, webhookUrl);
+      }, (monitorInterval || 60) * 1000);
+    }
+  } else if (monitoringInterval) {
+    clearInterval(monitoringInterval);
+    monitoringInterval = null;
+  }
+}
+
+
+async function initializeContainerStates(docker) {
+  const containers = await docker.listContainers({ all: true });
+  for (const container of containers) {
+    const containerInfo = await docker.getContainer(container.Id).inspect();
+    containerStates.set(container.Id, containerInfo.State.Status);
+  }
+}
+
+
+async function handleContainerEvent(docker, event, webhookUrl) {
+  const containerId = event.Actor.ID;
+  const container = docker.getContainer(containerId);
+  const containerInfo = await container.inspect();
+  const newStatus = containerInfo.State.Status;
+  const oldStatus = containerStates.get(containerId);
+
+  if (oldStatus && oldStatus !== newStatus) {
+    if (newStatus === 'running') {
+      // 容器恢复到 running 状态时立即发送告警
+      await sendAlertWithRetry(webhookUrl, containerInfo.Name, `恢复运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
+      lastStopAlertTime.delete(containerInfo.Name); // 清除停止告警时间
+      secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+    } else if (oldStatus === 'running') {
+      // 容器从 running 状态变为其他状态时发送告警
+      await sendAlertWithRetry(webhookUrl, containerInfo.Name, `停止运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
+      lastStopAlertTime.set(containerInfo.Name, Date.now()); // 记录停止告警时间
+      secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+    }
+    containerStates.set(containerId, newStatus);
+  }
+}
+
+async function checkContainerStates(docker, webhookUrl) {
+  const containers = await docker.listContainers({ all: true });
+  for (const container of containers) {
+    const containerInfo = await docker.getContainer(container.Id).inspect();
+    const newStatus = containerInfo.State.Status;
+    const oldStatus = containerStates.get(container.Id);
+    
+    if (oldStatus && oldStatus !== newStatus) {
+      if (newStatus === 'running') {
+        // 容器恢复到 running 状态时立即发送告警
+        await sendAlertWithRetry(webhookUrl, containerInfo.Name, `恢复运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
+        lastStopAlertTime.delete(containerInfo.Name); // 清除停止告警时间
+        secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+      } else if (oldStatus === 'running') {
+        // 容器从 running 状态变为其他状态时发送告警
+        await sendAlertWithRetry(webhookUrl, containerInfo.Name, `停止运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
+        lastStopAlertTime.set(containerInfo.Name, Date.now()); // 记录停止告警时间
+        secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+      }
+      containerStates.set(container.Id, newStatus);
+    } else if (newStatus !== 'running') {
+      // 检查是否需要发送第二次停止告警
+      await checkSecondStopAlert(webhookUrl, containerInfo.Name, newStatus);
+    }
+  }
+}
+
+
+async function checkRepeatStopAlert(webhookUrl, containerName, currentStatus) {
+  const now = Date.now();
+  const lastStopAlert = lastStopAlertTime.get(containerName) || 0;
+
+  // 如果距离上次停止告警超过1小时，再次发送告警
+  if (now - lastStopAlert >= 60 * 60 * 1000) {
+    await sendAlertWithRetry(webhookUrl, containerName, `仍未恢复 (当前状态: ${currentStatus})`);
+    lastStopAlertTime.set(containerName, now); // 更新停止告警时间
+  }
+}
+
+async function checkSecondStopAlert(webhookUrl, containerName, currentStatus) {
+  const now = Date.now();
+  const lastStopAlert = lastStopAlertTime.get(containerName) || 0;
+
+  // 如果距离上次停止告警超过1小时，且还没有发送过第二次告警，则发送第二次告警
+  if (now - lastStopAlert >= 60 * 60 * 1000 && !secondAlertSent.has(containerName)) {
+    await sendAlertWithRetry(webhookUrl, containerName, `仍未恢复 (当前状态: ${currentStatus})`);
+    secondAlertSent.add(containerName); // 标记已发送第二次告警
+  }
+}
+
+async function sendAlert(webhookUrl, containerName, status) {
+  try {
+    await axios.post(webhookUrl, {
+      msgtype: 'text',
+      text: {
+        content: `警告: 容器 ${containerName} 当前状态为 ${status}`
+      }
+    });
+  } catch (error) {
+    logger.error('发送告警失败:', error);
+  }
+}
+
+// API端点：切换监控状态
+app.post('/api/toggle-monitoring', requireLogin, async (req, res) => {
+  try {
+    const { isEnabled } = req.body;
+    const config = await readConfig();
+    config.monitoringConfig.isEnabled = isEnabled;
+    await writeConfig(config);
+
+    if (isEnabled) {
+      await startMonitoring();
+    } else {
+      clearInterval(monitoringInterval);
+      monitoringInterval = null;
+    }
+
+    res.json({ success: true, message: `Monitoring ${isEnabled ? 'enabled' : 'disabled'}` });
+  } catch (error) {
+    logger.error('Failed to toggle monitoring:', error);
+    res.status(500).json({ error: 'Failed to toggle monitoring', details: error.message });
+  }
+});
+
+app.get('/api/stopped-containers', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const containers = await docker.listContainers({ all: true });
+    const stoppedContainers = containers
+      .filter(container => container.State !== 'running')
+      .map(container => ({
+        id: container.Id.slice(0, 12),
+        name: container.Names[0].replace(/^\//, ''),
+        status: container.State
+      }));
+    res.json(stoppedContainers);
+  } catch (error) {
+    logger.error('获取已停止容器列表失败:', error);
+    res.status(500).json({ error: '获取已停止容器列表失败', details: error.message });
+  }
+});
+
+
+async function loadMonitoringConfig() {
+  try {
+    const response = await fetch('/api/monitoring-config');
+    const config = await response.json();
+    document.getElementById('webhookUrl').value = config.webhookUrl || '';
+    document.getElementById('monitorInterval').value = config.monitorInterval || 60;
+    updateMonitoringStatus(config.isEnabled);
+    
+    // 添加实时状态检查
+    const statusResponse = await fetch('/api/monitoring-status');
+    const statusData = await statusResponse.json();
+    updateMonitoringStatus(statusData.isRunning);
+  } catch (error) {
+    showMessage('加载监控配置失败: ' + error.message, true);
+  }
+}
+
+app.get('/api/monitoring-status', requireLogin, (req, res) => {
+  res.json({ isRunning: !!monitoringInterval });
+});
+
+app.get('/api/refresh-stopped-containers', requireLogin, async (req, res) => {
+  try {
+    const docker = await initDocker();
+    if (!docker) {
+      return res.status(503).json({ error: '无法连接到 Docker 守护进程' });
+    }
+    const containers = await docker.listContainers({ all: true });
+    const stoppedContainers = containers
+      .filter(container => container.State !== 'running')
+      .map(container => ({
+        id: container.Id.slice(0, 12),
+        name: container.Names[0].replace(/^\//, ''),
+        status: container.State
+      }));
+    res.json(stoppedContainers);
+  } catch (error) {
+    logger.error('刷新已停止容器列表失败:', error);
+    res.status(500).json({ error: '刷新已停止容器列表失败', details: error.message });
+  }
+});
+
+async function refreshStoppedContainers() {
+  try {
+      const response = await fetch('/api/refresh-stopped-containers');
+      if (!response.ok) {
+          throw new Error('Failed to fetch stopped containers');
+      }
+      const containers = await response.json();
+      renderStoppedContainers(containers);
+      showMessage('已停止的容器状态已刷新', false);
+  } catch (error) {
+      console.error('Error refreshing stopped containers:', error);
+      showMessage('刷新已停止的容器状态失败: ' + error.message, true);
+  }
+}
+
+// 导出函数以供其他模块使用
+module.exports = {
+  startMonitoring,
+  sendAlertWithRetry
+};
+
 // 启动服务器
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(PORT, async () => {
+  logger.info(`Server is running on http://localhost:${PORT}`);
+  try {
+    await startMonitoring();
+  } catch (error) {
+    logger.error('Failed to start monitoring:', error);
+  }
 });

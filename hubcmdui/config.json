@@ -26,5 +26,10 @@
       "link": "https://www.dqzboy.com/17834.html"
     }
   ],
-  "proxyDomain": "dqzboy.github.io"
+  "proxyDomain": "dqzboy.github.io",
+  "monitoringConfig": {
+    "webhookUrl": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=",
+    "monitorInterval": 60,
+    "isEnabled": true
+  }
 }
