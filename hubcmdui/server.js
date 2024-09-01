@@ -691,7 +691,10 @@ app.get('/api/monitoring-config', requireLogin, async (req, res) => {
   try {
     const config = await readConfig();
     res.json({
+      notificationType: config.monitoringConfig.notificationType || 'wechat',
       webhookUrl: config.monitoringConfig.webhookUrl,
+      telegramToken: config.monitoringConfig.telegramToken,
+      telegramChatId: config.monitoringConfig.telegramChatId,
       monitorInterval: config.monitoringConfig.monitorInterval,
       isEnabled: config.monitoringConfig.isEnabled
     });
@@ -703,17 +706,20 @@ app.get('/api/monitoring-config', requireLogin, async (req, res) => {
 
 app.post('/api/monitoring-config', requireLogin, async (req, res) => {
   try {
-    const { webhookUrl, monitorInterval, isEnabled } = req.body;
+    const { notificationType, webhookUrl, telegramToken, telegramChatId, monitorInterval, isEnabled } = req.body;
     const config = await readConfig();
-    config.monitoringConfig = { webhookUrl, monitorInterval: parseInt(monitorInterval), isEnabled };
+    config.monitoringConfig = { 
+      notificationType,
+      webhookUrl,
+      telegramToken,
+      telegramChatId,
+      monitorInterval: parseInt(monitorInterval), 
+      isEnabled 
+    };
     await writeConfig(config);
 
-    if (isEnabled) {
-      await startMonitoring();
-    } else {
-      clearInterval(monitoringInterval);
-      monitoringInterval = null;
-    }
+    // 重新启动监控
+    await startMonitoring();
 
     res.json({ success: true });
   } catch (error) {
@@ -727,27 +733,20 @@ let monitoringInterval;
 let sentAlerts = new Set();
 
 // 发送告警的函数，包含重试逻辑
-async function sendAlertWithRetry(webhookUrl, containerName, status, maxRetries = 6) {
-  // 移除容器名称前面的斜杠
+async function sendAlertWithRetry(containerName, status, monitoringConfig, maxRetries = 6) {
+  const { notificationType, webhookUrl, telegramToken, telegramChatId } = monitoringConfig;
+
   const cleanContainerName = containerName.replace(/^\//, '');
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await axios.post(webhookUrl, {
-        msgtype: 'text',
-        text: {
-          content: `警告: 容器 ${cleanContainerName} ${status}`
-        }
-      }, {
-        timeout: 5000
-      });
-
-      if (response.status === 200 && response.data.errcode === 0) {
-        logger.success(`告警发送成功: ${cleanContainerName} ${status}`);
-        return;
-      } else {
-        throw new Error(`请求成功但返回错误：${response.data.errmsg}`);
+      if (notificationType === 'wechat') {
+        await sendWechatAlert(webhookUrl, cleanContainerName, status);
+      } else if (notificationType === 'telegram') {
+        await sendTelegramAlert(telegramToken, telegramChatId, cleanContainerName, status);
       }
+      logger.success(`告警发送成功: ${cleanContainerName} ${status}`);
+      return;
     } catch (error) {
       if (attempt === maxRetries) {
         logger.error(`达到最大重试次数，放弃发送告警: ${cleanContainerName} ${status}`);
@@ -758,6 +757,54 @@ async function sendAlertWithRetry(webhookUrl, containerName, status, maxRetries 
   }
 }
 
+async function sendWechatAlert(webhookUrl, containerName, status) {
+  const response = await axios.post(webhookUrl, {
+    msgtype: 'text',
+    text: {
+      content: `通知: 容器 ${containerName} ${status}`
+    }
+  }, {
+    timeout: 5000
+  });
+
+  if (response.status !== 200 || response.data.errcode !== 0) {
+    throw new Error(`请求成功但返回错误：${response.data.errmsg}`);
+  }
+}
+
+async function sendTelegramAlert(token, chatId, containerName, status) {
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const response = await axios.post(url, {
+    chat_id: chatId,
+    text: `通知: 容器 ${containerName} ${status}`
+  }, {
+    timeout: 5000
+  });
+
+  if (response.status !== 200 || !response.data.ok) {
+    throw new Error(`发送Telegram消息失败：${JSON.stringify(response.data)}`);
+  }
+}
+
+app.post('/api/test-notification', requireLogin, async (req, res) => {
+  try {
+    const { notificationType, webhookUrl, telegramToken, telegramChatId } = req.body;
+    
+    if (notificationType === 'wechat') {
+      await sendWechatAlert(webhookUrl, 'Test Container', 'This is a test notification');
+    } else if (notificationType === 'telegram') {
+      await sendTelegramAlert(telegramToken, telegramChatId, 'Test Container', 'This is a test notification');
+    } else {
+      throw new Error('Unsupported notification type');
+    }
+
+    res.json({ success: true, message: 'Test notification sent successfully' });
+  } catch (error) {
+    logger.error('Failed to send test notification:', error);
+    res.status(500).json({ error: 'Failed to send test notification', details: error.message });
+  }
+});
+
 let containerStates = new Map();
 let lastStopAlertTime = new Map();
 let secondAlertSent = new Set();
@@ -765,24 +812,28 @@ let lastAlertTime = new Map();
 
 async function startMonitoring() {
   const config = await readConfig();
-  const { webhookUrl, monitorInterval, isEnabled } = config.monitoringConfig || {};
+  const { notificationType, webhookUrl, telegramToken, telegramChatId, monitorInterval, isEnabled } = config.monitoringConfig || {};
 
-  if (isEnabled && webhookUrl) {
+  if (isEnabled) {
     const docker = await initDocker();
     if (docker) {
       await initializeContainerStates(docker);
+
+      if (monitoringInterval) {
+        clearInterval(monitoringInterval);
+      }
 
       const dockerEventStream = await docker.getEvents();
 
       dockerEventStream.on('data', async (chunk) => {
         const event = JSON.parse(chunk.toString());
         if (event.Type === 'container' && (event.Action === 'start' || event.Action === 'die')) {
-          await handleContainerEvent(docker, event, webhookUrl);
+          await handleContainerEvent(docker, event, config.monitoringConfig);
         }
       });
 
       monitoringInterval = setInterval(async () => {
-        await checkContainerStates(docker, webhookUrl);
+        await checkContainerStates(docker, config.monitoringConfig);
       }, (monitorInterval || 60) * 1000);
     }
   } else if (monitoringInterval) {
@@ -801,7 +852,7 @@ async function initializeContainerStates(docker) {
 }
 
 
-async function handleContainerEvent(docker, event, webhookUrl) {
+async function handleContainerEvent(docker, event, monitoringConfig) {
   const containerId = event.Actor.ID;
   const container = docker.getContainer(containerId);
   const containerInfo = await container.inspect();
@@ -810,21 +861,19 @@ async function handleContainerEvent(docker, event, webhookUrl) {
 
   if (oldStatus && oldStatus !== newStatus) {
     if (newStatus === 'running') {
-      // 容器恢复到 running 状态时立即发送告警
-      await sendAlertWithRetry(webhookUrl, containerInfo.Name, `恢复运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
-      lastStopAlertTime.delete(containerInfo.Name); // 清除停止告警时间
-      secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+      await sendAlertWithRetry(containerInfo.Name, `恢复运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`, monitoringConfig);
+      lastStopAlertTime.delete(containerInfo.Name);
+      secondAlertSent.delete(containerInfo.Name);
     } else if (oldStatus === 'running') {
-      // 容器从 running 状态变为其他状态时发送告警
-      await sendAlertWithRetry(webhookUrl, containerInfo.Name, `停止运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
-      lastStopAlertTime.set(containerInfo.Name, Date.now()); // 记录停止告警时间
-      secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+      await sendAlertWithRetry(containerInfo.Name, `停止运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`, monitoringConfig);
+      lastStopAlertTime.set(containerInfo.Name, Date.now());
+      secondAlertSent.delete(containerInfo.Name);
     }
     containerStates.set(containerId, newStatus);
   }
 }
 
-async function checkContainerStates(docker, webhookUrl) {
+async function checkContainerStates(docker, monitoringConfig) {
   const containers = await docker.listContainers({ all: true });
   for (const container of containers) {
     const containerInfo = await docker.getContainer(container.Id).inspect();
@@ -833,20 +882,17 @@ async function checkContainerStates(docker, webhookUrl) {
     
     if (oldStatus && oldStatus !== newStatus) {
       if (newStatus === 'running') {
-        // 容器恢复到 running 状态时立即发送告警
-        await sendAlertWithRetry(webhookUrl, containerInfo.Name, `恢复运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
-        lastStopAlertTime.delete(containerInfo.Name); // 清除停止告警时间
-        secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+        await sendAlertWithRetry(containerInfo.Name, `恢复运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`, monitoringConfig);
+        lastStopAlertTime.delete(containerInfo.Name);
+        secondAlertSent.delete(containerInfo.Name);
       } else if (oldStatus === 'running') {
-        // 容器从 running 状态变为其他状态时发送告警
-        await sendAlertWithRetry(webhookUrl, containerInfo.Name, `停止运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`);
-        lastStopAlertTime.set(containerInfo.Name, Date.now()); // 记录停止告警时间
-        secondAlertSent.delete(containerInfo.Name); // 清除二次告警标记
+        await sendAlertWithRetry(containerInfo.Name, `停止运行 (之前状态: ${oldStatus}, 当前状态: ${newStatus})`, monitoringConfig);
+        lastStopAlertTime.set(containerInfo.Name, Date.now());
+        secondAlertSent.delete(containerInfo.Name);
       }
       containerStates.set(container.Id, newStatus);
     } else if (newStatus !== 'running') {
-      // 检查是否需要发送第二次停止告警
-      await checkSecondStopAlert(webhookUrl, containerInfo.Name, newStatus);
+      await checkSecondStopAlert(containerInfo.Name, newStatus, monitoringConfig);
     }
   }
 }
@@ -879,7 +925,7 @@ async function sendAlert(webhookUrl, containerName, status) {
     await axios.post(webhookUrl, {
       msgtype: 'text',
       text: {
-        content: `警告: 容器 ${containerName} 当前状态为 ${status}`
+        content: `告警通知: 容器 ${containerName} 当前状态为 ${status}`
       }
     });
   } catch (error) {

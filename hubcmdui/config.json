@@ -28,7 +28,10 @@
   ],
   "proxyDomain": "dqzboy.github.io",
   "monitoringConfig": {
-    "webhookUrl": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=",
+    "notificationType": "telegram",
+    "webhookUrl": "",
+    "telegramToken": "",
+    "telegramChatId": "",
     "monitorInterval": 60,
     "isEnabled": true
   }

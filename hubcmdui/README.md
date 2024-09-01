@@ -141,7 +141,7 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/34aa808b-2352-4a0c-80d2-88251275495c"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/7a63c464-adde-4775-9a30-d70b14aa0d1e"?raw=true"></td>
     </tr>
 </table>
 

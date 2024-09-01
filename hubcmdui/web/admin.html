@@ -752,14 +752,34 @@
                     </div>
                     <div class="config-form">
                         <div class="form-group">
-                            <label for="webhookUrl">企业微信机器人 Webhook URL:</label>
-                            <input type="text" id="webhookUrl" name="webhookUrl" class="form-control">
+                            <label for="notificationType">通知方式：</label>
+                            <select id="notificationType" class="form-control" onchange="toggleNotificationFields()">
+                                <option value="wechat">企业微信群机器人</option>
+                                <option value="telegram">Telegram Bot</option>
+                            </select>
+                        </div>
+                        <div id="wechatFields">
+                            <div class="form-group">
+                                <label for="webhookUrl">企业微信机器人 Webhook URL:</label>
+                                <input type="text" id="webhookUrl" name="webhookUrl" class="form-control">
+                            </div>
+                        </div>
+                        <div id="telegramFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="telegramToken">Telegram Bot Token:</label>
+                                <input type="text" id="telegramToken" name="telegramToken" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="telegramChatId">Telegram Chat ID:</label>
+                                <input type="text" id="telegramChatId" name="telegramChatId" class="form-control">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="monitorInterval">监控间隔 (秒):</label>
                             <input type="number" id="monitorInterval" name="monitorInterval" min="1" value="60" class="form-control">
                         </div>
                         <div class="button-group">
+                            <button onclick="testNotification()" class="btn btn-secondary">测试通知</button>
                             <button onclick="saveMonitoringConfig()" class="btn btn-primary">保存配置</button>
                             <button onclick="toggleMonitoring()" class="btn btn-secondary" id="toggleMonitoringBtn">开启/关闭监控</button>
                         </div>
@@ -1920,10 +1940,17 @@
             loadContainers();
             loadMonitoringConfig();
             
-            // 绑定保存按钮的点击事件
-            document.querySelector('#docker-monitoring button:nth-of-type(1)').addEventListener('click', saveMonitoringConfig);
+            // 绑定测试通知按钮的点击事件
+            document.querySelector('#docker-monitoring button:nth-of-type(1)').addEventListener('click', testNotification);
+            
+            // 绑定保存配置按钮的点击事件
+            document.querySelector('#docker-monitoring button:nth-of-type(2)').addEventListener('click', saveMonitoringConfig);
+            
             // 绑定开启/关闭监控按钮的点击事件
-            document.querySelector('#docker-monitoring button:nth-of-type(2)').addEventListener('click', toggleMonitoring);
+            document.querySelector('#docker-monitoring button:nth-of-type(3)').addEventListener('click', toggleMonitoring);
+
+            // 为通知类型下拉框添加变更事件监听器
+            document.getElementById('notificationType').addEventListener('change', toggleNotificationFields);
 
             refreshStoppedContainers(); // 初始加载已停止的容器
 
@@ -2072,17 +2099,70 @@
                 }
             }
 
+            function toggleNotificationFields() {
+                const notificationType = document.getElementById('notificationType').value;
+                const wechatFields = document.getElementById('wechatFields');
+                const telegramFields = document.getElementById('telegramFields');
+
+                if (notificationType === 'wechat') {
+                    wechatFields.style.display = 'block';
+                    telegramFields.style.display = 'none';
+                } else if (notificationType === 'telegram') {
+                    wechatFields.style.display = 'none';
+                    telegramFields.style.display = 'block';
+                }
+            }
+
+            async function testNotification() {
+                const notificationType = document.getElementById('notificationType').value;
+                let data = {
+                    notificationType: notificationType,
+                    monitorInterval: document.getElementById('monitorInterval').value
+                };
+
+                if (notificationType === 'wechat') {
+                    data.webhookUrl = document.getElementById('webhookUrl').value;
+                } else if (notificationType === 'telegram') {
+                    data.telegramToken = document.getElementById('telegramToken').value;
+                    data.telegramChatId = document.getElementById('telegramChatId').value;
+                }
+
+                try {
+                    const response = await fetch('/api/test-notification', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        showMessage(result.message || '通知测试成功！');
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || '测试失败');
+                    }
+                } catch (error) {
+                    showMessage('通知测试失败: ' + error.message, true);
+                }
+            }
+
             // 修改保存配置的函数
             async function saveMonitoringConfig() {
-                const webhookUrl = document.getElementById('webhookUrl').value;
-                const monitorInterval = document.getElementById('monitorInterval').value;
-                const isEnabled = document.getElementById('monitoringStatus').textContent === '已开启';
+                const notificationType = document.getElementById('notificationType').value;
+                let data = {
+                    notificationType: notificationType,
+                    monitorInterval: document.getElementById('monitorInterval').value,
+                    isEnabled: document.getElementById('monitoringStatus').textContent === '已开启',
+                    webhookUrl: document.getElementById('webhookUrl').value,
+                    telegramToken: document.getElementById('telegramToken').value,
+                    telegramChatId: document.getElementById('telegramChatId').value
+                };
 
                 try {
                     const response = await fetch('/api/monitoring-config', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ webhookUrl, monitorInterval, isEnabled })
+                        body: JSON.stringify(data)
                     });
                     if (response.ok) {
                         showMessage('监控配置已保存');
@@ -2125,9 +2205,15 @@
                 try {
                     const response = await fetch('/api/monitoring-config');
                     const config = await response.json();
+                    
+                    document.getElementById('notificationType').value = config.notificationType || 'wechat';
                     document.getElementById('webhookUrl').value = config.webhookUrl || '';
+                    document.getElementById('telegramToken').value = config.telegramToken || '';
+                    document.getElementById('telegramChatId').value = config.telegramChatId || '';
                     document.getElementById('monitorInterval').value = config.monitorInterval || 60;
+                    
                     updateMonitoringStatus(config.isEnabled);
+                    toggleNotificationFields(); // 确保根据加载的配置显示正确的字段
                 } catch (error) {
                     showMessage('加载监控配置失败: ' + error.message, true);
                 }
@@ -2191,7 +2277,8 @@
 
             // 确保在页面加载时初始化停止的容器列表
             document.addEventListener('DOMContentLoaded', () => {
-                refreshStoppedContainers();
+                loadMonitoringConfig();
+                document.getElementById('notificationType').addEventListener('change', toggleNotificationFields);
             });
 
             // 页面加载时初始化

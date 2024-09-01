@@ -239,7 +239,7 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
     </tr>
     <tr>
         <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/8569c5c4-4ce6-4cd4-8547-fa9816019049?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c90976d2-ed81-4ed6-aff0-e8642bb6c033?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/fb30f747-a2af-4fc8-b3cc-05c71a044da0?raw=true"></td>
     </tr>
 </table>
 
