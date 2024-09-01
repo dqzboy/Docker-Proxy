@@ -1734,6 +1734,7 @@
                 modal.style.display = 'flex';
                 modal.style.justifyContent = 'center';
                 modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
 
                 const content = document.createElement('div');
                 content.style.backgroundColor = 'black';
@@ -1758,49 +1759,102 @@
                 logContent.style.whiteSpace = 'pre-wrap';
                 logContent.style.wordBreak = 'break-all';
 
+                const closeButton = document.createElement('button');
+                closeButton.textContent = '关闭';
+                closeButton.style.position = 'absolute';
+                closeButton.style.top = '10px';
+                closeButton.style.right = '10px';
+                closeButton.style.padding = '5px 10px';
+                closeButton.style.backgroundColor = '#4CAF50';
+                closeButton.style.color = 'white';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '3px';
+                closeButton.style.cursor = 'pointer';
+
                 content.appendChild(logContent);
+                content.appendChild(closeButton);
                 modal.appendChild(content);
                 document.body.appendChild(modal);
 
-                // 点击模态框外部关闭
-                modal.addEventListener('click', (e) => {
+                // 使用 WebSocket 或长轮询获取日志
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                let ws;
+
+                try {
+                    ws = new WebSocket(`${protocol}//${window.location.host}/api/docker/logs/${id}`);
+                    
+                    ws.onopen = () => {
+                        logContent.textContent += "WebSocket 连接已建立，正在接收日志...\n";
+                    };
+
+                    ws.onmessage = (event) => {
+                        const filteredData = event.data.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+                        logContent.textContent += filteredData;
+                        logContent.scrollTop = logContent.scrollHeight;
+                    };
+
+                    ws.onerror = (error) => {
+                        console.error('WebSocket错误:', error);
+                        logContent.textContent += "WebSocket 连接错误，切换到长轮询模式...\n";
+                        useLongPolling(id, logContent);
+                    };
+
+                    ws.onclose = () => {
+                        logContent.textContent += "WebSocket 连接已关闭。\n";
+                    };
+                } catch (error) {
+                    console.error('WebSocket连接失败:', error);
+                    logContent.textContent += "无法建立 WebSocket 连接，使用长轮询模式...\n";
+                    useLongPolling(id, logContent);
+                }
+
+                // 关闭按钮和模态框点击事件
+                closeButton.onclick = () => {
+                    if (ws) ws.close();
+                    document.body.removeChild(modal);
+                };
+
+                modal.onclick = (e) => {
                     if (e.target === modal) {
+                        if (ws) ws.close();
                         document.body.removeChild(modal);
                     }
-                });
-
-                // 建立WebSocket连接以实时获取日志
-                const ws = new WebSocket(`ws://${window.location.host}/api/docker/logs/${id}`);
-
-                ws.onmessage = (event) => {
-                    // 过滤掉不可打印字符
-                    const filteredData = event.data.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '');
-                    logContent.textContent += filteredData + '\n';
-                    logContent.scrollTop = logContent.scrollHeight;
                 };
-
-                ws.onerror = (error) => {
-                    console.error('WebSocket错误:', error);
-                    logContent.textContent += '连接错误，无法获取实时日志。\n';
-                };
-
-                ws.onclose = () => {
-                    logContent.textContent += '日志连接已关闭。\n';
-                };
-
-                // 当模态框关闭时，关闭WebSocket连接
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        ws.close();
-                        document.body.removeChild(modal);
-                    }
-                });
 
             } catch (error) {
                 console.error('查看日志失败:', error);
                 alert('查看日志失败: ' + error.message);
             }
         }
+
+        function useLongPolling(id, logContent) {
+            let isPolling = true;
+
+            async function pollLogs() {
+                if (!isPolling) return;
+
+                try {
+                    const response = await fetch(`/api/docker/logs-poll/${id}`);
+                    if (!response.ok) throw new Error('获取日志失败');
+                    
+                    const logs = await response.text();
+                    logContent.textContent += logs;
+                    logContent.scrollTop = logContent.scrollHeight;
+                } catch (error) {
+                    console.error('轮询日志失败:', error);
+                    logContent.textContent += "获取日志失败，请检查网络连接...\n";
+                }
+
+                // 继续轮询
+                setTimeout(pollLogs, 2000); // 每2秒轮询一次
+            }
+
+            pollLogs();
+
+            // 返回一个停止轮询的函数
+            return () => { isPolling = false; };
+        }
+
 
         async function restartContainer(id) {
             if (confirm('确定要重启这个容器吗？')) {

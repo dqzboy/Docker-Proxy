@@ -655,6 +655,23 @@ app.post('/api/docker/delete/:id', requireLogin, async (req, res) => {
   }
 });
 
+app.get('/api/docker/logs-poll/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+      const container = docker.getContainer(id);
+      const logs = await container.logs({
+          stdout: true,
+          stderr: true,
+          tail: 100,
+          follow: false
+      });
+      res.send(logs);
+  } catch (error) {
+      res.status(500).send('获取日志失败');
+  }
+});
+
+
 // 网络测试
 const { execSync } = require('child_process');
 
