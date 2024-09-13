@@ -61,7 +61,7 @@
    
 > 点击图片跳转
    
-<a href ="https://www.dqzboy.com/17834.html"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy-vip.png"></a>
+<a href ="https://www.dqzboy.com/17834.html"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/DockerProxy.png"></a>
 </details>
 
 </details>
