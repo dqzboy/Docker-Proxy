@@ -118,3 +118,7 @@ systemctl restart docker
 # 拉取镜像
 docker pull nginx
   ```
+
+ #### 11、如何配置才能让数据不保留到磁盘中？
+ - [x] **已知问题：** 默认使用的存储系统为`filesystem` 使用本地磁盘存储注册表文件
+ - [x] **解决方案：** 修改对应Registry的配置，将`Storage driver` 存储驱动改为 `inmemory`，⚠️ 注意：此存储驱动程序不会在运行期间保留数据。这就是为什么它只适合测试。切勿在生产中使用此驱动程序。
