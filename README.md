@@ -54,6 +54,8 @@
 
 **方案三：** 如果你是在国内的服务器部署，那么你可以在执行一键部署时配置代理，同时会帮你解决国内无法安装Docker的问题
 
+**方案四：** 试试这个项目，基于[Cloudflare Workers](https://github.com/dqzboy/Workers-Proxy-Docker)部署Docker镜像代理
+
 </details>
 
 ---
