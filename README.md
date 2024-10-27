@@ -20,7 +20,7 @@
 [![GitHub license](https://img.shields.io/github/license/dqzboy/Docker-Proxy)](https://github.com/dqzboy/Docker-Proxy/blob/main/LICENSE)
 
 
-📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-交流群</a>
+📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-TG交流群</a> ｜ <a href="https://qm.qq.com/q/oIUXCxY2oS" style="font-size: 15px;">Docker Proxy-QQ交流群</a>
 
 </div>
 
@@ -54,7 +54,7 @@
 
 **方案三：** 如果你是在国内的服务器部署，那么你可以在执行一键部署时配置代理，同时会帮你解决国内无法安装Docker的问题
 
-**方式四：** 试试这个项目，基于[Cloudflare Workers](https://github.com/dqzboy/Workers-Proxy-Docker)搭建Docker镜像代理服务
+**方案四：** 试试这个项目，基于[Cloudflare Workers](https://github.com/dqzboy/Workers-Proxy-Docker)搭建Docker镜像代理服务
 
 </details>
 
