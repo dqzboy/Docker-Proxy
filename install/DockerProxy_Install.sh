@@ -1581,7 +1581,7 @@ case $modify_proxy in
     ;;
   [Nn]* )
     WARN "退出本机Docker服务代理配置"
-    exit 1
+    main_menu
     ;;
   * )
     ERROR "无效的输入。请重新输入${LIGHT_GREEN}Y or N ${RESET}的选项"
@@ -1633,6 +1633,40 @@ else
         WARN "已经存在相同的代理配置,${LIGHT_RED}请勿重复配置${RESET}"
     fi
 fi
+}
+
+
+function DEL_DOCKERD_PROXY() {
+check_proxy_config() {
+    systemctl daemon-reload
+    systemctl restart docker &>/dev/null
+    CHECK_DOCKER
+}
+
+WARN "${BOLD}${LIGHT_GREEN}提示:${RESET} ${LIGHT_CYAN}移除本机Docker服务走代理，Docker镜像下载可能会失败!${RESET}"
+read -e -p "$(INFO "是否移除本机Docker服务代理? ${PROMPT_YES_NO}")" del_proxy
+case $del_proxy in
+  [Yy]* )
+    # 检查并设置代理配置
+    if [ ! -f /etc/systemd/system/docker.service.d/http-proxy.conf ]; then
+        # 如果配置文件不存在，打印提示
+        INFO "本机Docker服务未配置代理"
+    else
+        # 如果配置文件存在，则进行删除并重启Docker服务
+        rm -f /etc/systemd/system/docker.service.d/http-proxy.conf &>/dev/null
+        check_proxy_config
+        INFO "本机Docker服务代理已移除"
+    fi
+    ;;
+  [Nn]* )
+    WARN "退出移除本机Docker服务代理配置"
+    main_menu
+    ;;
+  * )
+    ERROR "无效的输入。请重新输入${LIGHT_GREEN}Y or N ${RESET}的选项"
+    DOCKER_PROXY_HTTP
+    ;;
+esac
 }
 
 
@@ -3060,6 +3094,38 @@ case $auth_choice in
 esac
 }
 
+# 本机Docker代理
+function DOCKER_PROXY() {
+SEPARATOR "Docker服务代理"
+echo -e "1) ${BOLD}${GREEN}添加${RESET}本机Docker代理"
+echo -e "2) ${BOLD}${YELLOW}移除${RESET}本机Docker代理"
+echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "0) ${BOLD}退出脚本${RESET}"
+echo "---------------------------------------------------------------"
+read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
+
+case $main_choice in
+    1)
+        DOCKER_PROXY_HTTP
+        ADD_DOCKERD_PROXY
+        DOCKER_PROXY
+        ;;
+    2)
+        DEL_DOCKERD_PROXY
+        DOCKER_PROXY
+        ;;
+    3)
+        main_menu
+        ;;
+    0)
+        exit 1
+        ;;
+    *)
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
+        sleep 2; DOCKER_PROXY
+        ;;
+esac
+}
 
 # IP 黑白名单
 function IP_BLACKWHITE_LIST() {
@@ -3431,6 +3497,7 @@ function IP_BLACKWHITE_LIST() {
 
 # 其他工具
 function OtherTools() {
+SEPARATOR "其他工具"
 echo -e "1) 设置${BOLD}${YELLOW}系统命令${RESET}"
 echo -e "2) 配置${BOLD}${LIGHT_MAGENTA}IP黑白名单${RESET}"
 echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
@@ -3505,10 +3572,7 @@ case $main_choice in
         AUTH_SERVICE_CONFIG
         ;;
     7)
-        SEPARATOR "配置本机Docker代理"
-        DOCKER_PROXY_HTTP
-        ADD_DOCKERD_PROXY
-        SEPARATOR "Docker代理配置完成"
+        DOCKER_PROXY
         ;;
     8)
         OtherTools
