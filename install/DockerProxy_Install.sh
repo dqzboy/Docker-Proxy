@@ -1606,8 +1606,8 @@ function CHECK_DOCKER_PROXY() {
 function ADD_DOCKERD_PROXY() {
 mkdir -p /etc/systemd/system/docker.service.d
 
-
-if [ ! -f /etc/systemd/system/docker.service.d/http-proxy.conf ]; then
+# 设置代理的函数
+set_proxy_config() {
     cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
 Environment="HTTP_PROXY=http://$url"
@@ -1617,21 +1617,20 @@ EOF
     systemctl restart docker &>/dev/null
     CHECK_DOCKER
     CHECK_DOCKER_PROXY "$url"
+}
+
+# 检查并设置代理配置
+if [ ! -f /etc/systemd/system/docker.service.d/http-proxy.conf ]; then
+    # 如果配置文件不存在，直接设置代理
+    set_proxy_config
 else
-    if ! grep -q "HTTP_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf || ! grep -q "HTTPS_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf; then
-        cat >> /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
-[Service]
-Environment="HTTP_PROXY=http://$url"
-Environment="HTTPS_PROXY=http://$url"
-EOF
-        systemctl daemon-reload
-        systemctl restart docker &>/dev/null
-        CHECK_DOCKER
-        CHECK_DOCKER_PROXY "$url"
+    # 如果配置文件存在，检查是否有相同的代理配置
+    if ! grep -q "HTTP_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf || \
+       ! grep -q "HTTPS_PROXY=http://$url" /etc/systemd/system/docker.service.d/http-proxy.conf; then
+        # 配置文件存在，但没有相同的代理配置，添加新的代理配置
+        set_proxy_config
     else
-        if [[ "$main_choice" = "7" ]]; then
-            WARN "已经存在相同的代理配置,${LIGHT_RED}请勿重复配置${RESET}"
-        fi       
+        WARN "已经存在相同的代理配置,${LIGHT_RED}请勿重复配置${RESET}"
     fi
 fi
 }
