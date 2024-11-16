@@ -64,7 +64,7 @@ docker build -t hubcmd-ui .
 # 拉取镜像！如果你手动构建了镜像此步骤跳过
 docker pull dqzboy/hubcmd-ui:latest
 
-docker run -d -p 30080:3000 --name hubcmdui-server hubcmd-ui
+docker run -d -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
 ```
 
 
