@@ -5,7 +5,7 @@
 # 
 #         USAGE: ./DockerProxy_Install.sh
 #
-#   DESCRIPTION: 自建Docker镜像加速服务，基于官方 registry 一键部署Docker、K8s、Quay、Ghcr镜像加速\管理服务.支持部署到Render.
+#   DESCRIPTION: 自建Docker镜像加速服务，基于官方 registry 一键部署Docker、K8s、Quay、Ghcr、Nvcr镜像加速\管理服务.支持免服务器部署到Render.
 # 
 #  ORGANIZATION: DingQz dqzboy.com 浅时光博客
 #===============================================================================
@@ -267,16 +267,17 @@ systemctl disable firewalld &> /dev/null
 systemctl stop iptables &> /dev/null
 systemctl disable iptables &> /dev/null
 ufw disable &> /dev/null
-INFO "防火墙已被禁用."
+systemctl disable ufw &> /dev/null
+WARN "服务器防火墙已被禁用."
 
 if [[ "$repo_type" == "centos" || "$repo_type" == "rhel" ]]; then
     if sestatus | grep "SELinux status" | grep -q "enabled"; then
-        WARN "SELinux 已启用。禁用 SELinux..."
+        INFO "SELinux 已启用。禁用 SELinux..."
         setenforce 0
         sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-        INFO "SELinux 已被禁用."
+        WARN "SELinux 已被禁用."
     else
-        INFO "SELinux 已被禁用."
+        WARN "SELinux 已被禁用."
     fi
 fi
 }
@@ -1519,7 +1520,7 @@ function DOWN_CONFIG() {
         fi
     fi
 
-    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0禁用缓存过期${RESET}"
+    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0不清除缓存${RESET}"
     read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
     while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
         WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
@@ -1544,10 +1545,10 @@ function PROXY_HTTP() {
 read -e -p "$(INFO "是否添加代理? ${PROMPT_YES_NO}")" modify_config
 case $modify_config in
   [Yy]* )
-    read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
+    read -e -p "$(INFO "输入代理地址(科学上网) ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     while [[ -z "$url" ]]; do
       WARN "代理${LIGHT_YELLOW}地址不能为空${RESET}，请重新输入!"
-      read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
+      read -e -p "$(INFO "输入代理地址(科学上网) ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     done
     sed -i "s@#- http=http://host:port@- http_proxy=http://${url}@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} 
     sed -i "s@#- https=http://host:port@- https_proxy=http://${url}@g" ${PROXY_DIR}/${DOCKER_COMPOSE_FILE} 
@@ -1571,10 +1572,10 @@ WARN "${BOLD}${LIGHT_GREEN}提示:${RESET} ${LIGHT_CYAN}配置本机Docker服务
 read -e -p "$(INFO "是否添加本机Docker服务代理? ${PROMPT_YES_NO}")" modify_proxy
 case $modify_proxy in
   [Yy]* )
-    read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
+    read -e -p "$(INFO "输入代理地址(科学上网) ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     while [[ -z "$url" ]]; do
       WARN "代理${LIGHT_YELLOW}地址不能为空${RESET}，请重新输入。"
-      read -e -p "$(INFO "输入代理地址 ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
+      read -e -p "$(INFO "输入代理地址(科学上网) ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
     done
 
     INFO "你配置代理地址为: ${CYAN}http://${url}${RESET}"
@@ -2402,7 +2403,7 @@ MODIFY_SERVICE_TTL_CONFIG() {
     fi
 
     if [ ${#existing_files[@]} -gt 0 ]; then
-        WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0禁用缓存过期${RESET}"
+        WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0不清除缓存${RESET}"
         read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
         while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
             WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
@@ -2458,7 +2459,7 @@ START_NEW_SERVER_DOWN_CONFIG() {
         done
     fi
 
-    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0禁用缓存过期${RESET}"
+    WARN "${LIGHT_GREEN}>>> 提示:${RESET} ${LIGHT_BLUE}Proxy代理缓存过期时间${RESET} ${MAGENTA}单位:ns、us、ms、s、m、h.默认ns,0不清除缓存${RESET}"
     read -e -p "$(INFO "是否要修改缓存时间? ${PROMPT_YES_NO}")" modify_cache
     while [[ "$modify_cache" != "y" && "$modify_cache" != "n" ]]; do
         WARN "无效输入，请输入 ${LIGHT_GREEN}y${RESET} 或 ${LIGHT_YELLOW}n${RESET}"
