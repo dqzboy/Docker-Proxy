@@ -1542,7 +1542,7 @@ function DOWN_CONFIG() {
 
 # 一键部署调此函数
 function PROXY_HTTP() {
-read -e -p "$(INFO "是否添加代理? ${PROMPT_YES_NO}")" modify_config
+read -e -p "$(INFO "是否添加代理(科学上网)? ${PROMPT_YES_NO}")" modify_config
 case $modify_config in
   [Yy]* )
     read -e -p "$(INFO "输入代理地址(科学上网) ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
@@ -1833,19 +1833,23 @@ INTERNAL_IP=$(echo "$ALL_IPS" | awk '$1!="127.0.0.1" && $1!="::1" && $1!="docker
 echo
 INFO "=================感谢您的耐心等待，安装已经完成=================="
 INFO
-INFO "请用浏览器访问 UI 面板: "
+INFO "请用浏览器访问 UI 面板(此地址只是UI，非加速地址): "
 INFO "公网访问地址: ${UNDERLINE}http://$PUBLIC_IP:50000${RESET}"
 INFO "内网访问地址: ${UNDERLINE}http://$INTERNAL_IP:50000${RESET}"
 INFO
 INFO "服务安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
-INFO 
+INFO
+INFO "加速服务对应监听端口如下(参考信息):"
+INFO "DockerHub:51000  │  GHCR:52000   │  GCR:53000  │  K8S-GCR:54000"
+INFO "K8S:55000        │  Quay:56000   │  MCR:57000  │  Elastic:58000  │  NVCR:59000"
+INFO
 INFO "作者博客: https://dqzboy.com"
 INFO "技术交流: https://t.me/dqzboyblog"
 INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
-INFO  
+INFO
 INFO "若用云服务器并设域名及证书，需在安全组开放80、443端口；否则开放对应服务监听端口"
 INFO
-INFO "VPS推荐: https://my.racknerd.com/aff.php?aff=12151"
+INFO "AFF: VPS推荐: https://my.racknerd.com/aff.php?aff=12151"
 INFO
 INFO "================================================================"
 }
