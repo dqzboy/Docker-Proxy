@@ -1,7 +1,7 @@
 name: Housekeeping - Close stale issues   # 工作流程名称：处理陈旧问题
 on:
   schedule:
-    - cron: '0 9 * **'    # 定时触发：每天早上 9 点运行
+    - cron: '0 9 * * *'    # 定时触发：每天早上 9 点运行
 
 jobs:
   stale:    # 作业名称
