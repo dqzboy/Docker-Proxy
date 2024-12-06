@@ -18,8 +18,6 @@ jobs:
           # 问题被标记为陈旧后，再过 30 天自动关闭
           days-before-issue-close: 30        
           # 排除带有 "upcoming" 里程碑的问题
-          exempt-milestones: "upcoming"          
-          # 排除带有 'never-stale' 或 'kind/requirement' 标签的问题
-          exempt-issue-labels: 'never-stale, kind/requirement'          
+          exempt-milestones: "upcoming"                
           # 每次运行处理的最大操作数量
           operations-per-run: 1000
