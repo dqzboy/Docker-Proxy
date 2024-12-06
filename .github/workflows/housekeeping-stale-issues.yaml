@@ -1,21 +1,25 @@
-name: Housekeeping - Close stale issues
+name: Housekeeping - Close stale issues   # 工作流程名称：处理陈旧问题
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 9 * **'    # 定时触发：每天早上 9 点运行
 
 jobs:
-  stale:
-    runs-on: ubuntu-latest
+  stale:    # 作业名称
+    runs-on: ubuntu-latest    # 在最新版本的 Ubuntu 环境中运行
     steps:
-      - uses: actions/stale@v9.0.0
+      - uses: actions/stale@v9.0.0    # 使用 GitHub 官方的 stale action，版本 9.0.0
         with:
-          stale-issue-message: 'This issue is being marked stale due to a period of inactivity. If this issue is still relevant, please comment or remove the stale label. Otherwise, this issue will close in 30 days.'
-          close-issue-message: 'This issue was closed because it has been stalled for 30 days with no activity. If this issue is still relevant, please re-open a new issue.'
+          # 当问题被标记为陈旧时的提示消息
+          stale-issue-message: 'This issue is being marked stale due to a period of inactivity...'         
+          # 当问题被关闭时的提示消息
+          close-issue-message: 'This issue was closed because it has been stalled for 30 days...'          
+          # 问题在 60 天无活动后被标记为陈旧
           days-before-issue-stale: 60
-          days-before-issue-close: 30
-          # Don't add stale label to PRs / issues with milestones "upcoming" attached.
-          exempt-milestones: "upcoming"
-          # Don't add stale label to PRs / issues with this label
-          exempt-issue-labels: 'never-stale, kind/requirement'
-          # Make it 1000 to clean up a bit then wen can lower it
+          # 问题被标记为陈旧后，再过 30 天自动关闭
+          days-before-issue-close: 30        
+          # 排除带有 "upcoming" 里程碑的问题
+          exempt-milestones: "upcoming"          
+          # 排除带有 'never-stale' 或 'kind/requirement' 标签的问题
+          exempt-issue-labels: 'never-stale, kind/requirement'          
+          # 每次运行处理的最大操作数量
           operations-per-run: 1000
