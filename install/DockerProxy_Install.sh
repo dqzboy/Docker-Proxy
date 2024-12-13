@@ -78,6 +78,60 @@ function SEPARATOR() {
 }
 
 
+SPINNER_CHARS=('⣾' '⣽' '⣻' '⢿' '⡿' '⣟' '⣯' '⣷')
+SPINNER_DELAY=0.1
+
+function cleanup() {
+    trap - SIGINT SIGTERM
+    stop_spinner
+    echo
+    exit 1
+}
+
+function start_spinner() {
+    local msg="$1"
+    local temp_dir="/tmp/spinner"
+    local pid_file="${temp_dir}/pid"
+    local msg_file="${temp_dir}/message"
+    mkdir -p "$temp_dir"
+    echo "$msg" > "$msg_file"
+    trap cleanup SIGINT SIGTERM
+    (
+        trap 'exit 0' TERM
+        local i=0
+        while true; do
+            if [ -f "$msg_file" ]; then
+                msg=$(cat "$msg_file")
+                printf "\r${LIGHT_BLUE}%s${RESET} ${LIGHT_YELLOW}%s${RESET} " "${SPINNER_CHARS[i]}" "$msg"
+                i=$(( (i + 1) % ${#SPINNER_CHARS[@]} ))
+                sleep $SPINNER_DELAY
+            else
+                exit 0
+            fi
+        done
+    ) & disown
+    echo $! > "$pid_file"
+}
+
+function stop_spinner() {
+    local temp_dir="/tmp/spinner"
+    local pid_file="${temp_dir}/pid"
+    local msg_file="${temp_dir}/message"
+    
+    if [ -f "$pid_file" ]; then
+        local spinner_pid=$(cat "$pid_file")
+        rm -f "$msg_file"
+        rm -f "$pid_file"
+        kill -TERM "$spinner_pid" 2>/dev/null
+        wait "$spinner_pid" 2>/dev/null
+        printf "\r%-60s\r" " "
+        echo -ne "\033[0m"
+    fi
+
+    rm -rf "$temp_dir" 2>/dev/null
+    trap - SIGINT SIGTERM
+}
+
 # 检查是否以root权限运行
 if [[ $EUID -ne 0 ]]; then
    ERROR "此脚本必须以root权限运行!" 
@@ -370,28 +424,14 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
             INFO "${LIGHT_GREEN}已经安装${RESET} $package ..."
         else
             INFO "${LIGHT_CYAN}正在安装${RESET} $package ..."
-
+            start_spinner "安装 $package 中..."
+            
             start_time=$(date +%s)
+            $package_manager -y install "$package" --skip-broken > /dev/null 2>&1
+            install_status=$?
+            stop_spinner
 
-            $package_manager -y install "$package" --skip-broken > /dev/null 2>&1 &
-            install_pid=$!
-
-            while [[ $(($(date +%s) - $start_time)) -lt $TIMEOUT ]] && kill -0 $install_pid &>/dev/null; do
-                sleep 1
-            done
-
-            if kill -0 $install_pid &>/dev/null; then
-                read -e -p "$(WARN "$package 的安装时间超过 ${LIGHT_YELLOW}$TIMEOUT 秒${RESET}。是否继续? ${PROMPT_YES_NO}")" continue_install
-                if [ "$continue_install" != "y" ]; then
-                    ERROR "$package 的安装超时。退出脚本。"
-                    exit 1
-                else
-                    continue
-                fi
-            fi
-
-            wait $install_pid
-            if [ $? -ne 0 ]; then
+            if [ $install_status -ne 0 ]; then
                 ERROR "$package 安装失败。请检查系统安装源，然后再次运行此脚本！请尝试手动执行安装: ${LIGHT_BLUE}$package_manager -y install $package${RESET}"
                 exit 1
             fi
@@ -405,8 +445,12 @@ elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
             INFO "已经安装 $package ..."
         else
             INFO "正在安装 $package ..."
+            start_spinner "安装 $package 中..."
             $package_manager install -y $package > /dev/null 2>&1
-            if [ $? -ne 0 ]; then
+            install_status=$?
+            stop_spinner
+            
+            if [ $install_status -ne 0 ]; then
                 ERROR "安装 $package 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装: ${LIGHT_BLUE}$package_manager -y install $package${RESET}"
                 exit 1
             fi
@@ -468,10 +512,14 @@ if [ "$package_manager" = "dnf" ]; then
     else
         INFO "正在安装Caddy程序，请稍候..."
 
+        start_spinner "安装Caddy中..."
         $package_manager -y install 'dnf-command(copr)' &>/dev/null
         $package_manager -y copr enable @caddy/caddy &>/dev/null
+        stop_spinner
         while [ $attempts -lt $maxAttempts ]; do
+            start_spinner "安装Caddy服务..."
             $package_manager -y install caddy &>/dev/null
+            stop_spinner
 
             if [ $? -ne 0 ]; then
                 ((attempts++))
@@ -483,7 +531,7 @@ if [ "$package_manager" = "dnf" ]; then
                     exit 1
                 fi
             else
-                INFO "已安装 Caddy."
+                INFO "已安装 Caddy"
                 break
             fi
         done
@@ -737,10 +785,15 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
         INFO "正在安装Nginx程序，请稍候..."
         NGINX="nginx-1.24.0-1.el${OSVER}.ngx.x86_64.rpm"
 
+        start_spinner "下载Nginx安装包..."
         rm -f ${NGINX}
         wget http://nginx.org/packages/centos/${OSVER}/x86_64/RPMS/${NGINX} &>/dev/null
+        stop_spinner
+
         while [ $attempts -lt $maxAttempts ]; do
+            start_spinner "安装Nginx服务..."
             $package_manager -y install ${NGINX} &>/dev/null
+            stop_spinner
 
             if [ $? -ne 0 ]; then
                 ((attempts++))
@@ -1141,8 +1194,13 @@ if [ "$repo_type" = "centos" ] || [ "$repo_type" = "rhel" ]; then
       while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
         attempt=$((attempt + 1))
         WARN "Docker 未安装，正在进行安装..."
+        start_spinner "添加Docker仓库..."
         yum-config-manager --add-repo $url/$repo_file &>/dev/null
+        stop_spinner
+
+        start_spinner "安装Docker服务..."
         $package_manager -y install docker-ce &>/dev/null
+        stop_spinner
         if [ $? -eq 0 ]; then
             success=true
             break
@@ -1152,9 +1210,11 @@ if [ "$repo_type" = "centos" ] || [ "$repo_type" = "rhel" ]; then
 
       if $success; then
          INFO "Docker 安装成功，版本为：$(docker --version)"
+         start_spinner "启动Docker服务..."
          systemctl restart docker &>/dev/null
+         stop_spinner
          CHECK_DOCKER
-         systemctl enable docker &>/dev/null
+         systemctl enable docker &>/dev/null         
       else
          ERROR "Docker 安装失败，请尝试手动安装"
          exit 1
@@ -1168,9 +1228,11 @@ elif [ "$repo_type" == "ubuntu" ]; then
       while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
         attempt=$((attempt + 1))
         WARN "Docker 未安装，正在进行安装..."
+        start_spinner "添加Docker仓库..."        
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
+        stop_spinner
         if [ $? -eq 0 ]; then
             success=true
             break
@@ -1197,9 +1259,11 @@ elif [ "$repo_type" == "debian" ]; then
         attempt=$((attempt + 1))
 
         WARN "Docker 未安装，正在进行安装..."
+        start_spinner "添加Docker仓库..."
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
+        stop_spinner
         if [ $? -eq 0 ]; then
             success=true
             break
@@ -1242,7 +1306,9 @@ if ! command -v docker-compose &> /dev/null || [ -z "$(docker-compose --version)
     WARN "Docker Compose 未安装或安装不完整，正在进行安装..."    
     while [ $attempt -lt $MAX_ATTEMPTS ]; do
         attempt=$((attempt + 1))
+        start_spinner "下载Docker Compose..."
         wget --continue -q $url -O $save_path/docker-compose
+        stop_spinner
         if [ $? -eq 0 ]; then
             chmod +x $save_path/docker-compose
             version_check=$(docker-compose --version)
@@ -1301,7 +1367,9 @@ if ! command -v docker &> /dev/null; then
   while [ $attempt -lt $MAX_ATTEMPTS ]; do
     attempt=$((attempt + 1))
     WARN "Docker 未安装，正在进行安装..."
+    start_spinner "添加Docker仓库..."
     wget -P "$save_path" "$url" &>/dev/null
+    stop_spinner
     if [ $? -eq 0 ]; then
         success=true
         break
@@ -1383,7 +1451,9 @@ if ! command -v docker-compose &> /dev/null || [ -z "$(docker-compose --version)
     WARN "Docker Compose 未安装或安装不完整，正在进行安装..."    
     while [ $attempt -lt $MAX_ATTEMPTS ]; do
         attempt=$((attempt + 1))
+        start_spinner "下载Docker Compose..."
         wget --continue -q $url -O $save_path/docker-compose
+        stop_spinner
         if [ $? -eq 0 ]; then
             chmod +x $save_path/docker-compose
             version_check=$(docker-compose --version)
@@ -1677,7 +1747,7 @@ function START_CONTAINER() {
     if [ "$modify_config" = "y" ] || [ "$modify_config" = "Y" ]; then
         ADD_DOCKERD_PROXY
     else
-        INFO "拉取服务镜像并启动服务中，请稍等..."
+        INFO "拉取服务镜像并启动服务中..."
     fi
 
     # DOWN_CONFIG函数执行后判断selected_all变量
@@ -2091,7 +2161,6 @@ esac
 
 
 function COMP_INST() {
-CHECK_COMPOSE_CMD
 SEPARATOR "安装组件"
 echo -e "1) ${BOLD}安装${LIGHT_GREEN}环境依赖${RESET}"
 echo -e "2) ${BOLD}安装${LIGHT_CYAN}Docker${RESET}"
@@ -2139,6 +2208,7 @@ case $comp_choice in
         CHECK_OS
         CHECK_PACKAGE_MANAGER
         CHECK_PKG_MANAGER
+        CHECK_COMPOSE_CMD
         while true; do
             read -e -p "$(INFO "安装环境确认 [${LIGHT_GREEN}国外输1${RESET} ${LIGHT_YELLOW}国内输2${RESET}] > ")" deploy_compose
             case "$deploy_compose" in
