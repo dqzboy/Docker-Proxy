@@ -5,7 +5,7 @@ log:
 storage:
   filesystem:
     rootdirectory: /var/lib/registry
-  #inmemory: #此存储驱动程序不会在运行期间保留数据,只适合测试    
+  #inmemory: #此存储驱动程序不会在运行期间保留任何数据,适合磁盘空间下的机器使用(但是会使用内存开销,只适合测试) 
   delete:
     enabled: true
   cache:
