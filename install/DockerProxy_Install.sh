@@ -3610,7 +3610,7 @@ echo -e "╔══════════════════════�
 echo -e "║                                                    ║"
 echo -e "║                ${LIGHT_CYAN}欢迎使用Docker-Proxy${RESET}                ║"
 echo -e "║                                                    ║"
-echo -e "║          TG频道: ${UNDERLINE}https://t.me/dqzboyblog${RESET}           ║"
+echo -e "║        TG交流群: ${UNDERLINE}https://t.me/Docker_Proxy${RESET}         ║"
 echo -e "║                                                    ║"
 echo -e "║                                       ${LIGHT_BLUE}by dqzboy${RESET}    ║"
 echo -e "║                                                    ║"
