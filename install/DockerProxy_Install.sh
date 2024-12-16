@@ -1231,6 +1231,7 @@ elif [ "$repo_type" == "ubuntu" ]; then
         start_spinner "添加Docker仓库..."        
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
+        start_spinner "安装Docker服务..."
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
         stop_spinner
         if [ $? -eq 0 ]; then
@@ -1262,6 +1263,7 @@ elif [ "$repo_type" == "debian" ]; then
         start_spinner "添加Docker仓库..."
         curl -fsSL $url/gpg | sudo apt-key add - &>/dev/null
         add-apt-repository "deb [arch=amd64] $url $(lsb_release -cs) stable" <<< $'\n' &>/dev/null
+        start_spinner "安装Docker服务..."
         $package_manager -y install docker-ce docker-ce-cli containerd.io &>/dev/null
         stop_spinner
         if [ $? -eq 0 ]; then
@@ -1367,7 +1369,7 @@ if ! command -v docker &> /dev/null; then
   while [ $attempt -lt $MAX_ATTEMPTS ]; do
     attempt=$((attempt + 1))
     WARN "Docker 未安装，正在进行安装..."
-    start_spinner "添加Docker仓库..."
+    start_spinner "安装Docker服务..."
     wget -P "$save_path" "$url" &>/dev/null
     stop_spinner
     if [ $? -eq 0 ]; then
@@ -3172,7 +3174,7 @@ esac
 # 本机Docker代理
 function DOCKER_PROXY() {
 SEPARATOR "Docker服务代理"
-echo -e "1) ${BOLD}${GREEN}添加${RESET}本机Docker代理"
+echo -e "1) ${BOLD}${LIGHT_GREEN}添加${RESET}本机Docker代理"
 echo -e "2) ${BOLD}${YELLOW}移除${RESET}本机Docker代理"
 echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
