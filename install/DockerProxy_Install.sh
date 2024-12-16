@@ -839,7 +839,7 @@ fi
 function CONFIG_NGINX() {
 SEPARATOR "配置Nginx"
 while true; do
-    WARN "自行安装的 Nginx ${LIGHT_RED}请勿执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
+    WARN "自行安装的 Nginx ${LIGHT_RED}请谨慎执行此操作${RESET}，${LIGHT_BLUE}以防覆盖原有配置${RESET}"
     INFO "${LIGHT_GREEN}>>> 域名解析主机记录(即域名前缀):${RESET} ${LIGHT_CYAN}${REGISTRY_SLD}${RESET}"
     WARN "${LIGHT_GREEN}>>> 只需选择你部署的服务进行解析即可${RESET},${LIGHT_YELLOW}无需将上面提示中所有的主机记录进行解析${RESET}"
     read -e -p "$(WARN "是否配置 Nginx？配置完成后需在DNS服务商解析主机记录 ${PROMPT_YES_NO}")" nginx_conf
@@ -1909,19 +1909,20 @@ INFO "请用浏览器访问 UI 面板(此地址只是UI，非加速地址): "
 INFO "公网访问地址: ${UNDERLINE}http://$PUBLIC_IP:50000${RESET}"
 INFO "内网访问地址: ${UNDERLINE}http://$INTERNAL_IP:50000${RESET}"
 INFO
-INFO "服务安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
+INFO "加速服务安装路径: ${LIGHT_BLUE}${PROXY_DIR}${RESET}"
 INFO
 INFO "加速服务对应监听端口如下(参考信息):"
 INFO "DockerHub:51000  │  GHCR:52000   │  GCR:53000  │  K8S-GCR:54000"
 INFO "K8S:55000        │  Quay:56000   │  MCR:57000  │  Elastic:58000  │  NVCR:59000"
 INFO
 INFO "作者博客: https://dqzboy.com"
-INFO "技术交流: https://t.me/dqzboyblog"
+INFO "项目交流: https://t.me/Docker_Proxy"
 INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
+INFO "合作联系: https://t.me/WiseAidBot"
 INFO
 INFO "若用云服务器并设域名及证书，需在安全组开放80、443端口；否则开放对应服务监听端口"
 INFO
-INFO "AFF: VPS推荐: https://dqzboy.github.io/proxyui/racknerd"
+INFO "VPS推荐(AFF): https://dqzboy.github.io/proxyui/racknerd"
 INFO
 INFO "================================================================"
 }
@@ -2047,10 +2048,11 @@ INFO
 INFO "服务安装路径: ${LIGHT_BLUE}${CMDUI_DIR}${RESET}"
 INFO 
 INFO "作者博客: https://dqzboy.com"
-INFO "技术交流: https://t.me/dqzboyblog"
+INFO "项目交流: https://t.me/Docker_Proxy"
 INFO "代码仓库: https://github.com/dqzboy/Docker-Proxy"
+INFO "合作联系: https://t.me/WiseAidBot"
 INFO
-INFO "AFF VPS推荐: https://dqzboy.github.io/proxyui/racknerd"
+INFO "VPS推荐(AFF): https://dqzboy.github.io/proxyui/racknerd"
 INFO
 INFO "================================================================"
 }
