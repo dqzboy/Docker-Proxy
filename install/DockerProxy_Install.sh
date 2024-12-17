@@ -268,10 +268,10 @@ function CHECK_PACKAGE_MANAGER() {
         package_manager="dnf"
     elif command -v yum &> /dev/null; then
         package_manager="yum"
-    elif command -v apt-get &> /dev/null; then
-        package_manager="apt-get"
     elif command -v apt &> /dev/null; then
         package_manager="apt"
+    elif command -v apt-get &> /dev/null; then
+        package_manager="apt-get"
     else
         ERROR "不受支持的软件包管理器."
         exit 1
@@ -437,9 +437,11 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
             fi
         fi
     done
-elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
+elif [ "$package_manager" = "apt" ] || [ "$package_manager" = "apt-get" ];then
+    start_spinner "正在检查依赖安装情况..."
     dpkg --configure -a &>/dev/null
-    $package_manager update &>/dev/null
+    $package_manager -y update &>/dev/null
+    stop_spinner
     for package in "${PACKAGES_APT[@]}"; do
         if $pkg_manager -s "$package" &>/dev/null; then
             INFO "已经安装 $package ..."
@@ -520,7 +522,6 @@ if [ "$package_manager" = "dnf" ]; then
             start_spinner "安装Caddy服务..."
             $package_manager -y install caddy &>/dev/null
             stop_spinner
-
             if [ $? -ne 0 ]; then
                 ((attempts++))
                 WARN "正在尝试安装Caddy >>> (Attempt: $attempts)"
@@ -531,7 +532,7 @@ if [ "$package_manager" = "dnf" ]; then
                     exit 1
                 fi
             else
-                INFO "已安装 Caddy"
+                INFO "检测到服务 Caddy 已安装"
                 break
             fi
         done
@@ -544,10 +545,14 @@ elif [ "$package_manager" = "yum" ]; then
     else
         INFO "正在安装Caddy程序，请稍候..."
 
+        start_spinner "安装Caddy中..."
         $package_manager -y install yum-plugin-copr &>/dev/null
         $package_manager -y copr enable @caddy/caddy &>/dev/null
+        stop_spinner
         while [ $attempts -lt $maxAttempts ]; do
+            start_spinner "安装Caddy服务..."
             $package_manager -y install caddy &>/dev/null
+            stop_spinner
             if [ $? -ne 0 ]; then
                 ((attempts++))
                 WARN "正在尝试安装Caddy >>> (Attempt: $attempts)"
@@ -558,7 +563,7 @@ elif [ "$package_manager" = "yum" ]; then
                     exit 1
                 fi
             else
-                INFO "已安装 Caddy."
+                INFO "检测到服务 Caddy 已安装"
                 break
             fi
         done
@@ -568,20 +573,37 @@ elif [ "$package_manager" = "yum" ]; then
 
 elif [ "$package_manager" = "apt" ] || [ "$package_manager" = "apt-get" ];then
     dpkg --configure -a &>/dev/null
-    $package_manager update &>/dev/null
     if $pkg_manager -s "caddy" &>/dev/null; then
-        INFO "Caddy 已安装，跳过..."
+        INFO "检测到服务 Caddy 已安装，跳过..."
     else
         INFO "安装 Caddy 请稍等 ..."
+
+        start_spinner "安装Caddy中..."
+        $package_manager -y update &>/dev/null
         $package_manager install -y debian-keyring debian-archive-keyring apt-transport-https &>/dev/null
         curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg &>/dev/null
         curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list &>/dev/null
-        $package_manager update &>/dev/null
+        $package_manager -y update &>/dev/null
         $package_manager install -y caddy &>/dev/null
-        if [ $? -ne 0 ]; then
-            ERROR "安装 Caddy 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install caddy"
-            exit 1
-        fi
+        stop_spinner
+        while [ $attempts -lt $maxAttempts ]; do
+            start_spinner "安装Caddy服务..."
+            $package_manager -y install caddy &>/dev/null
+            stop_spinner
+            if [ $? -ne 0 ]; then
+                ((attempts++))
+                WARN "正在尝试安装Caddy >>> (Attempt: $attempts)"
+
+                if [ $attempts -eq $maxAttempts ]; then
+                    ERROR "Caddy installation failed. Please try installing manually."
+                    echo "命令: $package_manager -y install update && $package_manager -y install caddy"
+                    exit 1
+                fi
+            else
+                INFO "检测到服务 Caddy 已安装"
+                break
+            fi
+        done
     fi
 
     check_caddy
@@ -806,7 +828,7 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
                     exit 1
                 fi
             else
-                INFO "已安装 Nginx."
+                INFO "检测到服务 Nginx 已安装"
                 rm -f ${NGINX}
                 break
             fi
@@ -815,18 +837,31 @@ if [ "$package_manager" = "dnf" ] || [ "$package_manager" = "yum" ]; then
 
     check_nginx
 
-elif [ "$package_manager" = "apt-get" ] || [ "$package_manager" = "apt" ];then
+elif [ "$package_manager" = "apt" ] || [ "$package_manager" = "apt-get" ];then
     dpkg --configure -a &>/dev/null
-    $package_manager update &>/dev/null
     if $pkg_manager -s "nginx" &>/dev/null; then
-        INFO "nginx 已安装，跳过..."
+        INFO "检测到服务 Nginx 已安装，跳过..."
     else
-        INFO "安装 nginx 请稍等 ..."
-        $package_manager install -y nginx > /dev/null 2>&1
-        if [ $? -ne 0 ]; then
-            ERROR "安装 nginx 失败,请检查系统安装源之后再次运行此脚本！请尝试手动执行安装：$package_manager -y install nginx"
-            exit 1
-        fi
+        INFO "安装 Nginx 请稍等 ..."
+        while [ $attempts -lt $maxAttempts ]; do
+            start_spinner "安装Nginx服务..."
+            $package_manager -y update &>/dev/null
+            $package_manager install -y nginx > /dev/null 2>&1
+            stop_spinner
+            if [ $? -ne 0 ]; then
+                ((attempts++))
+                WARN "正在尝试安装Nginx >>> (Attempt: $attempts)"
+
+                if [ $attempts -eq $maxAttempts ]; then
+                    ERROR "Nginx installation failed. Please try installing manually."
+                    echo "命令: $package_manager install -y nginx"
+                    exit 1
+                fi
+            else
+                INFO "检测到服务 Nginx 已安装"
+                break
+            fi
+        done
     fi
 
     check_nginx
