@@ -60,7 +60,9 @@
 
 > **部署过程中出现的问题或者疑问，请点击这里 [问题总结](Issue/issue.md)，查看是否有你遇到的情况！尝试先自己解决。**
 
-[![高性价比海外 VPS 推荐](https://github.com/user-attachments/assets/88f7dd6c-cb5e-4fdb-ba6b-d882d39cba8c "点击查看")](https://dqzboy.github.io/proxyui/racknerd)
+<a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">
+    <img src="https://github.com/user-attachments/assets/88f7dd6c-cb5e-4fdb-ba6b-d882d39cba8c" alt="高性价比海外 VPS 推荐" title="点击查看">
+</a>
 
 ---
 
