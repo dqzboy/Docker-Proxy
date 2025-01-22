@@ -147,7 +147,7 @@ docker logs -f [容器ID或名称]
 - [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
 - [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
 - [x] 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
-- [x] 针对本项目开发Docker Registry管理面板，实现镜像搜索、广告展示、文档教程、容器管理、容器监控告警、网络测试等功能
+- [x] HubCMD-UI服务，实现镜像搜索、文档教程、容器管理、容器监控告警、网络测试等功能，[Demo](https://dqzboy.github.io/proxyui/)
 
 ## ✨ 教程
 #### 配置Nginx反向代理
