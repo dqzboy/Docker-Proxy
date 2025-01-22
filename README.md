@@ -76,8 +76,7 @@
 - [x] 提供了服务管理、配置管理、服务卸载、认证授权等功能，方便用户进行日常管理和维护
 - [x] 支持一键配置本机Docker代理和容器服务代理(HTTP_PROXY)，仅支持http
 - [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
-- [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
-- [x] 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
+- [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等，支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
 - [x] HubCMD-UI服务，实现镜像搜索、文档教程、容器管理、容器监控告警、网络测试等功能，[Demo](https://dqzboy.github.io/proxyui/)
 
 ## 📦 部署
