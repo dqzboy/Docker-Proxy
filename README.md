@@ -66,6 +66,19 @@
 
 ---
 
+## 🔨 功能
+- [x] 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
+- [x] 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry(ghcr.io)、Quay Container Registry(quay.io)、Kubernetes Container Registry(k8s.gcr.io)、Microsoft Container(mcr.microsoft.com)、Elastic Stack(docker.elastic.co)
+- [x] 自动检查并安装所需的依赖软件，如Docker\Compose、Nginx\Caddy等，并确保系统环境满足运行要求
+- [x] 根据你所选择部署的WEB反代服务，自动渲染对应的Nginx或Caddy服务配置
+- [x] 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
+- [x] 支持自定义配置代理缓存时间(PROXY_TTL)、支持配置IP黑白名单，防止恶意攻击行为
+- [x] 提供了服务管理、配置管理、服务卸载、认证授权等功能，方便用户进行日常管理和维护
+- [x] 支持一键配置本机Docker代理和容器服务代理(HTTP_PROXY)，仅支持http
+- [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
+- [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
+- [x] 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
+- [x] HubCMD-UI服务，实现镜像搜索、文档教程、容器管理、容器监控告警、网络测试等功能，[Demo](https://dqzboy.github.io/proxyui/)
 
 ## 📦 部署
 ### 通过项目脚本部署
@@ -134,20 +147,6 @@ docker logs -f [容器ID或名称]
 
 </details>
 
-
-## 🔨 功能
-- [x] 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
-- [x] 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry(ghcr.io)、Quay Container Registry(quay.io)、Kubernetes Container Registry(k8s.gcr.io)、Microsoft Container(mcr.microsoft.com)、Elastic Stack(docker.elastic.co)
-- [x] 自动检查并安装所需的依赖软件，如Docker\Compose、Nginx\Caddy等，并确保系统环境满足运行要求
-- [x] 根据你所选择部署的WEB反代服务，自动渲染对应的Nginx或Caddy服务配置
-- [x] 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
-- [x] 支持自定义配置代理缓存时间(PROXY_TTL)、支持配置IP黑白名单，防止恶意攻击行为
-- [x] 提供了服务管理、配置管理、服务卸载、认证授权等功能，方便用户进行日常管理和维护
-- [x] 支持一键配置本机Docker代理和容器服务代理(HTTP_PROXY)，仅支持http
-- [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
-- [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等
-- [x] 支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
-- [x] HubCMD-UI服务，实现镜像搜索、文档教程、容器管理、容器监控告警、网络测试等功能，[Demo](https://dqzboy.github.io/proxyui/)
 
 ## ✨ 教程
 #### 配置Nginx反向代理
