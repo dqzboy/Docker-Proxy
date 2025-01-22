@@ -221,19 +221,19 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 <table>
     <tr>
       <td width="50%" align="center"><b>Docker Registry UI</b></td>
-      <td width="50%" align="center"><b>Docker-Proxy CmdUI</b></td>
+      <td width="50%" align="center"><b>Docker HubCMD UI</b></td>
     </tr>
     <tr>
         <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c7e368ca-7f1a-4311-9a10-a5f4f06d86d8?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f394041e-954c-4b04-9cbb-d61c43290db6?raw=true"></td>
     </tr>
     <tr>
-      <td width="50%" align="center"><b>Docker官方镜像搜索</b></td>
-      <td width="50%" align="center"><b>Docker容器服务管理</b></td>
+      <td width="50%" align="center"><b>文档教程管理</b></td>
+      <td width="50%" align="center"><b>HubCMD-UI后台</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/8569c5c4-4ce6-4cd4-8547-fa9816019049?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/fb30f747-a2af-4fc8-b3cc-05c71a044da0?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/6f34d717-95c8-47b4-89b8-812151904448?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/816c95af-dbd1-46ce-b550-87e0853f23e2?raw=true"></td>
     </tr>
 </table>
 

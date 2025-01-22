@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/css/editormd.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/editormd.min.js"></script>
+    <!-- 添加Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Lato', 'Helvetica', 'Arial', sans-serif;
@@ -587,6 +589,241 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        /* 侧边栏样式优化 */
+        .sidebar {
+            background: #2c3e50;
+            color: #ecf0f1;
+            min-width: 250px;
+            padding: 2rem 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar h2 {
+            color: #ecf0f1;
+            padding: 0 2rem;
+            margin-bottom: 2rem;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar h2 i {
+            color: #3498db;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #bdc3c7;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar li i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar li:hover {
+            background-color: #34495e;
+            color: #3498db;
+        }
+
+        .sidebar li.active {
+            background-color: #3498db;
+            color: #ffffff;
+        }
+
+        /* 内容区域样式优化 */
+        .content-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .content-section h1.admin-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        /* 表单元素样式优化 */
+        .content-section input[type="text"],
+        .content-section input[type="url"],
+        .content-section input[type="password"],
+        .content-section select {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.8rem;
+            border: 1px solid #dcdde1;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .content-section input:focus,
+        .content-section select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .content-section button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .content-section button:hover {
+            background-color: #2980b9;
+        }
+
+        /* 表格样式优化 */
+        .content-section table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .content-section th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 1rem;
+        }
+
+        .content-section td {
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .content-section tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* 其他现有样式保持不变... */
+    </style>
+    <!-- 使用与前端相同的根变量 -->
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #1976D2;
+            --background-color: #f8f9fa;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            background: var(--container-bg);
+            border-right: 1px solid var(--border-color);
+            min-width: 220px;
+            padding: 2rem 0;
+        }
+
+        .sidebar h2 {
+            color: var(--primary-color);
+            padding: 0 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .sidebar li {
+            padding: 0.8rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar li:hover {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+        }
+
+        .sidebar li.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* 内容区域样式 */
+        .content-section {
+            background: var(--container-bg);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 表单元素样式 */
+        input[type="text"],
+        input[type="url"],
+        input[type="password"],
+        select {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        /* 按钮样式 */
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--background-color);
+            font-weight: 500;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -596,16 +833,29 @@
     </div>
     <div class="admin-container" id="adminContainer" style="display: none;">
         <div class="sidebar">
-            <h2>管理面板</h2>
+            <h2><i class="fas fa-cogs"></i>管理面板</h2>
             <ul>
-                <li class="active" data-section="basic-config">基本配置</li>
-                <li data-section="menu-management">菜单管理</li>
-                <li data-section="ad-management">广告管理</li>
-                <li data-section="documentation-management">文档管理</li>            
-                <li data-section="password-change">修改密码</li>
-                <li data-section="network-test">网络测试</li>
-                <li data-section="docker-status">容器管理</li>
-                <li data-section="docker-monitoring">容器监控</li>
+                <li data-section="basic-config" class="active">
+                    <i class="fas fa-wrench"></i>基本配置
+                </li>
+                <li data-section="menu-management">
+                    <i class="fas fa-bars"></i>菜单管理
+                </li>
+                <li data-section="documentation-management">
+                    <i class="fas fa-file-alt"></i>文档管理
+                </li>
+                <li data-section="network-test">
+                    <i class="fas fa-network-wired"></i>网络测试
+                </li>
+                <li data-section="docker-status">
+                    <i class="fab fa-docker"></i>容器管理
+                </li>
+                <li data-section="docker-monitoring">
+                    <i class="fas fa-chart-line"></i>容器监控
+                </li>
+                <li data-section="password-change">
+                    <i class="fas fa-key"></i>修改密码
+                </li>
             </ul>
         </div>
         <div class="content-area">
@@ -637,23 +887,6 @@
                         </tbody>
                     </table>
                     <button type="button" class="add-btn" onclick="showNewMenuItemRow()">添加菜单项</button>
-                </div>
-                
-                <div id="ad-management" class="content-section">
-                    <h2 class="menu-label">广告管理</h2>
-                    <table id="adTable">
-                        <thead>
-                            <tr>
-                                <th>广告图片URL</th>
-                                <th>跳转URL</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adTableBody">
-                            <!-- 广告项将在这里动态添加 -->
-                        </tbody>
-                    </table>
-                    <button type="button" class="add-btn" onclick="showNewAdRow()">添加广告</button>
                 </div>
   
                 <!-- 文档管理部分 -->
@@ -707,7 +940,7 @@
                             <option value="k8s.gcr.io">k8s.gcr.io</option>
                             <option value="registry.k8s.io">registry.k8s.io</option>
                             <option value="mcr.microsoft.com">mcr.microsoft.com</option>
-                            <option value="docker.elastic.com">docker.elastic.com</option>
+                            <option value="docker.elastic.co">docker.elastic.co</option>
                             <option value="registry-1.docker.io">registry-1.docker.io</option>
                         </select>
                     </div>
@@ -824,7 +1057,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js"></script>
     <script>
         let menuItems = [];
-        let adImages = [];
         let isLoggedIn = false;
         let editingIndex = -1; // 用于记录当前编辑的菜单项索引
         let editor;
@@ -1139,109 +1371,6 @@
             }
         }
 
-        function showNewAdRow() {
-            const tbody = document.getElementById('adTableBody');
-            const newRow = `
-                <tr id="newAdRow">
-                    <td><input type="url" id="newAdUrl" placeholder="广告图片URL"></td>
-                    <td><input type="url" id="newAdLink" placeholder="跳转URL"></td>
-                    <td>
-                        <button type="button" class="action-btn" onclick="saveNewAd()">保存</button>
-                        <button type="button" class="action-btn" onclick="cancelNewAd()">取消</button>
-                    </td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', newRow);
-        }
-
-        function renderAdItems() {
-            console.log('Rendering ad items:', adImages);
-            const tbody = document.getElementById('adTableBody');
-            tbody.innerHTML = '';
-            adImages.forEach((ad, index) => {
-                const row = `
-                    <tr data-index="${index}">
-                        <td><input type="url" class="ad-url" value="${ad.url || ''}" disabled></td>
-                        <td><input type="url" class="ad-link" value="${ad.link || ''}" disabled></td>
-                        <td>
-                            <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn ad-delete-btn">删除</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            setupAdEditButtons();
-            setupAdDeleteButtons();
-        }
-
-        function setupAdEditButtons() {
-            const editButtons = document.querySelectorAll('.edit-btn');
-            editButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const row = button.closest('tr');
-                    const urlInput = row.querySelector('.ad-url');
-                    const linkInput = row.querySelector('.ad-link');
-
-                    if (urlInput.disabled) {
-                        urlInput.disabled = false;
-                        linkInput.disabled = false;
-                        button.textContent = '保存';
-                    } else {
-                        const index = parseInt(row.getAttribute('data-index'));
-                        const url = urlInput.value || '';
-                        const link = linkInput.value || '';
-
-                        if (url) {
-                            adImages[index] = { url, link };
-                            saveAd(index, { url, link });
-                            urlInput.disabled = true;
-                            linkInput.disabled = true;
-                            button.textContent = '编辑';
-                        } else {
-                            alert('广告URL不能为空');
-                        }
-                    }
-                });
-            });
-        }
-
-        function setupAdDeleteButtons() {
-            const deleteButtons = document.querySelectorAll('.ad-delete-btn');
-            deleteButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const row = button.closest('tr');
-                    const index = parseInt(row.getAttribute('data-index'));
-                    const adUrl = row.querySelector('.ad-url').value;
-                    if (confirm(`确定要删除广告 "${adUrl}" 吗？`)) {
-                        deleteAd(index);
-                    }
-                });
-            });
-        }
-
-        function saveNewAd() {
-            const url = document.getElementById('newAdUrl').value || '';
-            const link = document.getElementById('newAdLink').value || '';
-
-            if (!url) {
-                alert('广告图片URL为必填项');
-                return;
-            }
-
-            const newAd = { url, link };
-            adImages.push(newAd);
-            saveAd(adImages.length - 1, newAd);
-            cancelNewAd();
-        }
-
-        function cancelNewAd() {
-            const newRow = document.getElementById('newAdRow');
-            if (newRow) {
-                newRow.remove();
-            }
-        }
-
         async function saveLogo() {
             const logoUrl = document.getElementById('logoUrl').value;
             if (!logoUrl) {
@@ -1293,46 +1422,6 @@
             } catch (error) {
                 console.error('删除菜单项失败:', error);
                 alert('删除菜单项失败: ' + error.message);
-            }
-        }
-
-        async function saveAd(index, ad) {
-            console.log(`Saving ad at index ${index}:`, ad);
-            try {
-                const response = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adImages: adImages })
-                });
-                if (response.ok) {
-                    console.log('Ad saved successfully');
-                    renderAdItems(); // 重新渲染广告项
-                } else {
-                    throw new Error('Failed to save ad');
-                }
-            } catch (error) {
-                console.error('保存广告失败:', error);
-                alert('保存广告失败: ' + error.message);
-            }
-        }
-
-        async function deleteAd(index) {
-            try {
-                adImages.splice(index, 1);
-                const response = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ adImages: adImages })
-                });
-                if (response.ok) {
-                    console.log('Ad deleted successfully');
-                    renderAdItems(); // 重新渲染广告项
-                } else {
-                    throw new Error('Failed to delete ad');
-                }
-            } catch (error) {
-                console.error('删除广告项失败:', error);
-                alert('删除广告项失败: ' + error.message);
             }
         }
 
@@ -1422,8 +1511,6 @@
                 document.getElementById('logoUrl').value = config.logo || '';
                 document.getElementById('proxyDomain').value = config.proxyDomain || '';
                 setMenuItems(config.menuItems || []);
-                adImages = config.adImages || [];
-                renderAdItems();
                 loadDocumentation(); // 新增：加载文档
             } catch (error) {
                 console.error('加载配置失败:', error);
