@@ -71,7 +71,7 @@
 - [x] 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry(ghcr.io)、Quay Container Registry(quay.io)、Kubernetes Container Registry(k8s.gcr.io)、Microsoft Container(mcr.microsoft.com)、Elastic Stack(docker.elastic.co)
 - [x] 自动检查并安装所需的依赖软件，如Docker\Compose、Nginx\Caddy等，并确保系统环境满足运行要求
 - [x] 根据你所选择部署的WEB反代服务，自动渲染对应的Nginx或Caddy服务配置
-- [x] 自动清理注册表上传目录中的那些不再被任何镜像或清单引用的文件
+- [x] 支持配置账号密码登入Docker Hub，可访问 Docker Hub 上的私有镜像同时解决Docker Hub的下载频率限制 [配置参考](https://github.com/dqzboy/Docker-Proxy/blob/main/Issue/issue.md#12%E5%85%B3%E4%BA%8Edocker-hub%E5%85%8D%E8%B4%B9%E6%8B%89%E5%8F%96%E6%94%BF%E7%AD%96%E5%86%8D%E6%AC%A1%E5%8F%98%E6%9B%B4%E5%90%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88)
 - [x] 支持自定义配置代理缓存时间(PROXY_TTL)、支持配置IP黑白名单，防止恶意攻击行为
 - [x] 提供了服务管理、配置管理、服务卸载、认证授权等功能，方便用户进行日常管理和维护
 - [x] 支持一键配置本机Docker代理和容器服务代理(HTTP_PROXY)，仅支持http
