@@ -9,6 +9,7 @@ log:
     environment: staging
 storage:
   cache:
+    # 改为 blan 禁用 blob 描述符缓存，可解决docker pull error：unexpected EOF
     blobdescriptor: inmemory
   filesystem:
     rootdirectory: /var/lib/registry
