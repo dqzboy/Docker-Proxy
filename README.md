@@ -186,7 +186,7 @@ docker logs -f [容器ID或名称]
       <td width="50%" align="center"><b>镜像搜索</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b3a6a80a-284c-4117-b1bf-9d4c4556717f"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/e8852bfb-8bda-4dee-805e-a93419aa54ab"?raw=true"></td>
         <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b3a6a80a-284c-4117-b1bf-9d4c4556717f"?raw=true"></td>
     </tr>
     <tr>

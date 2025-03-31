@@ -516,6 +516,9 @@
             const resultItem = document.createElement('div');
             resultItem.className = `search-result-item ${isOfficial ? 'official-image' : ''}`;
             
+            // 确保获取正确的描述字段 - 修复描述信息缺失问题
+            const description = result.description || result.short_description || '暂无描述';
+            
             resultItem.innerHTML = `
                 <div class="result-header">
                     <div class="title-badge">
@@ -527,12 +530,12 @@
                         <span class="stats"><i class="fas fa-download"></i> ${formatNumber(result.pull_count || 0)}</span>
                     </div>
                 </div>
-                <p class="result-description">${result.description || '暂无描述'}</p>
+                <p class="result-description">${description}</p>
                 <div class="result-actions">
                     <button class="action-btn primary" onclick="useImage('${result.name || result.repo_name}')">
                         <i class="fas fa-rocket"></i> 使用此镜像
                     </button>
-                    <button class="action-btn secondary" onclick="viewImageDetails('${result.name || result.repo_name}', ${isOfficial}, '${encodeURIComponent(result.description || '')}', ${result.star_count || 0}, ${result.pull_count || 0})">
+                    <button class="action-btn secondary" onclick="viewImageDetails('${result.name || result.repo_name}', ${isOfficial}, '${encodeURIComponent(description)}', ${result.star_count || 0}, ${result.pull_count || 0})">
                         <i class="fas fa-tags"></i> 查看标签
                     </button>
                 </div>
@@ -630,6 +633,7 @@
                 // 加载标签列表
                 currentTagPage = 1;
                 await loadImageTags(1);
+                enhanceTagSearchContainer();
                 
             } catch (error) {
                 console.error('Error loading image details:', error);
@@ -752,20 +756,19 @@
                 }
                 
                 if (allTags.length > 0) {
-                    // 隐藏分页控件
-                    document.getElementById('tagPaginationContainer').style.display = 'none';
+                    // 为加载的所有标签实现客户端分页
+                    window.allLoadedTags = allTags; // 保存所有标签到全局变量
+                    window.currentAllTagsPage = 1;
+                    window.tagsPerPage = 25; // 修改: 每页显示25个标签而不是50个
                     
-                    // 显示标签
-                    displayTags(allTags);
+                    // 计算总页数
+                    const clientTotalPages = Math.ceil(allTags.length / window.tagsPerPage);
                     
-                    // 更新标签计数
-                    const tagStatsDiv = document.querySelector('.tag-search-stats');
-                    if (tagStatsDiv) {
-                        tagStatsDiv.innerHTML = `<p>已加载所有 <strong>${allTags.length}</strong> 个标签 (共 ${totalTags} 个)</p>`;
-                    }
+                    // 显示第一页标签（这会自动创建分页控制器）
+                    displayAllTagsPage(1);
                     
                     // 显示提示
-                    showToast(`<i class="fas fa-check-circle"></i> 成功加载 ${allTags.length} / ${totalTags} 个标签`, false);
+                    showToast(`<i class="fas fa-check-circle"></i> 成功加载 ${allTags.length} / ${totalTags} 个标签，分${clientTotalPages}页显示`, false);
                     
                     // 滚动到顶部
                     window.scrollTo({
@@ -796,8 +799,8 @@
                 loadAllTagsBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 加载全部TAG';
             }
         }
-
-        // 加载镜像标签 - 修改每页显示数量为25个
+        
+        // 添加 loadImageTags 函数定义
         async function loadImageTags(page = 1) {
             if (!currentImageData) {
                 console.error('No image data available');
@@ -807,10 +810,11 @@
             tagsResults.innerHTML = '<div class="loading-indicator">加载TAG列表中...</div>';
             
             try {
-                // 修改page_size为25
+                // 构建API URL
                 const apiUrl = `/api/dockerhub/tags?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}&page=${page}&page_size=25`;
                 console.log('Requesting tags from:', apiUrl);
                 
+                // 使用fetchWithRetry获取数据
                 const data = await fetchWithRetry(apiUrl);
                 console.log('Received tags data:', data);
                 currentTagPage = page; // 更新当前页码
@@ -825,13 +829,14 @@
                         return tag;
                     });
                     
+                    // 显示标签列表
                     displayTags(processedTags);
                     
-                    // 计算总页数时使用page_size=25
+                    // 更新分页信息
                     updateTagPagination(page, Math.ceil((data.count || 0) / 25));
                     document.getElementById('tagPaginationContainer').style.display = 'flex';
                     
-                    // 更新页面显示信息，反映当前分页的标签
+                    // 更新页面显示信息
                     const tagStatsDiv = document.querySelector('.tag-search-stats');
                     if (tagStatsDiv) {
                         tagStatsDiv.innerHTML = `<p>共找到 <strong>${data.count || processedTags.length}</strong> 个标签，当前显示第 <strong>${(page-1)*25+1}</strong> 至 <strong>${Math.min(page*25, data.count)}</strong> 个</p>`;
@@ -856,6 +861,101 @@
                 
                 // 显示通知
                 showToast(`<i class="fas fa-exclamation-circle"></i> 加载标签失败: ${error.message}`, true);
+            }
+        }
+
+        // 新增: 显示客户端分页控制器
+        function displayClientPagination(totalPages) {
+            const tagsResults = document.getElementById('tagsResults');
+            
+            // 创建分页容器
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination-container'; // 使用相同的样式类名
+            paginationDiv.id = 'clientPaginationContainer';
+            
+            // 添加分页控制，格式与默认分页控制器相同
+            paginationDiv.innerHTML = `
+                <button id="clientPrevPageBtn" onclick="navigateAllTagsPage(-1)" disabled>
+                    <i class="fas fa-chevron-left"></i> 上一页
+                </button>
+                <span id="clientPageInfo">第 1 页 / 共 ${totalPages} 页</span>
+                <button id="clientNextPageBtn" onclick="navigateAllTagsPage(1)" ${totalPages <= 1 ? 'disabled' : ''}>
+                    下一页 <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            
+            // 确保分页控制器添加到表格底部
+            const existingPagination = document.getElementById('tagPaginationContainer');
+            if (existingPagination && existingPagination.parentNode) {
+                // 在原始分页控制器的位置插入新的分页控制器
+                existingPagination.parentNode.insertBefore(paginationDiv, existingPagination);
+                // 隐藏原来的分页控件
+                existingPagination.style.display = 'none';
+            } else {
+                // 如果找不到原始分页控制器，添加到结果容器末尾
+                tagsResults.appendChild(paginationDiv);
+            }
+        }
+
+        // 新增: 切换到指定页面
+        function displayAllTagsPage(page) {
+            if (!window.allLoadedTags) return;
+            
+            const totalTags = window.allLoadedTags.length;
+            // 修改: 将每页标签数量从50改为25
+            window.tagsPerPage = 25; // 每页显示25个标签
+            const tagsPerPage = window.tagsPerPage;
+            const totalPages = Math.ceil(totalTags / tagsPerPage);
+            
+            // 确保页码在有效范围内
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            
+            window.currentAllTagsPage = page;
+            
+            // 计算当前页的标签
+            const startIndex = (page - 1) * tagsPerPage;
+            const endIndex = Math.min(startIndex + tagsPerPage, totalTags);
+            const currentPageTags = window.allLoadedTags.slice(startIndex, endIndex);
+            
+            // 使用现有的displayTags函数显示当前页的标签
+            displayTags(currentPageTags);
+            enhanceTagSearchContainer();
+            
+            // 更新分页信息
+            const pageInfo = document.getElementById('clientPageInfo');
+            if (pageInfo) {
+                pageInfo.textContent = `第 ${page} 页 / 共 ${totalPages} 页`;
+            }
+            
+            // 更新按钮状态
+            const prevBtn = document.getElementById('clientPrevPageBtn');
+            const nextBtn = document.getElementById('clientNextPageBtn');
+            if (prevBtn) prevBtn.disabled = page <= 1;
+            if (nextBtn) nextBtn.disabled = page >= totalPages;
+            
+            // 更新标签统计信息
+            const tagStatsDiv = document.querySelector('.tag-search-stats');
+            if (tagStatsDiv) {
+                tagStatsDiv.innerHTML = `<p>显示 <strong>${startIndex + 1}-${endIndex}</strong> 个标签，共 <strong>${totalTags}</strong> 个</p>`;
+            }
+            
+            // 创建新的客户端分页控制器
+            const clientPaginationContainer = document.getElementById('clientPaginationContainer');
+            if (!clientPaginationContainer) {
+                displayClientPagination(totalPages);
+            }
+        }
+
+        // 新增: 页面导航函数
+        function navigateAllTagsPage(direction) {
+            const newPage = window.currentAllTagsPage + direction;
+            displayAllTagsPage(newPage);
+            
+            // 滚动到分页控制器位置，确保用户可以看到分页器
+            const paginationContainer = document.getElementById('clientPaginationContainer');
+            if (paginationContainer) {
+                paginationContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
@@ -1078,11 +1178,46 @@
             }
         }
 
-        // 添加TAG过滤功能
+        // 修改TAG过滤功能 - 支持搜索所有已加载的标签
         function filterTags() {
             const searchTerm = document.getElementById('tagSearchInput').value.toLowerCase().trim();
-            const rows = document.querySelectorAll('.tag-table tbody tr');
             
+            // 检查是否已加载全部标签
+            if (window.allLoadedTags && searchTerm) {
+                // 在所有加载的标签中搜索
+                const matchedTags = window.allLoadedTags.filter(tag => 
+                    tag.name.toLowerCase().includes(searchTerm)
+                );
+                
+                // 更新搜索统计信息
+                const searchStatsDiv = document.querySelector('.tag-search-stats');
+                if (searchStatsDiv) {
+                    searchStatsDiv.innerHTML = `<p>过滤结果: 共找到 <strong>${matchedTags.length}</strong> 个匹配 "${searchTerm}" 的标签 (共${window.allLoadedTags.length}个)</p>`;
+                }
+                
+                // 如果有匹配的标签
+                if (matchedTags.length > 0) {
+                    // 显示匹配的标签
+                    displayTags(matchedTags);
+                    
+                    // 隐藏分页控件，显示所有匹配结果
+                    const clientPagination = document.getElementById('clientPaginationContainer');
+                    if (clientPagination) {
+                        clientPagination.style.display = 'none';
+                    }
+                } else {
+                    // 无匹配结果提示
+                    const tagsResults = document.getElementById('tagsResults');
+                    // 保留搜索统计信息
+                    const statsHTML = tagsResults.innerHTML.split('</div>')[0] + '</div>';
+                    tagsResults.innerHTML = statsHTML + '<div class="no-filter-results"><p>没有匹配 "' + searchTerm + '" 的TAG</p></div>';
+                }
+                
+                return; // 已处理全局搜索，不继续执行
+            }
+            
+            // 原有的过滤逻辑 - 只搜索当前页面上的标签
+            const rows = document.querySelectorAll('.tag-table tbody tr');
             if (!rows.length) return;
             
             let visibleCount = 0;
@@ -1119,6 +1254,49 @@
                 }
             } else if (noResultsEl) {
                 noResultsEl.remove();
+            }
+        }
+
+        // 添加重置搜索功能
+        function resetTagSearch() {
+            const searchInput = document.getElementById('tagSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            // 如果已加载全部标签，重新显示当前页
+            if (window.allLoadedTags) {
+                displayAllTagsPage(window.currentAllTagsPage || 1);
+                // 恢复分页控件显示
+                const clientPagination = document.getElementById('clientPaginationContainer');
+                if (clientPagination) {
+                    clientPagination.style.display = 'flex';
+                }
+            } else {
+                // 否则重新加载当前标签页
+                loadImageTags(currentTagPage);
+            }
+        }
+
+        // 修改标签搜索容器，添加重置按钮
+        function enhanceTagSearchContainer() {
+            const container = document.querySelector('.tag-search-container');
+            if (container) {
+                // 检查是否已经增强过
+                if (!container.querySelector('.reset-btn')) {
+                    // 添加重置按钮
+                    const resetBtn = document.createElement('button');
+                    resetBtn.className = 'reset-btn';
+                    resetBtn.innerHTML = '<i class="fas fa-times"></i> 重置';
+                    resetBtn.onclick = resetTagSearch;
+                    container.appendChild(resetBtn);
+                    
+                    // 修改搜索按钮点击事件
+                    const searchBtn = container.querySelector('.search-btn');
+                    if (searchBtn) {
+                        searchBtn.onclick = filterTags;
+                    }
+                }
             }
         }
 
