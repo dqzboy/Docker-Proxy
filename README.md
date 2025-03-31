@@ -77,7 +77,7 @@
 - [x] 支持一键配置本机Docker代理和容器服务代理(HTTP_PROXY)，仅支持http
 - [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
 - [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等，支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
-- [x] HubCMD-UI服务，实现镜像搜索、文档教程、容器管理、容器监控告警、网络测试等功能，[Demo](https://dqzboy.github.io/proxyui/)
+- [x] HubCMD-UI服务，面板展示、镜像搜索、文档教程、容器管理、容器监控、网络测试、用户中心等功能
 
 ## 📦 部署
 ### 通过项目脚本部署
@@ -95,6 +95,11 @@ bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/Do
 
 # 国内Github代理地址
 bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
+```
+
+- hubcmd-ui面板脚本安装
+```
+执行上面脚本，选项为：2 ---> 8 ---> 1
 ```
 
 ### 部署到第三方平台
@@ -198,18 +203,6 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 > [自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)<br>
 > [自建Docker镜像加速，并把域名托管到CF加速镜像拉取](https://www.dqzboy.com/17665.html)
 
-## 📚 展示
-<br/>
-<table>
-    <tr>
-      <td width="50%" align="center"><b>系统环境检查</b></td>
-      <td width="50%" align="center"><b>服务部署安装</b></td>
-    </tr>
-    <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/55df7f6f-c788-4200-9bcd-631998dc53ef?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
-    </tr>
-</table>
 
 ## 💻 UI界面
 
@@ -218,20 +211,28 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 <br/>
 <table>
     <tr>
-      <td width="50%" align="center"><b>Docker Registry UI</b></td>
-      <td width="50%" align="center"><b>Docker HubCMD UI</b></td>
+      <td width="50%" align="center"><b>镜像加速</b></td>
+      <td width="50%" align="center"><b>镜像搜索</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f394041e-954c-4b04-9cbb-d61c43290db6?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b3a6a80a-284c-4117-b1bf-9d4c4556717f"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b3a6a80a-284c-4117-b1bf-9d4c4556717f"?raw=true"></td>
     </tr>
     <tr>
-      <td width="50%" align="center"><b>文档教程管理</b></td>
-      <td width="50%" align="center"><b>HubCMD-UI后台</b></td>
+      <td width="50%" align="center"><b>文档管理</b></td>
+      <td width="50%" align="center"><b>TAG搜索</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/6f34d717-95c8-47b4-89b8-812151904448?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/816c95af-dbd1-46ce-b550-87e0853f23e2?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/66be3dae-8d46-4144-932e-c5493c93fe2f"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f1208858-ec69-47b3-88d2-9a0bc112ea94"?raw=true"></td>
+    </tr>
+    <tr>
+      <td width="50%" align="center"><b>控制面板</b></td>
+      <td width="50%" align="center"><b>容器管理</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bc066047-15d3-45fc-b363-ded37bfe1121"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/78ad0e29-abfd-47d6-a132-c5b49b48bc95"?raw=true"></td>
     </tr>
 </table>
 

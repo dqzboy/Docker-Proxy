@@ -40,7 +40,7 @@ npm install
 
 #### 3. 启动服务
 ```bash
-node server.js 
+node server.js
 ```
 
 ## 📦 Docker运行
@@ -91,13 +91,13 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f394041e-954c-4b04-9cbb-d61c43290db6"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bfe09d99-6727-43bc-9c2d-73e34d881953"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/75c40b0b-d75b-4065-9678-d6fc8d2d282a"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/42c4337e-44cb-4c35-bc6f-a5d21f3d1184"?raw=true"></td>
     </tr>
 </table>
 

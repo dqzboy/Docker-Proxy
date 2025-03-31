@@ -3,729 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker 镜像代理加速</title>
+    <title>Docker镜像加速服务</title>
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        :root {
-            --primary-color: #2196F3;
-            --secondary-color: #1976D2;
-            --background-color: #f8f9fa;
-            --container-bg: #ffffff;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background-color: var(--container-bg);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        /* 调整顶部导航样式 */
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0.5rem 1rem;  /* 减小上下内边距 */
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            height: 40px;  /* 稍微减小logo大小 */
-            width: auto;
-        }
-
-        .nav-menu {
-            display: flex;
-            gap: 0.8rem;  /* 减小菜单项之间的间距 */
-        }
-
-        .nav-menu a {
-            color: var(--text-color);
-            text-decoration: none;
-            padding: 0.35rem 0.8rem;  /* 减小菜单项的内边距 */
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;  /* 稍微调整字体大小 */
-        }
-
-        .nav-menu a:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .container {
-            width: 80%; /* 设置固定比例宽度 */
-            min-width: 1000px; /* 设置最小宽度 */
-            max-width: 1400px; /* 设置最大宽度 */
-            margin: 2rem auto;
-            padding: 0;
-            flex: 1 0 auto;
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - 180px); /* 减去header和footer的高度 */
-        }
-
-        .tab-container {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-
-        .tab {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            background: none;
-            color: var(--text-color);
-            cursor: pointer;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .tab.active {
-            color: var(--primary-color);
-        }
-
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -0.5rem;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: var(--primary-color);
-        }
-
-        .content {
-            display: none;
-            background: var(--container-bg);
-            padding: 3rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            flex: 1;
-            min-height: calc(100vh - 300px); /* 确保最小高度 */
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .content.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: var(--secondary-color);
-        }
-
-        pre {
-            background-color: #f6f8fa;
-            padding: 1rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            position: relative;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-            background-color: #e9ecef;
-            color: var(--text-color);
-        }
-
-        .search-result-item {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-        }
-
-        .official-badge {
-            background-color: #28a745;
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
-        }
-
-        .footer {
-            background-color: var(--container-bg);
-            padding: 1.5rem;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-            margin-top: auto; /* 将 footer 推到底部 */
-            flex-shrink: 0; /* 防止 footer 被压缩 */
-        }
-
-        /* 返回顶部按钮样式优化 */
-        #backToTopBtn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(145deg, #2196F3, #1976D2);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            padding: 0;
-            font-size: 24px;
-            line-height: 1;
-        }
-
-        #backToTopBtn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
-        }
-
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .nav-menu {
-                margin-top: 1rem;
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .tab-container {
-                flex-wrap: wrap;
-            }
-
-            .container {
-                padding: 1rem;
-                min-height: calc(100vh - 140px);
-            }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            display: none;
-            z-index: 1000;
-            animation: fadeInOut 2s ease-in-out;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            15% { opacity: 1; }
-            85% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        /* 搜索结果容器样式 */
-        #searchResults {
-            flex: 1;
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-
-        /* 文档内容容器样式 */
-        #documentationContent {
-            display: none;
-        }
-
-        #documentationContent.active {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 2rem;
-        }
-
-        #documentList {
-            border-right: 1px solid var(--border-color);
-            padding-right: 1rem;
-        }
-
-        #documentationText {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        /* 镜像加速内容样式 */
-        #accelerateContent .input-group {
-            margin-bottom: 2rem;
-        }
-
-        #result {
-            flex: 1;
-        }
-
-        #commandsContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .step {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1rem;
-        }
-
-        .step h3 {
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 0.5rem;
-        }
-
-        .step pre {
-            background: #1e1e1e;
-            color: #fff;
-            padding: 1rem;
-            border-radius: 4px;
-            margin: 0;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-            font-size: 0.9rem;
-        }
-
-        .step pre code {
-            color: #fff;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            padding: 0.35rem 0.75rem;
-            font-size: 0.8rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .copy-btn:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* 适配移动端 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-                min-height: calc(100vh - 140px);
-            }
-
-            #documentationContent.active {
-                grid-template-columns: 1fr;
-            }
-
-            #documentList {
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding-bottom: 1rem;
-                margin-bottom: 1rem;
-            }
-        }
-
-        /* 适配移动端 */
-        @media (max-width: 1024px) {
-            .container {
-                width: 95%;
-                min-width: auto;
-                padding: 0 1rem;
-            }
-
-            .content {
-                padding: 1.5rem;
-            }
-        }
-
-        .quick-guide {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            border: 1px solid var(--border-color);
-        }
-
-        .popular-images {
-            margin-top: 2rem;
-        }
-
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .image-card {
-            background: #fff;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .image-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .image-card h3 {
-            margin: 0 0 0.5rem 0;
-            color: var(--primary-color);
-        }
-
-        .image-card .description {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 1rem;
-        }
-
-        .command-terminal {
-            background: #2D2D2D;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-
-        .terminal-header {
-            background: #404040;
-            padding: 8px 15px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .terminal-button {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .button-red {
-            background: #FF5F56;
-        }
-
-        .button-yellow {
-            background: #FFBD2E;
-        }
-
-        .button-green {
-            background: #27C93F;
-        }
-
-        .step {
-            margin-bottom: 1rem;
-        }
-
-        .step h3 {
-            color: var(--primary-color);
-            margin: 0 0 0.5rem 0;
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .step pre {
-            background: #2D2D2D;
-            margin: 0;
-            padding: 0;
-        }
-
-        .step pre code {
-            display: block;
-            padding: 12px 15px;
-            color: #fff;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .step pre:hover .copy-btn {
-            opacity: 1;
-        }
-
-        .command-terminal pre {
-            margin: 0;
-            padding: 8px 0;  /* 增加上下内边距 */
-            background: transparent;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .command-terminal pre code {
-            display: block;
-            padding: 12px 15px;  /* 增加内边距 */
-            color: #fff;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            line-height: 1.2;
-            white-space: pre;
-            flex: 1;
-        }
-
-        .command-terminal .copy-btn {
-            position: relative;
-            top: auto;
-            right: auto;
-            transform: none;
-            margin: 0 10px;  /* 调整按钮边距 */
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            opacity: 1;
-            height: fit-content;
-        }
-
-        .copy-success {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            border-radius: 4px;
-            animation: fadeInOut 1.5s ease-in-out;
-            pointer-events: none;
-        }
-
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        #documentationText pre {
-            background: #2D2D2D;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        #documentationText pre code {
-            display: block;
-            padding: 12px 15px;
-            color: #fff;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            line-height: 1.2;
-            background: transparent;
-        }
-
-        #documentationText .command-terminal {
-            background: #2D2D2D;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-
-        #documentationText pre {
-            position: relative;
-            margin: 0;
-        }
-
-        #documentationText pre .copy-btn {
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            cursor: pointer;
-        }
-
-        #documentationText pre:hover .copy-btn {
-            opacity: 1;
-        }
-
-        /* 修改文档代码块中复制按钮的样式 */
-        #documentationText .command-terminal pre {
-            position: relative;
-        }
-
-        #documentationText .command-terminal .copy-btn {
-            position: absolute;
-            top: 8px;           /* 调整到右上角 */
-            right: 8px;
-            transform: none;    /* 移除垂直居中变换 */
-            margin: 0;
-            padding: 4px 8px;
-            font-size: 0.8rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            cursor: pointer;
-            z-index: 10;        /* 确保按钮始终在上层 */
-        }
-
-        #documentationText .command-terminal pre:hover .copy-btn {
-            opacity: 1;
-        }
-
-        /* 调整代码块内边距，避免与复制按钮重叠 */
-        #documentationText .command-terminal pre code {
-            padding: 12px 15px;
-            padding-right: 60px;  /* 为复制按钮留出空间 */
-        }
-
-        /* 文档列表样式优化 */
-        #documentList {
-            border-right: 1px solid var(--border-color);
-            padding-right: 2rem;
-            min-width: 200px;
-        }
-
-        #documentList h2 {
-            color: var(--primary-color);
-            font-size: 1.2rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        #documentList ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #documentList li {
-            margin-bottom: 0.8rem;
-        }
-
-        #documentList a {
-            color: var(--text-color);
-            text-decoration: none;
-            display: block;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            border: 1px solid transparent;
-        }
-
-        #documentList a:hover {
-            background-color: var(--background-color);
-            color: var(--primary-color);
-            border: 1px solid var(--border-color);
-        }
-
-        #documentList a.active {
-            background-color: var(--primary-color);
-            color: white;
-            border: 1px solid var(--primary-color);
-        }
-
-        /* 响应式调整 */
-        @media (max-width: 768px) {
-            #documentList {
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding-right: 0;
-                padding-bottom: 1rem;
-                margin-bottom: 1.5rem;
-            }
-
-            #documentList ul {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-            }
-
-            #documentList li {
-                margin-bottom: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="header">
@@ -734,110 +15,145 @@
                 <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" alt="Logo" class="logo">
             </a>
             <nav class="nav-menu" id="navMenu">
-                <!-- 菜单项将通过 JavaScript 动态加载 -->
+                <!-- 菜单项通过 JavaScript 动态加载 -->
             </nav>
         </div>
     </header>
 
     <div class="container">
-        <h1>Docker 镜像加速和镜像搜索</h1>
+        <h1 class="page-title">Docker镜像加速服务</h1>
+        <p class="page-subtitle">快速拉取 Docker 镜像，无需担心网络问题，轻松部署你的容器应用</p>
         
         <div class="tab-container">
-            <div class="tab active" onclick="switchTab('accelerate')">镜像加速</div>
-            <div class="tab" onclick="switchTab('search')">镜像搜索</div>
-            <div class="tab" onclick="switchTab('documentation')">文档教程</div>
+            <div class="tab active" onclick="switchTab('accelerate')">
+                <i class="fas fa-rocket"></i> 镜像加速
+            </div>
+            <div class="tab" onclick="switchTab('search')">
+                <i class="fas fa-search"></i> 镜像搜索
+            </div>
+            <div class="tab" onclick="switchTab('documentation')">
+                <i class="fas fa-book"></i> 使用教程
+            </div>
         </div>
 
+        <!-- 镜像加速内容 -->
         <div id="accelerateContent" class="content active">
             <div class="input-group">
-                <input type="text" id="imageInput" placeholder="请输入 Docker 镜像名称，例如：nginx 或 mysql:5.7">
-                <button onclick="generateCommands(document.getElementById('imageInput').value.trim())">获取加速命令</button>
+                <input type="text" id="imageInput" 
+                       placeholder="输入镜像名称，例如：nginx 或 mysql:5.7" 
+                       onkeypress="if(event.key === 'Enter') generateCommands()" 
+                       autofocus>
+                <button onclick="generateCommands()">
+                    <i class="fas fa-bolt"></i> 获取加速命令
+                </button>
             </div>
+            
             <div id="result" style="display:none;">
-                <h2>加速命令</h2>
+                <h2><i class="fas fa-terminal"></i> 加速命令</h2>
                 <div id="commandsContainer"></div>
             </div>
             
-            <div class="quick-guide">
-                <h3>快速使用指南</h3>
-                <ol>
-                    <li>输入需要拉取的 Docker 镜像名称（例如：nginx, mysql:5.7）</li>
-                    <li>点击"获取加速命令"按钮生成加速命令</li>
-                    <li>复制并执行命令以加速拉取镜像</li>
-                    <li>等待镜像下载完成即可使用</li>
-                </ol>
-            </div>
-            
-            <div class="popular-images">
-                <h3>热门镜像推荐</h3>
-                <div class="image-grid">
-                    <div class="image-card" onclick="useImage('nginx')">
-                        <h3>Nginx</h3>
-                        <div class="description">高性能的HTTP和反向代理服务器</div>
-                        <button class="use-image-btn">使用此镜像</button>
-                    </div>
-                    <div class="image-card" onclick="useImage('mysql')">
-                        <h3>MySQL</h3>
-                        <div class="description">流行的关系型数据库管理系统</div>
-                        <button class="use-image-btn">使用此镜像</button>
-                    </div>
-                    <div class="image-card" onclick="useImage('redis')">
-                        <h3>Redis</h3>
-                        <div class="description">开源的内存数据存储系统</div>
-                        <button class="use-image-btn">使用此镜像</button>
-                    </div>
-                    <div class="image-card" onclick="useImage('mongodb')">
-                        <h3>MongoDB</h3>
-                        <div class="description">流行的 NoSQL 数据库</div>
-                        <button class="use-image-btn">使用此镜像</button>
-                    </div>
+            <div class="features">
+                <div class="feature-card">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <h3>高速拉取</h3>
+                    <p>通过优化的代理网络，加速Docker镜像拉取</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>稳定可靠</h3>
+                    <p>解决网络问题导致的拉取失败，提高部署成功率</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-magic"></i>
+                    <h3>简单易用</h3>
+                    <p>一键生成加速命令，无需复杂配置，立即开始使用</p>
                 </div>
             </div>
         </div>
 
+        <!-- 搜索内容 -->
         <div id="searchContent" class="content">
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="请输入 Docker 镜像名称进行搜索">
-                <button onclick="searchDockerHub()">搜索Docker镜像</button>
+                <input type="text" id="searchInput" 
+                       placeholder="输入关键词搜索Docker镜像，例如：nginx、mysql、redis..." 
+                       onkeypress="if(event.key === 'Enter') searchDockerHub(1)">
+                <button onclick="searchDockerHub(1)">
+                    <i class="fas fa-search"></i> 搜索镜像
+                </button>
             </div>
-            <div class="quick-guide">
-                <h3>搜索提示</h3>
-                <ul>
-                    <li>输入完整的镜像名称可以获得精确结果（例如：nginx, mysql）</li>
-                    <li>可以通过关键词搜索相关镜像</li>
-                    <li>官方镜像会显示"官方"标记</li>
-                    <li>结果会显示镜像的描述和星标数量</li>
-                </ul>
-            </div>
-            <div id="searchResults"></div>
             
-            <div class="popular-images">
-                <h3>热门搜索</h3>
-                <div class="image-grid">
-                    <div class="image-card" onclick="document.getElementById('searchInput').value='nginx'; searchDockerHub();">
-                        <h3>Web 服务器</h3>
-                        <div class="description">包括 Nginx、Apache、Httpd 等Web服务器</div>
-                        <button class="use-image-btn">搜索相关</button>
+            <!-- 搜索结果容器 -->
+            <div id="searchResultsContainer">
+                <!-- 搜索结果列表 -->
+                <div id="searchResultsList">
+                    <div id="searchResults"></div>
+                    
+                    <!-- 分页控件 -->
+                    <div class="pagination-container" id="paginationContainer" style="display: none;">
+                        <button id="prevPageBtn" onclick="searchDockerHub(currentPage - 1)" disabled>
+                            <i class="fas fa-chevron-left"></i> 上一页
+                        </button>
+                        <span id="pageInfo">第 1 页</span>
+                        <button id="nextPageBtn" onclick="searchDockerHub(currentPage + 1)">
+                            下一页 <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
-                    <div class="image-card" onclick="document.getElementById('searchInput').value='mysql'; searchDockerHub();">
-                        <h3>数据库</h3>
-                        <div class="description">MySQL、PostgreSQL、MongoDB 等数据库</div>
-                        <button class="use-image-btn">搜索相关</button>
+                </div>
+
+                <!-- 标签视图 -->
+                <div id="imageTagsView" style="display: none;" class="image-tags-view">
+                    <div class="tag-header">
+                        <div class="tag-breadcrumb">
+                            <a href="javascript:void(0);" onclick="showSearchResults()">返回搜索结果</a>
+                        </div>
+                        <h2 id="currentImageTitle"></h2>
+                        <p id="imageDescription" class="image-description"></p>
+                        <div class="image-meta">
+                            <span id="imageStars"></span>
+                            <span id="imagePulls"></span>
+                        </div>
                     </div>
-                    <div class="image-card" onclick="document.getElementById('searchInput').value='redis'; searchDockerHub();">
-                        <h3>缓存服务</h3>
-                        <div class="description">Redis、Memcached 等缓存服务</div>
-                        <button class="use-image-btn">搜索相关</button>
+                    
+                    <div class="tag-search-container">
+                        <input type="text" id="tagSearchInput" placeholder="搜索TAG..." onkeyup="filterTags()">
                     </div>
-                    <div class="image-card" onclick="document.getElementById('searchInput').value='rabbitmq'; searchDockerHub();">
-                        <h3>消息队列</h3>
-                        <div class="description">RabbitMQ、Kafka 等消息队列服务</div>
-                        <button class="use-image-btn">搜索相关</button>
+                    
+                    <div id="tagsResults"></div>
+                    
+                    <div class="pagination-container" id="tagPaginationContainer" style="display: none;">
+                        <button id="tagPrevPageBtn" onclick="loadImageTags(currentTagPage - 1)" disabled>
+                            <i class="fas fa-chevron-left"></i> 上一页
+                        </button>
+                        <span id="tagPageInfo">第 1 页</span>
+                        <button id="tagNextPageBtn" onclick="loadImageTags(currentTagPage + 1)">
+                            下一页 <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- 底部特性说明 -->
+            <div class="features">
+                <div class="feature-card">
+                    <i class="fas fa-search"></i>
+                    <h3>快速搜索</h3>
+                    <p>便捷地搜索Docker Hub上的所有可用镜像</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-tag"></i>
+                    <h3>版本管理</h3>
+                    <p>查看所有可用的镜像标签和版本信息</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-rocket"></i>
+                    <h3>一键部署</h3>
+                    <p>快速获取并使用所需的Docker镜像</p>
                 </div>
             </div>
         </div>
 
+        <!-- 文档内容 -->
         <div id="documentationContent" class="content">
             <div id="documentList"></div>
             <div id="documentationText"></div>
@@ -845,43 +161,95 @@
     </div>
 
     <footer class="footer">
-        <p>Copyright © <span id="currentYear"></span> All Rights Reserved. <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank" rel="noopener noreferrer">Docker-Proxy</a></p>
+        <p>Copyright © <span id="currentYear"></span> <span class="copyright-text">Docker-Proxy</span> All Rights Reserved. <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank">GitHub</a></p>
     </footer>
-
-    <button id="backToTopBtn" onclick="scrollToTop()" aria-label="返回顶部">▲</button>
 
     <script>
         // 设置当前年份
         document.getElementById('currentYear').textContent = new Date().getFullYear();
-
         document.addEventListener('DOMContentLoaded', (event) => {
             const menuToggle = document.getElementById('menuToggle');
             const navMenu = document.getElementById('navMenu');
-
             menuToggle.addEventListener('click', () => {
                 navMenu.classList.toggle('active');
             });
+            
+            // 版权保护
+            protectCopyright();
         });
+        
+        // 版权保护函数
+        function protectCopyright() {
+            const footer = document.querySelector('.footer');
+            const expectedText = 'Docker-Proxy';
+            const expectedLink = 'https://github.com/dqzboy/Docker-Proxy';
+            
+            // 初始检查
+            validateCopyright();
+            
+            // 定期检查版权信息
+            setInterval(validateCopyright, 2000);
+            
+            function validateCopyright() {
+                const copyrightText = document.querySelector('.copyright-text');
+                const githubLink = document.querySelector('.footer a');
+                
+                if (!copyrightText || copyrightText.textContent !== expectedText || 
+                    !githubLink || githubLink.href !== expectedLink) {
+                    // 版权信息被篡改，恢复
+                    restoreCopyright();
+                }
+            }
+            
+            function restoreCopyright() {
+                footer.innerHTML = `<p>Copyright © <span id="currentYear">${new Date().getFullYear()}</span> <span class="copyright-text">Docker-Proxy</span> All Rights Reserved. <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank">GitHub</a></p>`;
+            }
+        }
         
         let proxyDomain = ''; // 默认代理加速地址
         let currentIndex = 0;
         let items = [];
+        let currentPage = 1;
+        let currentSearchTerm = '';
+        let totalPages = 1;
+        let currentTagPage = 1;
+        let currentImageData = null;
 
         // 标签切换功能
         function switchTab(tabName) {
             const tabs = document.querySelectorAll('.tab');
             const contents = document.querySelectorAll('.content');
-
+            const features = document.querySelector('#searchContent .features');
             tabs.forEach(tab => tab.classList.remove('active'));
             contents.forEach(content => content.classList.remove('active'));
-
-            document.querySelector(`.tab:nth-child(${tabName === 'accelerate' ? '1' : (tabName === 'search' ? '2' : '3')}`).classList.add('active');
+            // 更新为支持3个选项卡
+            let tabIndex = 1;
+            if (tabName === 'search') {
+                tabIndex = 2;
+                // 只有在没有搜索结果时显示底部特性说明
+                const searchResults = document.getElementById('searchResults');
+                if (!searchResults.innerHTML.trim()) {
+                    features.style.display = 'grid';
+                }
+            } else if (tabName === 'documentation') {
+                tabIndex = 3;
+            }
+            
+            document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
             document.getElementById(`${tabName}Content`).classList.add('active');
-
             // 重置显示
-            document.getElementById('searchResults').style.display = 'none';
+            if (document.getElementById('searchResultsContainer')) {
+                document.getElementById('searchResultsContainer').style.display = 'block';
+            }
+            if (document.getElementById('searchResultsList')) {
+                document.getElementById('searchResultsList').style.display = 'block';
+            }
+            if (document.getElementById('imageTagsView')) {
+                document.getElementById('imageTagsView').style.display = 'none';
+            }
             document.getElementById('result').style.display = 'none';
-            document.getElementById('backToTopBtn').style.display = 'none';
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('paginationContainer').style.display = 'none';
 
             if (tabName === 'documentation') {
                 fetchDocumentation();
@@ -895,9 +263,24 @@
                 if (imageInput) {
                     generateCommands(imageInput);
                 }
-            } else if (tabName === 'search') {
                 document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+                document.querySelector('.popular-images').style.display = 'block';
             }
+        }
+
+        // 添加formatNumber函数定义
+        function formatNumber(num) {
+            if (num >= 1000000000) {
+                return (num >= 1500000000 ? '1B+' : '1B');
+            } else if (num >= 1000000) {
+                const m = Math.floor(num / 1000000);
+                return (m >= 100 ? '100M+' : m + 'M');
+            } else if (num >= 1000) {
+                const k = Math.floor(num / 1000);
+                return (k >= 100 ? '100K+' : k + 'K');
+            }
+            return num.toString();
         }
 
         // 生成加速命令
@@ -914,24 +297,23 @@
             
             let originalImage = `${imageName}:${tag}`;
             let proxyImage = '';
-
             if (!imageName.includes('/')) {
                 proxyImage = `${proxyDomain}/library/${imageName}:${tag}`;
             } else {
                 proxyImage = `${proxyDomain}/${imageName}:${tag}`;
             }
-
+            
             const commands = [
-                { title: "原始拉取命令", cmd: `docker pull ${originalImage}` },
                 { title: "代理拉取镜像", cmd: `docker pull ${proxyImage}` },
+                { title: "原始拉取命令", cmd: `docker pull ${originalImage}` },
                 { title: "重命名镜像", cmd: `docker tag ${proxyImage} ${originalImage}` },
                 { title: "删除代理镜像", cmd: `docker rmi ${proxyImage}` }
             ];
-
+            
             const resultDiv = document.getElementById('result');
             const container = document.getElementById('commandsContainer');
             container.innerHTML = '';
-
+            
             // 将生成的命令添加到结果容器中
             commands.forEach((command, index) => {
                 const cmdDiv = document.createElement('div');
@@ -956,15 +338,14 @@
             resultDiv.style.display = 'flex';
             resultDiv.style.flexDirection = 'column';
             document.querySelector('.quick-guide').style.display = 'none';
-            document.querySelector('.popular-images').style.display = 'none';
-            document.getElementById('backToTopBtn').style.display = 'block';
+            document.querySelector('.features').style.display = 'none';
         }
 
         // 复制命令到剪贴板
         function copyToClipboard(text, element) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
-                    showNotification(element.target || element);
+                    showNotification();
                 }, (err) => {
                     console.error('无法复制文本: ', err);
                 });
@@ -975,114 +356,773 @@
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showNotification(element.target || element);
+                showNotification();
             }
         }
 
-        function showNotification(cmdElement) {
+        function showNotification() {
+            // 移除任何现有的通知
+            const existingNotification = document.querySelector('.copy-success');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            // 创建新的通知
             const successDiv = document.createElement('div');
             successDiv.className = 'copy-success';
             successDiv.textContent = '已复制到剪贴板';
-            
-            // 获取命令所在的 pre 元素
-            const preElement = cmdElement.closest('pre');
-            preElement.style.position = 'relative';
-            preElement.appendChild(successDiv);
-
+            // 添加到body而不是pre元素
+            document.body.appendChild(successDiv);
             // 1.5秒后移除提示
             setTimeout(() => {
                 successDiv.remove();
             }, 1500);
         }
 
-        // 滚动到顶部
-        function scrollToTop() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-            // 滚动完成后隐藏按钮
-            document.getElementById('backToTopBtn').style.display = 'none';
+        // 改进的API请求函数，支持自动重试
+        async function fetchWithRetry(url, options = {}, retries = 3, retryDelay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                // 检查内容类型
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error('服务器返回了非JSON格式的数据，请联系管理员');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                // 如果没有剩余重试次数，抛出异常
+                if (retries <= 0) throw error;
+                
+                console.warn(`请求失败，将在${retryDelay}ms后重试 (剩余${retries}次): ${error.message}`);
+                
+                // 等待重试延迟
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                
+                // 递归重试，增加延迟时间
+                return fetchWithRetry(url, options, retries - 1, retryDelay * 1.5);
+            }
         }
 
-        // 搜索功能
-        async function searchDockerHub() {
+        // 搜索功能 - 支持分页
+        async function searchDockerHub(page = 1) {
             const searchTerm = document.getElementById('searchInput').value.trim();
             if (!searchTerm) {
-                alert('请输入搜索关键词');
+                showToast('请输入搜索关键词');
                 return;
             }
+            // 如果搜索词改变，重置为第1页
+            if (currentSearchTerm !== searchTerm) {
+                page = 1;
+                currentSearchTerm = searchTerm;
+            }
 
+            currentPage = page;
             const searchResults = document.getElementById('searchResults');
-            searchResults.innerHTML = '正在搜索...';
+            searchResults.innerHTML = '<div class="loading-indicator">正在搜索...</div>';
+            searchResults.style.display = 'block';  // 确保搜索结果可见
+            // 隐藏底部特性说明
+            const features = document.querySelector('#searchContent .features');
+            features.style.display = 'none';
 
-            // 显示和隐藏广告逻辑
-            searchResults.style.display = 'block';
-            document.getElementById('result').style.display = 'none';
-            document.getElementById('backToTopBtn').style.display = 'block';
+            // 当执行搜索时，确保返回到搜索结果列表视图
+            document.getElementById('searchResultsList').style.display = 'block';
+            document.getElementById('imageTagsView').style.display = 'none';
 
             try {
-                const response = await fetch(`/api/search?term=${encodeURIComponent(searchTerm)}`);
-                const data = await response.json();
-
+                // 使用新的fetchWithRetry函数
+                const data = await fetchWithRetry(
+                    `/api/dockerhub/search?term=${encodeURIComponent(searchTerm)}&page=${page}`
+                );
+                
+                const results = data.results;
+                const officialImages = results.filter(result => result.is_official);
+                const unofficialImages = results.filter(result => !result.is_official)
+                    .sort((a, b) => (b.star_count || 0) - (a.star_count || 0));
+                const totalCount = data.count || 0;
+                totalPages = Math.ceil(totalCount / 25);
+                
                 if (data.results && data.results.length > 0) {
-                    const officialImages = data.results.filter(result => result.is_official);
-                    const unofficialImages = data.results.filter(result => !result.is_official)
-                        .sort((a, b) => (b.star_count || 0) - (a.star_count || 0))
-                        .slice(0, 5);
-
                     searchResults.innerHTML = '';
-                    
-                    // 显示官方镜像
                     officialImages.forEach(result => {
                         searchResults.appendChild(createResultItem(result, true));
                     });
-
-                    // 显示前5个非官方镜像
                     unofficialImages.forEach(result => {
                         searchResults.appendChild(createResultItem(result, false));
                     });
 
-                    if (officialImages.length === 0 && unofficialImages.length === 0) {
-                        searchResults.innerHTML = '未找到匹配的镜像';
-                    }
+                    updatePagination(page, totalPages);
+                    document.getElementById('paginationContainer').style.display = 'flex';
+                    
                 } else {
-                    searchResults.innerHTML = '未找到匹配的镜像';
+                    searchResults.innerHTML = '<div class="empty-result"><i class="fas fa-search"></i><p>未找到匹配的镜像</p></div>';
+                    document.getElementById('paginationContainer').style.display = 'none';
                 }
             } catch (error) {
                 console.error('搜索出错:', error);
-                searchResults.innerHTML = '搜索时发生错误，请稍后重试';
+                searchResults.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>搜索时发生错误: ${error.message}</p>
+                        <button onclick="searchDockerHub(${page})" class="retry-btn">
+                            <i class="fas fa-redo"></i> 重试
+                        </button>
+                    </div>`;
+                document.getElementById('paginationContainer').style.display = 'none';
             }
+        }
+
+        // 更新分页控件
+        function updatePagination(currentPage, totalPages) {
+            const paginationContainer = document.getElementById('paginationContainer');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            // 显示分页控件
+            paginationContainer.style.display = 'flex';
+            // 更新页码信息
+            pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+            
+            // 根据当前页码禁用或启用上一页/下一页按钮
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        // 更新TAG分页控件
+        function updateTagPagination(currentPage, totalPages) {
+            const paginationContainer = document.getElementById('tagPaginationContainer');
+            const prevBtn = document.getElementById('tagPrevPageBtn');
+            const nextBtn = document.getElementById('tagNextPageBtn');
+            const pageInfo = document.getElementById('tagPageInfo');
+            
+            // 显示分页控件
+            paginationContainer.style.display = 'flex';
+            // 更新页码信息
+            pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+            
+            // 根据当前页码禁用或启用上一页/下一页按钮
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
         }
 
         function createResultItem(result, isOfficial) {
             const resultItem = document.createElement('div');
             resultItem.className = `search-result-item ${isOfficial ? 'official-image' : ''}`;
             
-            const officialBadge = isOfficial ? '<span class="official-badge">官方</span>' : '';
-            const stars = result.star_count !== undefined ? `<span class="stars">★ ${result.star_count}</span>` : '';
-
             resultItem.innerHTML = `
-                <h3>${result.name || result.repo_name || '未知名称'} ${officialBadge}</h3>
-                <p>描述: ${result.description || result.short_description || '无描述'}</p>
-                <p>${stars}</p>
-                <button class="use-image-btn" onclick="useImage('${result.name || result.repo_name || ''}')">使用此镜像</button>
+                <div class="result-header">
+                    <div class="title-badge">
+                        <h3>${result.name || result.repo_name || '未知名称'}</h3>
+                        ${isOfficial ? '<span class="official-badge"><i class="fas fa-check-circle"></i> 官方</span>' : ''}
+                    </div>
+                    <div class="result-stats">
+                        <span class="stats"><i class="fas fa-star"></i> ${formatNumber(result.star_count || 0)}</span>
+                        <span class="stats"><i class="fas fa-download"></i> ${formatNumber(result.pull_count || 0)}</span>
+                    </div>
+                </div>
+                <p class="result-description">${result.description || '暂无描述'}</p>
+                <div class="result-actions">
+                    <button class="action-btn primary" onclick="useImage('${result.name || result.repo_name}')">
+                        <i class="fas fa-rocket"></i> 使用此镜像
+                    </button>
+                    <button class="action-btn secondary" onclick="viewImageDetails('${result.name || result.repo_name}', ${isOfficial}, '${encodeURIComponent(result.description || '')}', ${result.star_count || 0}, ${result.pull_count || 0})">
+                        <i class="fas fa-tags"></i> 查看标签
+                    </button>
+                </div>
             `;
             return resultItem;
         }
 
-        function useImage(imageName) {
-            if (imageName) {
-                document.getElementById('imageInput').value = imageName;
-                switchTab('accelerate');
-                // 直接生成加速命令，无需用户再次点击
-                generateCommands(imageName);
-            } else {
-                alert('无效的 Docker 镜像名称');
+        // 修改查看标签详情函数 - 改进错误处理
+        async function viewImageDetails(imageName, isOfficial, description, stars, pulls) {
+            // 保存当前镜像信息
+            currentImageData = {
+                name: imageName,
+                isOfficial: isOfficial,
+                description: decodeURIComponent(description || ''),
+                stars: stars,
+                pulls: pulls
+            };
+            
+            // 显示加载中状态
+            const imageTagsView = document.getElementById('imageTagsView');
+            imageTagsView.innerHTML = '<div class="loading-container"><div class="loading-indicator">正在加载镜像信息...</div></div>';
+            document.getElementById('searchResultsList').style.display = 'none';
+            imageTagsView.style.display = 'block';
+            
+            try {
+                // 使用新的fetchWithRetry函数获取标签计数
+                const countApiUrl = `/api/dockerhub/tag-count?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}`;
+                console.log('Requesting tag count from:', countApiUrl);
+                
+                const countData = await fetchWithRetry(countApiUrl);
+                console.log('Received tag count data:', countData);
+                
+                const tagCount = countData.count || 0;
+                const recommendedMode = countData.recommended_mode || 'paginated';
+                
+                // 根据标签数量判断是否显示警告
+                let warningMessage = '';
+                let loadAllBtnDisabled = false;
+                
+                if (tagCount > 1000) {
+                    warningMessage = `<div class="tag-count-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>该镜像包含 <strong>${tagCount}</strong> 个标签，加载全部可能会很慢。建议使用分页浏览或利用搜索功能查找特定标签。</p>
+                    </div>`;
+                    loadAllBtnDisabled = true;
+                } else if (tagCount > 500) {
+                    warningMessage = `<div class="tag-count-warning moderate">
+                        <i class="fas fa-info-circle"></i>
+                        <p>该镜像包含 <strong>${tagCount}</strong> 个标签，加载全部可能需要一些时间。</p>
+                    </div>`;
+                }
+                
+                // 重新构建标签视图内容
+                imageTagsView.innerHTML = `
+                    <div class="tag-header">
+                        <div class="tag-breadcrumb">
+                            <a href="javascript:void(0);" onclick="showSearchResults()">返回搜索结果</a>
+                        </div>
+                        <h2 id="currentImageTitle">${imageName}</h2>
+                        <p id="imageDescription" class="image-description">${currentImageData.description || '暂无描述'}</p>
+                        <div class="image-meta">
+                            <span id="imageStars"><i class="fas fa-star"></i> ${formatNumber(currentImageData.stars || 0)} 星标</span>
+                            <span id="imagePulls"><i class="fas fa-download"></i> ${formatNumber(currentImageData.pulls || 0)} 下载</span>
+                            <span id="imageTags"><i class="fas fa-tags"></i> ${formatNumber(tagCount)} 个标签</span>
+                        </div>
+                    </div>
+                    
+                    ${warningMessage}
+                    
+                    <div class="tag-actions">
+                        <div class="tag-search-container">
+                            <input type="text" id="tagSearchInput" placeholder="搜索TAG..." onkeyup="filterTags()">
+                            <button class="search-btn" onclick="filterTags()">
+                                <i class="fas fa-search"></i> 搜索
+                            </button>
+                        </div>
+                        <button id="loadAllTagsBtn" class="load-all-btn" onclick="loadAllTags()" ${loadAllBtnDisabled ? 'disabled' : ''}>
+                            <i class="fas fa-cloud-download-alt"></i> 加载全部TAG
+                        </button>
+                    </div>
+                    
+                    <div id="tagsResults"></div>
+                    
+                    <div class="pagination-container" id="tagPaginationContainer" style="display: none;">
+                        <button id="tagPrevPageBtn" onclick="loadImageTags(currentTagPage - 1)" disabled>
+                            <i class="fas fa-chevron-left"></i> 上一页
+                        </button>
+                        <span id="tagPageInfo">第 1 页</span>
+                        <button id="tagNextPageBtn" onclick="loadImageTags(currentTagPage + 1)">
+                            下一页 <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // 加载标签列表
+                currentTagPage = 1;
+                await loadImageTags(1);
+                
+            } catch (error) {
+                console.error('Error loading image details:', error);
+                imageTagsView.innerHTML = `
+                    <div class="tag-header">
+                        <div class="tag-breadcrumb">
+                            <a href="javascript:void(0);" onclick="showSearchResults()">返回搜索结果</a>
+                        </div>
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>加载镜像详情失败: ${error.message}</p>
+                            <button onclick="viewImageDetails('${currentImageData.name}', ${currentImageData.isOfficial}, '${encodeURIComponent(currentImageData.description)}', ${currentImageData.stars}, ${currentImageData.pulls})" class="retry-btn">
+                                <i class="fas fa-redo"></i> 重试
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // 显示通知
+                showToast(`<i class="fas fa-exclamation-circle"></i> 加载镜像详情失败: ${error.message}`, true);
             }
         }
 
+        // 添加formatNumber函数定义
+        function formatNumber(num) {
+            if (num >= 1000000000) {
+                return (num >= 1500000000 ? '1B+' : '1B');
+            } else if (num >= 1000000) {
+                const m = Math.floor(num / 1000000);
+                return (m >= 100 ? '100M+' : m + 'M');
+            } else if (num >= 1000) {
+                const k = Math.floor(num / 1000);
+                return (k >= 100 ? '100K+' : k + 'K');
+            }
+            return num.toString();
+        }
 
+        // 新增: 加载所有标签 - 改进错误处理
+        async function loadAllTags() {
+            if (!currentImageData) {
+                console.error('No image data available');
+                return;
+            }
+            
+            const loadAllTagsBtn = document.getElementById('loadAllTagsBtn');
+            const tagsResults = document.getElementById('tagsResults');
+            
+            // 禁用按钮，显示加载状态
+            loadAllTagsBtn.disabled = true;
+            loadAllTagsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在加载全部TAG...';
+            tagsResults.innerHTML = '<div class="loading-indicator">加载所有TAG中，这可能需要一些时间...</div>';
+            
+            try {
+                // 先获取标签总数
+                const countApiUrl = `/api/dockerhub/tag-count?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}`;
+                const countData = await fetchWithRetry(countApiUrl);
+                
+                const totalTags = countData.count || 0;
+                
+                if (totalTags === 0) {
+                    tagsResults.innerHTML = '<div class="message-container"><i class="fas fa-info-circle"></i><p>未找到标签信息</p></div>';
+                    showToast(`<i class="fas fa-info-circle"></i> 该镜像没有可用的标签`, false);
+                    loadAllTagsBtn.disabled = false;
+                    loadAllTagsBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 加载全部TAG';
+                    return;
+                }
+                
+                // 计算需要请求的次数 (每页最多100个标签)
+                const pageSize = 100;
+                const totalPages = Math.ceil(totalTags / pageSize);
+                
+                // 如果标签太多，提示用户
+                if (totalTags > 3000) {
+                    const confirmLoad = confirm(`该镜像包含 ${totalTags} 个标签，加载全部可能会很慢。确定继续吗？`);
+                    if (!confirmLoad) {
+                        loadAllTagsBtn.disabled = false;
+                        loadAllTagsBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 加载全部TAG';
+                        tagsResults.innerHTML = '';
+                        await loadImageTags(1); // 加载第一页
+                        return;
+                    }
+                }
+                
+                // 所有标签的集合
+                let allTags = [];
+                let loadedPages = 0;
+                
+                // 更新加载进度的函数
+                const updateProgress = () => {
+                    loadAllTagsBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 正在加载 (${Math.round((loadedPages/totalPages)*100)}%)`;
+                    tagsResults.innerHTML = `<div class="loading-indicator">已加载 ${allTags.length} / ${totalTags} 个标签 (${Math.round((loadedPages/totalPages)*100)}%)...</div>`;
+                };
+                
+                // 分批加载所有标签
+                for (let page = 1; page <= totalPages; page++) {
+                    try {
+                        const apiUrl = `/api/dockerhub/tags?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}&page=${page}&page_size=${pageSize}`;
+                        
+                        // 使用新的fetchWithRetry函数
+                        const data = await fetchWithRetry(apiUrl);
+                        
+                        if (data.results && Array.isArray(data.results)) {
+                            // 处理标签中缺少平台信息的情况
+                            const processedTags = data.results.map(tag => {
+                                if (!tag.images || !Array.isArray(tag.images) || tag.images.length === 0) {
+                                    tag.images = [];
+                                }
+                                return tag;
+                            });
+                            
+                            allTags = allTags.concat(processedTags);
+                        }
+                        
+                        loadedPages++;
+                        updateProgress();
+                        
+                    } catch (error) {
+                        console.error(`加载第 ${page} 页标签出错:`, error);
+                    }
+                }
+                
+                if (allTags.length > 0) {
+                    // 隐藏分页控件
+                    document.getElementById('tagPaginationContainer').style.display = 'none';
+                    
+                    // 显示标签
+                    displayTags(allTags);
+                    
+                    // 更新标签计数
+                    const tagStatsDiv = document.querySelector('.tag-search-stats');
+                    if (tagStatsDiv) {
+                        tagStatsDiv.innerHTML = `<p>已加载所有 <strong>${allTags.length}</strong> 个标签 (共 ${totalTags} 个)</p>`;
+                    }
+                    
+                    // 显示提示
+                    showToast(`<i class="fas fa-check-circle"></i> 成功加载 ${allTags.length} / ${totalTags} 个标签`, false);
+                    
+                    // 滚动到顶部
+                    window.scrollTo({
+                        top: document.getElementById('imageTagsView').offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                } else {
+                    tagsResults.innerHTML = '<div class="message-container"><i class="fas fa-info-circle"></i><p>未找到标签信息</p></div>';
+                    showToast(`<i class="fas fa-info-circle"></i> 未能加载标签`, true);
+                }
+                
+            } catch (error) {
+                console.error('加载全部标签失败:', error);
+                tagsResults.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>加载全部标签失败: ${error.message}</p>
+                        <button onclick="loadImageTags(1)" class="retry-btn">
+                            <i class="fas fa-redo"></i> 返回常规模式
+                        </button>
+                    </div>
+                `;
+                showToast(`<i class="fas fa-exclamation-circle"></i> 加载全部标签失败: ${error.message}`, true);
+            } finally {
+                // 恢复按钮状态
+                loadAllTagsBtn.disabled = false;
+                loadAllTagsBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 加载全部TAG';
+            }
+        }
+
+        // 加载镜像标签 - 修改每页显示数量为25个
+        async function loadImageTags(page = 1) {
+            if (!currentImageData) {
+                console.error('No image data available');
+                return;
+            }
+            const tagsResults = document.getElementById('tagsResults');
+            tagsResults.innerHTML = '<div class="loading-indicator">加载TAG列表中...</div>';
+            
+            try {
+                // 修改page_size为25
+                const apiUrl = `/api/dockerhub/tags?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}&page=${page}&page_size=25`;
+                console.log('Requesting tags from:', apiUrl);
+                
+                const data = await fetchWithRetry(apiUrl);
+                console.log('Received tags data:', data);
+                currentTagPage = page; // 更新当前页码
+                
+                if (data.results && data.results.length > 0) {
+                    // 处理标签中缺少平台信息的情况
+                    const processedTags = data.results.map(tag => {
+                        // 确保tag.images存在
+                        if (!tag.images || !Array.isArray(tag.images) || tag.images.length === 0) {
+                            tag.images = [];
+                        }
+                        return tag;
+                    });
+                    
+                    displayTags(processedTags);
+                    
+                    // 计算总页数时使用page_size=25
+                    updateTagPagination(page, Math.ceil((data.count || 0) / 25));
+                    document.getElementById('tagPaginationContainer').style.display = 'flex';
+                    
+                    // 更新页面显示信息，反映当前分页的标签
+                    const tagStatsDiv = document.querySelector('.tag-search-stats');
+                    if (tagStatsDiv) {
+                        tagStatsDiv.innerHTML = `<p>共找到 <strong>${data.count || processedTags.length}</strong> 个标签，当前显示第 <strong>${(page-1)*25+1}</strong> 至 <strong>${Math.min(page*25, data.count)}</strong> 个</p>`;
+                    }
+                    
+                } else {
+                    tagsResults.innerHTML = '<div class="message-container"><i class="fas fa-info-circle"></i><p>未找到标签信息</p></div>';
+                    document.getElementById('tagPaginationContainer').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading tags:', error);
+                tagsResults.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>加载标签失败: ${error.message}</p>
+                        <button onclick="loadImageTags(${page})" class="retry-btn">
+                            <i class="fas fa-redo"></i> 重试
+                        </button>
+                    </div>
+                `;
+                document.getElementById('tagPaginationContainer').style.display = 'none';
+                
+                // 显示通知
+                showToast(`<i class="fas fa-exclamation-circle"></i> 加载标签失败: ${error.message}`, true);
+            }
+        }
+
+        // 显示TAG列表 - 改进默认排序和显示
+        function displayTags(tags) {
+            const tagsResults = document.getElementById('tagsResults');
+            tagsResults.innerHTML = '';
+            
+            if (tags.length === 0) {
+                tagsResults.innerHTML = '<div class="message-container">没有找到匹配的TAG</div>';
+                return;
+            }
+            
+            // 添加标签搜索统计信息
+            const searchStatsDiv = document.createElement('div');
+            searchStatsDiv.className = 'tag-search-stats';
+            searchStatsDiv.innerHTML = `<p>共找到 <strong>${tags.length}</strong> 个标签</p>`;
+            tagsResults.appendChild(searchStatsDiv);
+            
+            // 添加标签排序功能
+            const sortContainer = document.createElement('div');
+            sortContainer.className = 'tag-sort-container';
+            sortContainer.innerHTML = `
+                <label for="tagSort">排序方式:</label>
+                <select id="tagSort" onchange="sortTags()">
+                    <option value="name-asc">TAG名称 (A-Z)</option>
+                    <option value="name-desc">TAG名称 (Z-A)</option>
+                    <option value="date-desc" selected>最新更新</option>
+                    <option value="date-asc">最早更新</option>
+                    <option value="size-desc">大小 (大-小)</option>
+                    <option value="size-asc">大小 (小-大)</option>
+                </select>
+            `;
+            tagsResults.appendChild(sortContainer);
+            
+            // 创建表格容器以启用水平滚动
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'tag-table-container';
+            tagsResults.appendChild(tableContainer);
+            
+            const tagTable = document.createElement('table');
+            tagTable.className = 'tag-table';
+            tagTable.id = 'tagTable';
+            
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th width="18%">TAG</th>
+                    <th width="42%">OS/ARCH</th>
+                    <th width="15%">大小</th>
+                    <th width="15%">更新时间</th>
+                    <th width="10%">操作</th>
+                </tr>
+            `;
+            tagTable.appendChild(thead);
+            
+            const tbody = document.createElement('tbody');
+            tbody.id = 'tagTableBody';
+            
+            // 使用最新更新的默认排序
+            window.currentTags = [...tags];
+            sortTagsByDate('desc');
+                
+            renderTagRows(window.currentTags, tbody);
+            
+            tagTable.appendChild(tbody);
+            tableContainer.appendChild(tagTable); // 将表格添加到容器中
+            
+            // 添加调试信息
+            console.log(`显示了 ${tags.length} 个标签`);
+        }
+
+        // 新增的排序标签函数
+        function sortTags() {
+            const sortSelect = document.getElementById('tagSort');
+            const [sortBy, direction] = sortSelect.value.split('-');
+            
+            if (sortBy === 'name') {
+                sortTagsByName(direction);
+            } else if (sortBy === 'date') {
+                sortTagsByDate(direction);
+            } else if (sortBy === 'size') {
+                sortTagsBySize(direction);
+            }
+            
+            const tbody = document.getElementById('tagTableBody');
+            tbody.innerHTML = '';
+            renderTagRows(window.currentTags, tbody);
+        }
+        
+        // 按名称排序
+        function sortTagsByName(direction) {
+            window.currentTags.sort((a, b) => {
+                return direction === 'asc' 
+                    ? a.name.localeCompare(b.name) 
+                    : b.name.localeCompare(a.name);
+            });
+        }
+        
+        // 按日期排序
+        function sortTagsByDate(direction) {
+            window.currentTags.sort((a, b) => {
+                const dateA = a.last_updated ? new Date(a.last_updated) : new Date(0);
+                const dateB = b.last_updated ? new Date(b.last_updated) : new Date(0);
+                return direction === 'asc' ? dateA - dateB : dateB - dateA;
+            });
+        }
+        
+        // 按大小排序
+        function sortTagsBySize(direction) {
+            window.currentTags.sort((a, b) => {
+                const sizeA = a.full_size || 0;
+                const sizeB = b.full_size || 0;
+                return direction === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+            });
+        }
+        
+        // 渲染标签行
+        function renderTagRows(tags, tbody) {
+            tags.forEach((tag, index) => {
+                const tr = document.createElement('tr');
+                 
+                // 计算大小
+                let size = '未知';
+                if (tag.full_size) {
+                    const sizeInMB = Math.round(tag.full_size / 1024 / 1024);
+                    size = `${sizeInMB} MB`;
+                }
+                   
+                // 格式化日期
+                let lastUpdated = '未知';
+                if (tag.last_updated) {
+                    const date = new Date(tag.last_updated);
+                    lastUpdated = date.toLocaleDateString('zh-CN');
+                }
+                
+                tr.innerHTML = `
+                    <td>${tag.name}</td>
+                    <td>${createOsArchHtml(tag.images, index)}</td>
+                    <td>${size}</td>
+                    <td>${lastUpdated}</td>
+                    <td>
+                        <button class="primary-btn" onclick="useImage('${currentImageData.name}:${tag.name}')">
+                            <i class="fas fa-rocket"></i> 使用
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function createOsArchHtml(images, tagIndex) {
+            // 确保images是有效数据
+            if (!images || !Array.isArray(images) || images.length === 0) {
+                return '<div class="tag-os-arch"><span class="tag-os-arch-item">无平台信息</span></div>';
+            }
+            
+            // 过滤和去重平台信息，过滤掉unknown/unknown
+            const uniquePlatforms = [];
+            const seen = new Set();
+            images.forEach(img => {
+                if (img && img.os && img.architecture) {
+                    // 跳过unknown/unknown组合
+                    if (img.os === 'unknown' && img.architecture === 'unknown') {
+                        return;
+                    }
+                    
+                    const key = `${img.os}/${img.architecture}${img.variant ? '/' + img.variant : ''}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniquePlatforms.push(img);
+                    }
+                }
+            });
+            
+            if (uniquePlatforms.length === 0) {
+                return '<div class="tag-os-arch"><span class="tag-os-arch-item">无平台信息</span></div>';
+            }
+            
+            // 改进的显示逻辑：以列表形式显示所有平台
+            const mainPlatforms = uniquePlatforms.slice(0, 4); // 显示前4个
+            const extraPlatforms = uniquePlatforms.slice(4);   // 其余隐藏
+                        
+            let html = '<div class="tag-os-arch">';
+            
+            // 显示主要平台
+            mainPlatforms.forEach(img => {
+                html += `<span class="tag-os-arch-item">${img.os}/${img.architecture}${img.variant ? '/' + img.variant : ''}</span>`;
+            });
+            
+            // 如果有更多平台，添加展开功能
+            if (extraPlatforms.length > 0) {
+                html += `
+                    <span class="tag-os-arch-more" onclick="toggleOsArch(${tagIndex})">
+                        <i class="fas fa-plus-circle"></i> 显示更多(${extraPlatforms.length})
+                    </span>
+                    <div id="osArch${tagIndex}" class="tag-os-arch-all">
+                `;
+                
+                extraPlatforms.forEach(img => {
+                    html += `<span class="tag-os-arch-item">${img.os}/${img.architecture}${img.variant ? '/' + img.variant : ''}</span>`;
+                });
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function toggleOsArch(tagIndex) {
+            const element = document.getElementById(`osArch${tagIndex}`);
+            element.classList.toggle('show');
+            const moreBtn = element.previousElementSibling;
+            
+            if (element.classList.contains('show')) {
+                moreBtn.innerHTML = '<i class="fas fa-minus-circle"></i> 收起';
+            } else {
+                moreBtn.innerHTML = `<i class="fas fa-plus-circle"></i> 显示更多(${element.children.length})`;
+            }
+        }
+
+        // 添加TAG过滤功能
+        function filterTags() {
+            const searchTerm = document.getElementById('tagSearchInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('.tag-table tbody tr');
+            
+            if (!rows.length) return;
+            
+            let visibleCount = 0;
+            rows.forEach(row => {
+                const tagName = row.querySelector('td:first-child').textContent.toLowerCase();
+                if (tagName.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 更新过滤后的统计信息
+            const searchStatsDiv = document.querySelector('.tag-search-stats');
+            if (searchStatsDiv) {
+                if (searchTerm) {
+                    searchStatsDiv.innerHTML = `<p>过滤结果: 共找到 <strong>${visibleCount}</strong> 个匹配 "${searchTerm}" 的标签</p>`;
+                } else {
+                    searchStatsDiv.innerHTML = `<p>共找到 <strong>${rows.length}</strong> 个标签</p>`;
+                }
+            }
+            
+            // 如果没有匹配的结果，显示提示
+            const tagsResults = document.getElementById('tagsResults');
+            const noResultsEl = tagsResults.querySelector('.no-filter-results');
+            
+            if (visibleCount === 0 && searchTerm) {
+                if (!noResultsEl) {
+                    const message = document.createElement('div');
+                    message.className = 'no-filter-results';
+                    message.innerHTML = `<p>没有匹配 "${searchTerm}" 的TAG</p>`;
+                    tagsResults.appendChild(message);
+                }
+            } else if (noResultsEl) {
+                noResultsEl.remove();
+            }
+        }
+
+        // 获取文档列表
         async function fetchDocumentation() {
             try {
                 const response = await fetch('/api/documentation');
@@ -1091,7 +1131,6 @@
                 }
                 const documents = await response.json();
                 console.log('Fetched documents:', documents);
-
                 const documentList = document.getElementById('documentList');
                 const documentationText = document.getElementById('documentationText');
                 
@@ -1143,13 +1182,10 @@
                 }
                 const documentData = await response.json();
                 console.log('Fetched document:', documentData);
-
                 const documentationText = document.getElementById('documentationText');
-                
                 if (documentData && documentData.content && documentData.content.trim() !== '') {
                     // 渲染文档内容
                     documentationText.innerHTML = `<h2>${documentData.title || '无标题'}</h2>` + marked.parse(documentData.content);
-                    
                     // 为所有代码块添加复制按钮和终端样式
                     const codeBlocks = documentationText.querySelectorAll('pre code');
                     codeBlocks.forEach((codeBlock) => {
@@ -1176,7 +1212,7 @@
                         // 正确的DOM操作顺序
                         pre.parentNode.insertBefore(wrapper, pre);  // 1. 先将wrapper插入到pre前面
                         wrapper.appendChild(pre);                   // 2. 将pre移动到wrapper内
-                        pre.appendChild(copyButton);               // 3. 将复制按钮添加到pre内
+                        pre.appendChild(copyButton);                // 3. 将复制按钮添加到pre内
                     });
                 } else {
                     documentationText.innerHTML = '该文档没有内容或格式不正确';
@@ -1192,7 +1228,6 @@
             try {
                 const response = await fetch('/api/config');
                 const config = await response.json();
-
                 if (config.logo) {
                     document.querySelector('.logo').src = config.logo;
                 }
@@ -1212,29 +1247,65 @@
                 if (config.proxyDomain) {
                     proxyDomain = config.proxyDomain;
                 }
-                // 添加对搜索API的支持
                 if (config.searchApiEndpoint) {
                     window.searchApiEndpoint = config.searchApiEndpoint;
                 }
             } catch (error) {
                 console.error('加载配置失败:', error);
             }
-            switchTab('accelerate');
+        }
+
+        function useImage(imageName) {
+            if (imageName) {
+                console.log("使用镜像:", imageName);
+                document.getElementById('imageInput').value = imageName;
+                switchTab('accelerate');
+                // 直接生成加速命令，无需用户再次点击
+                generateCommands(imageName);
+            } else {
+                alert('无效的 Docker 镜像名称');
+            }
+        }
+
+        // 改进Toast通知功能，支持HTML内容
+        function showToast(message, isError = false) {
+            // 移除任何现有的提示
+            const existingToasts = document.querySelectorAll('.toast-notification');
+            existingToasts.forEach(toast => toast.remove());
+            
+            // 创建新的提示
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${isError ? 'error' : 'info'}`;
+            toast.innerHTML = message; // 使用innerHTML而不是textContent以支持HTML
+            document.body.appendChild(toast);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000); // 延长显示时间到5秒，给用户更多时间阅读
         }
 
         loadConfig();
 
-        // 添加滚动监听事件
-        window.addEventListener('scroll', function() {
-            const backToTopBtn = document.getElementById('backToTopBtn');
-            if (window.scrollY > 300) {
-                backToTopBtn.style.display = 'flex';
-            } else {
-                backToTopBtn.style.display = 'none';
+        // 添加缺失的showSearchResults函数
+        function showSearchResults() {
+            // 显示搜索结果列表，隐藏标签视图
+            document.getElementById('searchResultsList').style.display = 'block';
+            document.getElementById('imageTagsView').style.display = 'none';
+            
+            // 清空标签搜索输入框
+            const tagSearchInput = document.getElementById('tagSearchInput');
+            if (tagSearchInput) {
+                tagSearchInput.value = '';
             }
-        });
+            
+            // 显示分页控件（如果有搜索结果）
+            if (document.getElementById('searchResults').children.length > 0) {
+                document.getElementById('paginationContainer').style.display = 'flex';
+            }
+        }
     </script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
 </body>
 </html>
