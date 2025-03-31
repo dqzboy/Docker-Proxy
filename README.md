@@ -152,38 +152,10 @@ docker logs -f [容器ID或名称]
 </details>
 
 
-## ✨ 教程
-#### 配置Nginx反向代理
-> **注意**： 如果你选择部署的是Nginx，那么代理程序部署完成之后，需自行配置 Nginx <br>
-
-**1.下载仓库下的nginx配置文件 [registry-proxy.conf](https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/nginx/registry-proxy.conf) 到你的nginx服务下，并修改配置里的域名和证书部分** <br>
-**2.在你的DNS服务提供商将相应的访问域名解析到部署docker proxy服务的机器IP上** <br>
-**3.修改Docker的daemon.json配置，配置你自建的Registry地址。修改后重启docker**
-```shell
-~]# vim /etc/docker/daemon.json
-{
-    "registry-mirrors": [ "https://hub.your_domain_name" ]
-}
-```
-
-> **说明：** 配置了`daemon.json`之后，现在拉取镜像无需指定你的加速地址，直接执行`docker pull`拉取你需要的镜像即可。下面的步骤是你在没有配置`daemon.json`的时候，拉取镜像需要加上你的加速地址才可以正常拉取。
-
----
-
-**1. 使用自建的 Registry 地址替换官方的 Registry 地址拉取镜像**
-```shell
-# docker hub Registry
-## 源：nginx:latest
-## 替换
-docker pull hub.your_domain_name/library/nginx:latest
-
-# Google Registry
-## 源：gcr.io/google-containers/pause:3.1
-## 替换：
-docker pull gcr.your_domain_name/google-containers/pause:3.1
-```
-
-**2. 前缀替换的 Registry 的参考**
+### 前缀替换说明
+<details>
+<summary><strong>点击查看</strong></summary>
+<div>
 
 | 源站 | 替换为 | 平台 |
 |-------|---------------|----------|
@@ -197,14 +169,12 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 | docker.elastic.co     | elastic.your_domain_name  | Elastic Stack
 | nvcr.io    | nvcr.your_domain_name  | NVIDIA Container Registry
 
+</details>
+
 ---
 
-> **详细教程：** <br>
-> [自建Docker镜像加速服务：加速与优化镜像管理](https://www.dqzboy.com/8709.html)<br>
-> [自建Docker镜像加速，并把域名托管到CF加速镜像拉取](https://www.dqzboy.com/17665.html)
 
-
-## 💻 UI界面
+## 💻 Hubcmd-UI
 
 > HubCMD-UI 手动安装教程：[点击查看教程](hubcmdui/README.md)
 
@@ -238,19 +208,6 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 
 ---
 
-## 👨🏻‍💻 问题
-
-<details>
-<summary><strong>问题总结</strong></summary>
-<div>
-
-> 部署、使用相关等常见问题总结，欢迎补充！
-
-相关问题总结: [点击查看](Issue/issue.md)
-
-</details>
-
----
 
 ## 🫶 赞助
 如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊

@@ -26,7 +26,7 @@
 
 ---
 
-## 📝 本地运行
+## 📝 源码构建运行
 #### 1. 克隆项目
 ```bash
 git clone git@github.com:dqzboy/Docker-Proxy.git
@@ -43,27 +43,13 @@ npm install
 node server.js
 ```
 
-## 📦 Docker运行
+## 📦 Docker 方式运行
 
-- 如果不自行构建Docker镜像，可直接跳转第三步拉取镜像运行
-
-#### 1. 克隆项目（可选）
+#### 1. 下载 hubcmd-ui 镜像
 ```bash
-git clone git@github.com:dqzboy/Docker-Proxy.git
-```
-
-#### 2. 构建镜像（可选）
-```bash
-cd Docker-Proxy
-
-docker build -t hubcmd-ui .
-```
-
-#### 3. 运行容器
-```bash
-# 拉取镜像！如果你手动构建了镜像此步骤跳过
 docker pull dqzboy/hubcmd-ui:latest
 
+#### 2. 运行 hubcmd-ui 容器
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
 ```
 - `-v` 参数解释：左边是宿主机上的 Docker socket 文件路径，右边是容器内的映射路径
@@ -103,42 +89,53 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/33eace7f-a7dc-4e9e-bfff-6487a3df5b1c"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c1e938dc-d604-475c-8689-d60b09329af8"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/6f34d717-95c8-47b4-89b8-812151904448"?raw=true"></td>
-    </tr>
-</table>
-
-> 浏览器输入 `服务器地址:30080/admin` 访问后端页面，默认登入账号密码: root/admin@123
-
-<table>
-    <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/e69f0473-04c1-473d-a580-6e9a85c4053c"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/1be671e5-7bd5-4d63-9f4e-8936b819ee2d"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/816c95af-dbd1-46ce-b550-87e0853f23e2"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f97a0a37-457f-4ffb-893e-db68b204ee33"?raw=true"></td>
+    </tr>
+</table>
+
+> 浏览器输入 `服务器地址:30080/admin` 访问后端页面，默认登入账号密码: root / admin@123
+
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/85a0c746-d44a-4168-8b4b-a1e7273cdd59"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bee29cb2-e374-40a2-a730-b7034d3e4929"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bc066047-15d3-45fc-b363-ded37bfe1121"?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/a7fa29a4-5cb3-470a-827b-38bf3b7c8086"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c775abbe-0927-4a1f-b4e6-faf531784aea"?raw=true"></td>
     </tr>
 </table>
 
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/78ad0e29-abfd-47d6-a132-c5b49b48bc95"?raw=true"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bfe99dc9-ecb8-4c47-9f68-2312e447f309"?raw=true"></td>
+    </tr>
+</table>
 ---
 
 ## 🫶 赞助
