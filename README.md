@@ -97,7 +97,8 @@ bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/Do
 bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
 
-- hubcmd-ui面板脚本安装
+- **Hubcmd-UI** 面板,通过脚本安装
+
 ```
 执行上面脚本，选项为：2 ---> 8 ---> 1
 ```
@@ -126,7 +127,7 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
 
 ### Docker Compose 部署
 <details>
-<summary><strong>手动部署容器</strong></summary>
+<summary><strong>点击查看</strong></summary>
 <div>
 
 **⚠️ 注意：** 你需要对哪个镜像仓库进行加速，就下载哪个配置。`docker-compose.yaml`文件默认是部署所有的国外镜像仓库的加速服务，同样也是你部署哪个就配置哪个，其余的删除掉即可！

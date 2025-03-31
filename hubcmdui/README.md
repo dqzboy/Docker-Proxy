@@ -48,8 +48,10 @@ node server.js
 #### 1. 下载 hubcmd-ui 镜像
 ```bash
 docker pull dqzboy/hubcmd-ui:latest
+```
 
 #### 2. 运行 hubcmd-ui 容器
+```bash
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
 ```
 - `-v` 参数解释：左边是宿主机上的 Docker socket 文件路径，右边是容器内的映射路径
@@ -136,6 +138,7 @@ docker logs -f [容器ID或名称]
         <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bfe99dc9-ecb8-4c47-9f68-2312e447f309"?raw=true"></td>
     </tr>
 </table>
+
 ---
 
 ## 🫶 赞助
