@@ -1,0 +1,8 @@
+{
+  "isEnabled": false,
+  "notificationType": "wechat",
+  "webhookUrl": "",
+  "telegramToken": "",
+  "telegramChatId": "",
+  "monitorInterval": 60
+}

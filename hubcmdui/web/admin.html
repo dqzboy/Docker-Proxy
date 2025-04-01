@@ -7,10 +7,19 @@
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
     <!-- 引入前端样式表 -->
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/css/editormd.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/editormd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入Bootstrap CSS和JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入 Markdown 编辑器 -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/3.0.0/toastui-editor.min.css" />
+    <script src="https://uicdn.toast.com/editor/3.0.0/toastui-editor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="css/admin.css">
     <style>
         /* 管理面板特定样式 */
         .admin-container {
@@ -26,6 +35,23 @@
             padding: 1.5rem 0;
             z-index: 10;
             transition: all 0.3s ease;
+        }
+
+        /* 文档管理新建文档徽章 */
+        .new-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
 
         /* 用户信息部分样式 */
@@ -539,84 +565,163 @@
             font-size: 1rem;
         }
 
-        /* 表格样式 */
+        /* 表格样式 - 增强 Excel 效果 */
         .content-section table {
             width: 100%;
-            border-collapse: separate;
+            border-collapse: collapse; /* 合并边框 */
             border-spacing: 0;
             margin-top: 1.5rem;
             margin-bottom: 2rem;
-            border-radius: var (--radius-md);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
+            border: 1px solid #ccc; /* 表格外边框 */
+            font-size: 0.9rem; /* 稍微减小字体 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 轻微阴影 */
         }
 
         .content-section th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 500;
+            background-color: #f2f2f2; /* Excel 灰色表头背景 */
+            color: #333;
+            font-weight: bold; /* 加粗 */
             text-align: left;
-            padding: 1.2rem 1.5rem;
+            padding: 0.6rem 0.8rem; /* 调整内边距 */
+            border: 1px solid #ccc; /* 单元格边框 */
         }
 
         .content-section td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-light);
+            padding: 0.6rem 0.8rem; /* 调整内边距 */
+            border: 1px solid #ddd; /* 单元格边框，比表头稍浅 */
             vertical-align: middle;
+            background-color: #ffffff;
+            color: #444; /* 单元格文字颜色 */
+            word-break: break-word; /* 防止长 ID 撑开单元格 */
         }
 
-        .content-section tr:last-child td {
-            border-bottom: none;
+        /* 可选：添加斑马纹效果 */
+        /*
+        .content-section tr:nth-child(even) td {
+            background-color: #f9f9f9;
         }
+        */
 
         .content-section tr:hover td {
-            background-color: rgba(61, 124, 244, 0.05);
+            background-color: #e9f5ff; /* 鼠标悬停高亮 */
         }
 
-        /* 操作按钮样式 */
-        .action-btn {
-            background-color: var(--primary-color);
+        /* 表格头部悬停效果 */
+        .content-section th:hover {
+            background-color: #e8e8e8;
+        }
+
+        /* Excel风格的表格滚动条 */
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        /* 操作列样式 */
+        .action-cell {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        /* 状态列样式 */
+        .status-running {
+            background-color: #28a745;
             color: white;
-            border: none;
-            padding: 0.6rem 0.9rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-stopped, .status-exited {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-created {
+            background-color: #17a2b8;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-paused {
+            background-color: #ffc107;
+            color: #212529;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .status-unknown {
+            background-color: #6c757d;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            text-align: center;
+        }
+
+        /* 下拉菜单样式 */
+        .action-dropdown .dropdown-toggle {
+            border-color: #d0d0d0;
+            background-color: #fff;
+            color: #333;
             font-size: 0.9rem;
+            padding: 0.4rem 0.8rem;
+        }
+        
+        .action-dropdown .dropdown-toggle:hover, 
+        .action-dropdown .dropdown-toggle:focus {
+            background-color: #f0f0f0;
+            box-shadow: none;
+        }
+        
+        .action-dropdown .dropdown-menu {
+            min-width: 150px;
+            padding: 0.3rem 0;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+        
+        .action-dropdown .dropdown-item {
+            padding: 0.5rem 1rem;
+            color: #333;
+        }
+        
+        .action-dropdown .dropdown-item:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .action-dropdown .dropdown-item i {
+            width: 1rem;
+            text-align: center;
             margin-right: 0.5rem;
-            transition: all var(--transition-fast);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
         }
-
-        .action-btn:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
+        
+        .action-dropdown .text-danger {
+            color: #dc3545 !important;
         }
-
-        .action-btn:active {
-            transform: translateY(0);
-        }
-
-        .edit-btn {
-            background-color: var(--primary-color);
-        }
-
-        .edit-btn:before {
-            content: "\f044";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-        }
-
-        .delete-btn {
-            background-color: var(--danger-color);
-        }
-
-        .delete-btn:before {
-            content: "\f2ed";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
+        
+        .action-dropdown .dropdown-divider {
+            margin: 0.3rem 0;
         }
 
         /* 登录模态框 */
@@ -629,7 +734,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1470&auto=format&fit=crop') center/cover no-repeat;
+            background: url('/images/login-bg.jpg') center/cover no-repeat;
             justify-content: center;
             align-items: center;
             animation: fadeIn 0.5s ease-in-out;
@@ -869,7 +974,7 @@
         }
 
         .config-form {
-            background-color: var(--container-bg);
+            background-color: var (--container-bg);
             padding: 1.8rem;
             border-radius: var(--radius-md);
             margin-bottom: 1.5rem;
@@ -990,7 +1095,7 @@
             color: var(--danger-color);
             margin-top: 0.75rem;
             padding: 0.75rem;
-            border-radius: var(--radius-md);
+            border-radius: var (--radius-md);;
             background-color: rgba(255, 82, 82, 0.1);
             font-size: 0.9rem;
             display: flex;
@@ -1005,10 +1110,10 @@
         }
 
         .success-message {
-            color: var(--success-color);
+            color: var (--success-color);
             margin-top: 0.75rem;
             padding: 0.75rem;
-            border-radius: var(--radius-md);
+            border-radius: var (--radius-md);
             background-color: rgba(50, 213, 131, 0.1);
             font-size: 0.9rem;
             display: flex;
@@ -1070,7 +1175,7 @@
             padding: 1rem;
             margin-bottom: 1rem;
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border-radius: var (--radius-md);;
             font-size: 1.1rem;
             font-weight: 500;
             box-shadow: var(--shadow-sm);
@@ -1113,7 +1218,7 @@
             background-color: var(--success-color);
             color: white;
             padding: 0.8rem 1.2rem;
-            border-radius: var(--radius-md);
+            border-radius: var (--radius-md);
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -1123,9 +1228,8 @@
         }
 
         .add-btn:before {
-            content: "\f067";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
+            content: "";
+            /* 移除 Font Awesome 图标，以避免和 HTML 中的图标重复 */
         }
 
         .add-btn:hover {
@@ -1134,22 +1238,41 @@
             box-shadow: var(--shadow-md);
         }
 
-        /* Docker状态表格 */
-        .action-select {
-            padding: 0.5rem;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background-color: var(--container-bg);
-            color: var(--text-primary);
-            cursor: pointer;
-            width: 100%;
+        /* Docker容器操作按钮样式 */
+        .action-cell {
+            min-width: 200px;
         }
-
-        .action-select:focus {
-            border-color: var(--primary-color);
-            outline: none;
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
         }
-
+        
+        .action-buttons button {
+            padding: 3px 8px;
+            font-size: 0.8rem;
+            margin-right: 3px;
+            white-space: nowrap;
+        }
+        
+        .action-buttons button i {
+            margin-right: 3px;
+            font-size: 0.75rem;
+        }
+        
+        /* 改善按钮在小屏幕上的显示 */
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons button {
+                margin-bottom: 3px;
+                width: 100%;
+            }
+        }
+        
         /* 响应式设计 */
         @media (max-width: 992px) {
             .admin-container {
@@ -1166,13 +1289,13 @@
                 flex-wrap: wrap;
                 justify-content: flex-start;
             }
-
+            
             .sidebar li {
                 padding: 0.5rem 1rem;
                 border-left: none;
                 border-bottom: 3px solid transparent;
             }
-
+            
             .sidebar li.active {
                 border-left: none;
                 border-bottom: 3px solid var(--primary-color);
@@ -1197,10 +1320,19 @@
             .button-group {
                 flex-direction: column;
             }
-
+            
             .btn, .action-btn {
                 width: 100%;
                 margin-bottom: 0.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-buttons button {
+                margin-bottom: 3px;
+                width: 100%;
             }
         }
 
@@ -1209,6 +1341,182 @@
                 width: 90%;
                 padding: 1.5rem;
             }
+        }
+
+        /* Excel风格表格 */
+        .excel-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+            border: 1px solid #ccc;
+        }
+        .excel-table th {
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .excel-table td {
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            text-align: left;
+        }
+        .excel-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .excel-table tr:hover {
+            background-color: #f0f7ff;
+        }
+        
+        /* 容器更新样式 */
+        .update-progress {
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .update-progress p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .update-progress strong {
+            color: #007bff;
+            font-weight: 600;
+        }
+        
+        .progress-status {
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease-in-out;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        /* 修改SweetAlert样式 */
+        .swal2-popup.update-popup {
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .swal2-title.update-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .swal2-input.update-input {
+            box-shadow: none;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+        }
+        
+        .swal2-input.update-input:focus {
+            border-color: #3085d6;
+            box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.2);
+        }
+        
+        /* 容器日志样式 */
+        .container-logs {
+            max-height: 70vh;
+            overflow-y: auto;
+            background: #1e1e1e;
+            color: #f0f0f0;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .swal2-logs-container {
+            max-width: 100%;
+            padding: 0 !important;
+        }
+        
+        .swal2-logs-popup {
+            max-width: 80% !important;
+        }
+        
+        /* 容器状态标签样式 */
+        .badge.status-running {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .badge.status-stopped, .badge.status-exited {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .badge.status-created {
+            background-color: #17a2b8;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .badge.status-unknown, .badge.status-paused {
+            background-color: #6c757d;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        /* 容器表格标题样式 */
+        .docker-table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .docker-table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
         }
     </style>
 </head>
@@ -1233,7 +1541,7 @@
                 </div>
             </div>
             <h2><i class="fas fa-cogs"></i>管理面板</h2>
-            <ul>
+            <ul class="sidebar-nav">
                 <li data-section="dashboard" class="active">
                     <i class="fas fa-tachometer-alt"></i>控制面板
                 </li>
@@ -1268,7 +1576,7 @@
                         <div class="welcome-content">
                             <h1 class="welcome-title">欢迎回来，<span id="welcomeUsername">管理员</span>！</h1>
                             <p class="welcome-subtitle">这里是 Docker 镜像代理加速系统控制面板</p>
-                            <button class="welcome-action" onclick="refreshSystemStatus()">
+                            <button class="welcome-action" id="refreshSystemBtn">
                                 <i class="fas fa-sync-alt"></i> 刷新系统状态
                             </button>
                         </div>
@@ -1280,142 +1588,78 @@
                     </div>
 
                     <div class="dashboard-grid">
-                        <div class="dashboard-card">
-                            <div class="card-icon">
-                                <i class="fab fa-docker"></i>
-                            </div>
-                            <div class="card-title">容器总数</div>
-                            <div class="card-value" id="totalContainers">--</div>
-                            <div class="card-description">当前系统中的容器总数</div>
-                            <div class="card-footer">
-                                <div class="trend up">
-                                    <i class="fas fa-arrow-up"></i>
-                                    <span>正常运行</span>
-                                </div>
-                                <div class="card-action" onclick="showSection('docker-status')">查看详情</div>
-                            </div>
-                        </div>
-
-                        <div class="dashboard-card">
-                            <div class="card-icon" style="background-color: rgba(255, 152, 0, 0.1); color: #FF9800;">
-                                <i class="fas fa-memory"></i>
-                            </div>
-                            <div class="card-title">系统内存</div>
-                            <div class="card-value" id="systemMemory">--</div>
-                            <div class="card-description">当前系统内存使用情况</div>
-                            <div class="card-footer">
-                                <div class="trend up">
-                                    <i class="fas fa-arrow-up"></i>
-                                    <span>运行正常</span>
-                                </div>
-                                <div class="card-action" onclick="showSection('docker-monitoring')">监控详情</div>
-                            </div>
-                        </div>
-
-                        <div class="dashboard-card">
-                            <div class="card-icon" style="background-color: rgba(76, 175, 80, 0.1); color: #4CAF50;">
-                                <i class="fas fa-microchip"></i>
-                            </div>
-                            <div class="card-title">CPU 负载</div>
-                            <div class="card-value" id="cpuLoad">--</div>
-                            <div class="card-description">当前系统 CPU 负载情况</div>
-                            <div class="card-footer">
-                                <div class="trend down">
-                                    <i class="fas fa-arrow-down"></i>
-                                    <span>降低 5%</span>
-                                </div>
-                                <div class="card-action" onclick="showSection('docker-monitoring')">监控详情</div>
-                            </div>
-                        </div>
-
-                        <div class="dashboard-card">
-                            <div class="card-icon" style="background-color: rgba(33, 150, 243, 0.1); color: #2196F3;">
-                                <i class="fas fa-hdd"></i>
-                            </div>
-                            <div class="card-title">磁盘空间</div>
-                            <div class="card-value" id="diskSpace">--</div>
-                            <div class="card-description">当前系统磁盘使用情况</div>
-                            <div class="card-footer">
-                                <div class="trend up">
-                                    <i class="fas fa-arrow-up"></i>
-                                    <span>充足</span>
-                                </div>
-                                <div class="card-action" onclick="checkDiskSpace()">查看详情</div>
-                            </div>
-                        </div>
+                        <!-- 仪表板卡片将由 systemStatus.initDashboard() 动态生成 -->
                     </div>
 
                     <div class="dashboard-card">
                         <h3 class="card-title">最近容器操作</h3>
                         <table id="recentActivitiesTable">
-                            <thead>
-                                <tr>
-                                    <th>时间</th>
-                                    <th>操作</th>
-                                    <th>容器</th>
-                                    <th>状态</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentActivitiesBody">
-                                <tr>
-                                    <td colspan="4" style="text-align: center;">加载中...</td>
-                                </tr>
-                            </tbody>
+                            <!-- 活动表内容将由 systemStatus.refreshSystemStatus() 动态更新 -->
                         </table>
                     </div>
                 </div>
 
-                <!-- 将原有的内容分成四个部分，每个部分对应一个侧边栏项目 -->
+                <!-- 基本配置 -->
                 <div id="basic-config" class="content-section">
-                    <label for="logoUrl">Logo URL: (可选)</label>
-                    <input type="url" id="logoUrl" name="logoUrl">
-                    <button type="button" onclick="saveLogo()">保存 Logo</button>
-
-                    <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
-                    <input type="text" id="proxyDomain" name="proxyDomain" required>
-                    <button type="button" onclick="saveProxyDomain()">保存代理地址</button>
+                    <h1 class="admin-title">基本配置</h1>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label for="logoUrl">Logo URL: (可选)</label>
+                            <input type="url" id="logoUrl" name="logoUrl" class="form-control">
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="saveConfig({logo: document.getElementById('logoUrl').value})">保存 Logo</button>
+                    
+                        <div class="form-group" style="margin-top: 2rem;">
+                            <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
+                            <input type="text" id="proxyDomain" name="proxyDomain" class="form-control" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="saveConfig({proxyDomain: document.getElementById('proxyDomain').value})">保存代理地址</button>
+                    </div>
                 </div>
                 
+                <!-- 菜单管理 -->
                 <div id="menu-management" class="content-section">
                     <h2 class="menu-label">菜单项管理</h2>
                     <table id="menuTable">
                         <thead>
-                            <tr>
-                                <th>文本</th>
-                                <th>链接 (可选)</th>
-                                <th>新标签页打开</th>
-                                <th>操作</th>
-                            </tr>
+                            <!-- 表头将由 menuManager.renderMenuItems() 动态生成 -->
                         </thead>
                         <tbody id="menuTableBody">
                             <!-- 菜单项将在这里动态添加 -->
                         </tbody>
                     </table>
-                    <button type="button" class="add-btn" onclick="showNewMenuItemRow()">添加菜单项</button>
+                    <button type="button" class="add-btn" onclick="menuManager.showNewMenuItemRow()">
+                        <i class="fas fa-plus"></i> 添加菜单项
+                    </button>
                 </div>
   
                 <!-- 文档管理部分 -->
                 <div id="documentation-management" class="content-section">
                     <h2 class="menu-label">文档管理</h2>
-                    <button type="button" onclick="newDocument()">新建文档</button>
+                    <div class="action-bar" style="margin-bottom: 15px;">
+                        <button type="button" class="btn btn-primary" onclick="documentManager.newDocument()">
+                            <i class="fas fa-plus"></i> 新建文档
+                        </button>
+                    </div>
+                    
                     <table id="documentTable">
                         <thead>
-                            <tr>
-                                <th>文章</th>
-                                <th>操作</th>
-                            </tr>
+                            <!-- 表头将由 documentManager.renderDocumentList() 动态生成 -->
                         </thead>
                         <tbody id="documentTableBody">
                             <!-- 文档列表将在这里动态添加 -->
                         </tbody>
                     </table>
+                    
                     <div id="editorContainer" style="display: none;">
-                        <input type="text" id="documentTitle" placeholder="文档标题">
-                        <div id="editormd">
-                            <textarea style="display:none;"></textarea>
+                        <input type="text" id="documentTitle" placeholder="请输入文档标题" autocomplete="off">
+                        <div id="editor">
+                            <!-- 编辑器将在这里初始化 -->
                         </div>
-                        <button type="button" onclick="saveDocument()">保存文档</button>
-                        <button type="button" onclick="cancelEdit()">取消</button>
+                        <div class="editor-actions">
+                            <button type="button" class="btn btn-secondary" onclick="documentManager.cancelEdit()">取消</button>
+                            <button type="button" class="btn btn-primary" onclick="documentManager.saveDocument()">保存文档</button>
+                        </div>
                     </div>
                 </div>  
 
@@ -1426,9 +1670,9 @@
                     <input type="password" id="currentPassword" name="currentPassword">
                     <label for="newPassword">新密码</label>
                     <span class="password-hint" id="passwordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
-                    <input type="password" id="newPassword" name="newPassword" oninput="checkPasswordStrength()">
+                    <input type="password" id="newPassword" name="newPassword" oninput="userCenter.checkPasswordStrength()">
                     <span id="passwordStrength" style="color: red;"></span>
-                    <button type="button" onclick="changePassword()">修改密码</button>
+                    <button type="button" onclick="userCenter.changePassword()">修改密码</button>
                 </div>
 
                 <!-- 网络测试 -->
@@ -1437,50 +1681,38 @@
                     <div class="input-group">
                         <label for="domainSelect">目标域名：</label>
                         <select id="domainSelect" class="form-control">
-                            <option value="">选择预定义域名</option>
-                            <option value="gcr.io">gcr.io</option>
-                            <option value="ghcr.io">ghcr.io</option>
-                            <option value="quay.io">quay.io</option>
-                            <option value="k8s.gcr.io">k8s.gcr.io</option>
-                            <option value="registry.k8s.io">registry.k8s.io</option>
-                            <option value="mcr.microsoft.com">mcr.microsoft.com</option>
-                            <option value="docker.elastic.co">docker.elastic.co</option>
-                            <option value="registry-1.docker.io">registry-1.docker.io</option>
+                            <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
                         </select>
                     </div>
                     <div class="input-group">
                         <label for="testType">测试类型：</label>
                         <select id="testType">
-                            <option value="ping">Ping</option>
-                            <option value="traceroute">Traceroute</option>
+                            <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
                         </select>
                     </div>
-                    <button>开始测试</button>
+                    <button class="btn btn-primary">开始测试</button>
                     <div id="testResults" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
                 </div>
 
                 <!-- Docker服务状态 -->
                 <div id="docker-status" class="content-section">
-                    <h1 class="admin-title">Docker 服务状态</h1>
-                    <table id="dockerStatusTable">
-                      <thead>
-                        <tr>
-                          <th>容器 ID</th>
-                          <th>名称</th>
-                          <th>镜像</th>
-                          <th>状态</th>
-                          <th>CPU</th>
-                          <th>内存</th>
-                          <th>创建时间</th>
-                        </tr>
-                      </thead>
-                      <tbody id="dockerStatusTableBody">
-                        <!-- Docker 容器状态将在这里动态添加 -->
-                      </tbody>
-                    </table>
-                    <button type="button" onclick="refreshDockerStatus()">刷新状态</button>
+                    <div class="section-heading">
+                        <h2 class="section-title">Docker 服务状态</h2>
+                        <div class="section-description">
+                            查看和管理Docker容器状态和操作
+                        </div>
+                    </div>
+                    
+                    <!-- 新增表格容器以支持标题和操作区域 -->
+                    <div id="dockerTableContainer" class="table-responsive">
+                        <table id="dockerStatusTable" class="excel-table">
+                            <thead></thead>
+                            <tbody id="dockerStatusTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
 
+                <!-- Docker监控配置 -->
                 <div id="docker-monitoring" class="content-section">
                     <h1 class="admin-title">Docker 容器监控</h1>
                     <div class="monitoring-status">
@@ -1490,7 +1722,7 @@
                     <div class="config-form">
                         <div class="form-group">
                             <label for="notificationType">通知方式：</label>
-                            <select id="notificationType" class="form-control" onchange="toggleNotificationFields()">
+                            <select id="notificationType" class="form-control">
                                 <option value="wechat">企业微信群机器人</option>
                                 <option value="telegram">Telegram Bot</option>
                             </select>
@@ -1516,9 +1748,9 @@
                             <input type="number" id="monitorInterval" name="monitorInterval" min="1" value="60" class="form-control">
                         </div>
                         <div class="button-group">
-                            <button onclick="testNotification()" class="btn btn-secondary">测试通知</button>
-                            <button onclick="saveMonitoringConfig()" class="btn btn-primary">保存配置</button>
-                            <button onclick="toggleMonitoring()" class="btn btn-secondary" id="toggleMonitoringBtn">开启/关闭监控</button>
+                            <button class="btn btn-secondary" id="testNotifyBtn" onclick="app.testNotification()">测试通知</button>
+                            <button class="btn btn-primary" id="saveConfigBtn" onclick="app.saveMonitoringConfig()">保存配置</button>
+                            <button class="btn btn-secondary" id="toggleMonitoringBtn" onclick="app.toggleMonitoring()">开启/关闭监控</button>
                         </div>
                     </div>
                     <div id="messageContainer"></div>
@@ -1537,14 +1769,13 @@
                     </div>
                 </div>
 
-                <!-- 用户中心部分 - 修改按钮样式，移除图标 -->
+                <!-- 用户中心部分 -->
                 <div id="user-center" class="content-section">
                     <div class="user-center-header">
                         <div>
                             <h1 class="user-center-title">用户中心</h1>
                             <p class="user-center-subtitle">管理您的个人信息和账户安全</p>
                         </div>
-                        <!-- Fix 4: Remove icon from user center buttons -->
                         <button class="btn btn-primary" id="ucLogoutBtn" style="display: inline-block;">退出登录</button>
                     </div>
                     
@@ -1565,30 +1796,23 @@
                                     <div class="stat-label">账户天数</div>
                                 </div>
                             </div>
+                            
+                            <!-- 移除用户详细信息部分 -->
                         </div>
                         
                         <div class="user-center-section">
                             <h2 class="user-center-section-title">修改密码</h2>
-                            <label for="currentPassword">当前密码</label>
-                            <input type="password" id="currentPassword" name="currentPassword">
-                            <label for="newPassword">新密码</label>
-                            <span class="password-hint" id="passwordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
-                            <input type="password" id="newPassword" name="newPassword" oninput="checkPasswordStrength()">
-                            <span id="passwordStrength" style="color: red;"></span>
-                            <button type="button" onclick="changePassword()">修改密码</button>
-                        </div>
-                        
-                        <div class="user-center-section">
-                            <h2 class="user-center-section-title">安全设置</h2>
-                            <div class="form-group">
-                                <label for="loginNotification">登录通知</label>
-                                <select id="loginNotification" class="form-control">
-                                    <option value="none">不通知</option>
-                                    <option value="email">邮件通知</option>
-                                </select>
-                            </div>
-                            <!-- Fix 4: Remove icon from user center save button -->
-                            <button type="button" class="btn btn-primary" id="saveSecurityBtn" style="display: inline-block;">保存设置</button>
+                            <form id="changePasswordForm">
+                                <label for="ucCurrentPassword">当前密码</label>
+                                <input type="password" id="ucCurrentPassword" name="currentPassword">
+                                <label for="ucNewPassword">新密码</label>
+                                <span class="password-hint" id="ucPasswordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
+                                <input type="password" id="ucNewPassword" name="newPassword" oninput="userCenter.checkUcPasswordStrength()">
+                                <label for="ucConfirmPassword">确认新密码</label>
+                                <input type="password" id="ucConfirmPassword" name="confirmPassword">
+                                <span id="ucPasswordStrength" style="color: red;"></span>
+                                <button type="submit" class="btn btn-primary">修改密码</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -1602,1672 +1826,84 @@
             <div class="login-header">
                 <h2>管理员登录</h2>
             </div>
-            <form class="login-form">
+    
+            <form id="loginForm" class="login-form">
                 <input type="text" id="username" name="username" placeholder="用户名" required>
                 <input type="password" id="password" name="password" placeholder="密码" required>
+                <!-- 修复这里的结构问题 - 添加了缺失的开始标签 -->
                 <div class="captcha-container">
                     <input type="text" id="captcha" name="captcha" placeholder="验证码" required>
-                    <span id="captchaText" onclick="refreshCaptcha()">点击刷新验证码</span>
+                    <span id="captchaText" onclick="auth.refreshCaptcha()">点击刷新验证码</span>
                 </div>
-                <button type="button" onclick="login()">登录</button>
+                <button type="submit" id="loginButton">登录</button>
             </form>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- 添加 Bootstrap 5 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    
+    <!-- Toast UI Editor - 添加编辑器需要的依赖 -->
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+    
+    <!-- 模块化JS文件 - 按依赖顺序加载 -->
+    <script src="js/core.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/userCenter.js"></script>
+    <script src="js/menuManager.js"></script>
+    <script src="js/documentManager.js"></script>
+    <script src="js/systemStatus.js"></script>
+    <script src="js/dockerManager.js"></script>
+    <script src="js/networkTest.js"></script>
+    <script src="js/app.js"></script>
+
     <script>
-        function persistSession() {
-            if (document.cookie.includes('connect.sid')) {
-                sessionStorage.setItem('sessionActive', 'true');
-            }
-        }
-
-        function checkSessionPersistence() {
-            return sessionStorage.getItem('sessionActive') === 'true';
-        }
-        
-        let menuItems = [];
-        let isLoggedIn = false;
-        let editingIndex = -1;
-        let editor;
-        let currentEditingDoc = null;
-        let documents = [];
-        
-
-        function showSection(sectionId) {
-            console.log('Showing section:', sectionId);
-            
-            // 获取所有内容部分和侧边栏项目
-            const contentSections = document.querySelectorAll('.content-section');
-            const sidebarItems = document.querySelectorAll('.sidebar li');
-            
-            // 确保目标部分存在
-            const targetSection = document.getElementById(sectionId);
-            if (!targetSection) {
-                console.error('Section not found:', sectionId);
-                return;
-            }
-            
-            contentSections.forEach(section => {
-                if (section.id === sectionId) {
-                    section.classList.add('active');
-                    
-                    // 加载特定部分的内容
-                    if (sectionId === 'docker-status') {
-                        loadDockerStatus();
-                    } else if (sectionId === 'user-center') {
-                        loadUserStats();
-                    } else if (sectionId === 'docker-monitoring') {
-                        loadMonitoringConfig();
-                        refreshStoppedContainers();
-                    }
-                } else {
-                    section.classList.remove('active');
-                }
-            });
-            
-            // 保存当前部分以便持久化
-            localStorage.setItem('currentSection', sectionId);
-
-            // 更新侧边栏活动状态
-            sidebarItems.forEach(item => {
-                if (item.getAttribute('data-section') === sectionId) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-        }
-
-
-        function bindUserActionButtons() {
-            // 确保这些按钮有事件监听器
-            const userCenterBtn = document.getElementById('userCenterBtn');
-            if (userCenterBtn) {
-                userCenterBtn.addEventListener('click', function() {
-                    showSection('user-center');
-                });
-            }
-            
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
-            }
-            
-            const ucLogoutBtn = document.getElementById('ucLogoutBtn');
-            if (ucLogoutBtn) {
-                ucLogoutBtn.addEventListener('click', logout);
-            }
-        }
-        
-        function bindDashboardCardActions() {
-            // 为每个仪表板卡片添加明确的事件处理程序
-            const dashboardCards = document.querySelectorAll('.dashboard-card');
-            
-            dashboardCards.forEach(card => {
-                const actionBtn = card.querySelector('.card-action');
-                const cardTitle = card.querySelector('.card-title').textContent.trim();
-                
-                if (actionBtn) {
-                    actionBtn.addEventListener('click', function() {
-                        console.log('卡片动作点击:', cardTitle);
-                        
-                        if (cardTitle === '容器总数') {
-                            showSection('docker-status');
-                        } else if (cardTitle === '系统内存' || cardTitle === 'CPU 负载') {
-                            showSection('docker-monitoring');
-                        } else if (cardTitle === '磁盘空间') {
-                            checkDiskSpace();
-                        }
-                    });
-                }
-            });
-            
-            // 为刷新系统状态添加点击处理程序
-            const refreshBtn = document.querySelector('.welcome-action');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', refreshSystemStatus);
-            }
-        }
-
-        // 初始化编辑器
-        function initEditor() {
-            if (editor) {
-                console.log('Editor already initialized');
-                return;
-            }
-            try {
-                editor = editormd("editormd", {
-                    width: "100%",
-                    height: 640,
-                    path : "https://cdn.jsdelivr.net/npm/editor.md@1.5.0/lib/",
-                    theme : "default",
-                    previewTheme : "default",
-                    editorTheme : "default",
-                    markdown : "",
-                    codeFold : true,
-                    saveHTMLToTextarea : true,
-                    searchReplace : true,
-                    watch : true, // 开启实时预览
-                    htmlDecode : "style,script,iframe|on*",
-                    toolbar : true,
-                    toolbarIcons : "full",
-                    placeholder: "请输入Markdown格式的文档...",
-                    emoji : true,
-                    taskList : true,
-                    tocm : true,
-                    tex : true,
-                    flowChart : true,
-                    sequenceDiagram : true,
-                    onload : function() {
-                        console.log('Editor.md loaded successfully');
-                        // 在加载完成后，立即切换到编辑模式
-                        this.unwatch();
-                        this.watch();
-                    }
-                });
-                console.log('Editor initialized successfully');
-            } catch (error) {
-                console.error('Error initializing editor:', error);
-            }
-        }
-
-
-        function newDocument() {
-            currentEditingDoc = null;
-            document.getElementById('documentTitle').value = '';
-            editor.setMarkdown('');
-            showEditor();
-        }
-
-        function showEditor() {
-            document.getElementById('documentTable').style.display = 'none';
-            document.getElementById('editorContainer').style.display = 'block';
-            if (editor) {
-                // 确保每次显示编辑器时都切换到编辑模式
-                editor.unwatch();
-                editor.watch();
-            }
-        }
-
-        function hideEditor() {
-            document.getElementById('documentTable').style.display = 'table';
-            document.getElementById('editorContainer').style.display = 'none';
-        }
-
-        function cancelEdit() {
-            hideEditor();
-        }
-
-        async function saveDocument() {
-            const title = document.getElementById('documentTitle').value.trim();
-            const content = editor.getMarkdown();
-            if (!title) {
-                showAlert('请输入文档标题', 'error');
-                return;
-            }
-            try {
-                // 显示保存中状态
-                Swal.fire({
-                    title: '正在保存',
-                    text: '请稍候...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                const response = await fetch('/api/documentation', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        id: currentEditingDoc ? currentEditingDoc.id : null, 
-                        title, 
-                        content 
-                    })
-                });
-                
-                if (response.ok) {
-                    Swal.fire({
-                        title: '保存成功',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        hideEditor();
-                        loadDocumentList();
-                    });
-                } else {
-                    throw new Error('保存失败');
-                }
-            } catch (error) {
-                console.error('保存文档失败:', error);
-                showAlert('保存文档失败: ' + error.message, 'error');
-            }
-        }
-
-        async function loadDocumentList() {
-            try {
-                const response = await fetch('/api/documentation-list');
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}, details: ${errorData.details}`);
-                }
-                documents = await response.json();
-                console.log('Received documents:', documents);
-                renderDocumentList();
-            } catch (error) {
-                console.error('加载文档列表失败:', error);
-                showAlert('加载文档列表失败: ' + error.message, 'error');
-            }
-        }
-
-        function renderDocumentList() {
-            const tbody = document.getElementById('documentTableBody');
-            tbody.innerHTML = '';
-            if (documents.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2">没有找到文档</td></tr>';
-                return;
-            }
-            documents.forEach(doc => {
-                const row = `
-                    <tr>
-                        <td>${doc.title || 'Untitled Document'}</td>
-                        <td>
-                            <button onclick="editDocument('${doc.id}')">编辑</button>
-                            <button onclick="deleteDocument('${doc.id}')">删除</button>
-                            <button onclick="togglePublish('${doc.id}')">${doc.published ? '取消发布' : '发布'}</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-
-        function editDocument(id) {
-            currentEditingDoc = documents.find(doc => doc.id === id);
-            document.getElementById('documentTitle').value = currentEditingDoc.title;
-            editor.setMarkdown(currentEditingDoc.content);
-            showEditor();
-        }
-
-        async function deleteDocument(id) {
-            if (confirm('确定要删除这个文档吗？')) {
-                try {
-                    const response = await fetch(`/api/documentation/${id}`, { method: 'DELETE' });
-                    if (response.ok) {
-                        showAlert('文档删除成功', 'success');
-                        loadDocumentList();
-                    } else {
-                        throw new Error('删除失败');
-                    }
-                } catch (error) {
-                    console.error('删除文档失败:', error);
-                    showAlert('删除文档失败: ' + error.message, 'error');
-                }
-            }
-        }
-
-        async function togglePublish(id) {
-            try {
-                const response = await fetch(`/api/documentation/${id}/toggle-publish`, { method: 'POST' });
-                if (response.ok) {
-                    loadDocumentList();
-                } else {
-                    throw new Error('操作失败');
-                }
-            } catch (error) {
-                console.error('更改发布状态失败:', error);
-                showAlert('更改发布状态失败: ' + error.message, 'error');
-            }
-        }
-
-
-        function getMenuItems() {
-            return menuItems;
-        }
-
-        function setupMenuDeleteButtons() {
-            const deleteButtons = document.querySelectorAll('.menu-delete-btn');
-            deleteButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                    const row = button.closest('tr');
-                    const index = parseInt(row.getAttribute('data-index'));
-                    const menuText = row.querySelector('.menu-text').value;
-                    if (confirm(`确定要删除菜单项 "${menuText}" 吗？`)) {
-                        deleteMenuItem(index);
-                    }
-                });
-            });
-        }
-
-        function renderMenuItems() {
-            const tbody = document.getElementById('menuTableBody');
-            tbody.innerHTML = '';
-            menuItems.forEach((item, index) => {
-                const row = `
-                    <tr data-index="${index}">
-                        <td><input type="text" class="menu-text" value="${item.text}" disabled></td>
-                        <td><input type="url" class="menu-link" value="${item.link || ''}" disabled></td>
-                        <td>
-                            <select class="menu-newtab" disabled>
-                                <option value="false" ${item.newTab ? '' : 'selected'}>否</option>
-                                <option value="true" ${item.newTab ? 'selected' : ''}>是</option>
-                            </select>
-                        </td>
-                        <td>
-                            <button type="button" class="action-btn edit-btn">编辑</button>
-                            <button type="button" class="action-btn delete-btn menu-delete-btn">删除</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-            setupEditButtons();
-            setupMenuDeleteButtons();
-        }
-
-        function setMenuItems(items) {
-            menuItems = items;
-            renderMenuItems();
-        }
-
-        function setupEditButtons() {
-            const editButtons = document.querySelectorAll('.edit-btn');
-            editButtons.forEach((button, index) => {
-                button.addEventListener('click', () => {
-                    const row = button.closest('tr');
-                    const textInput = row.querySelector('.menu-text');
-                    const linkInput = row.querySelector('.menu-link');
-                    const newTabSelect = row.querySelector('.menu-newtab');
-
-                    if (textInput.disabled) {
-                        textInput.disabled = false;
-                        linkInput.disabled = false;
-                        newTabSelect.disabled = false;
-                        button.textContent = '保存';
-                    } else {
-                        const text = textInput.value;
-                        const link = linkInput.value;
-                        const newTab = newTabSelect.value === 'true';
-
-                        if (text) {
-                            const rowIndex = row.getAttribute('data-index');
-                            menuItems[rowIndex] = { text, link, newTab };
-                            saveMenuItem(rowIndex, { text, link, newTab });
-                            renderMenuItems(); // 重新渲染菜单项
-                        } else {
-                            showAlert('请填写菜单项文本', 'error');
-                        }
-                    }
-                });
-            });
-        }
-        
-
-        function showNewMenuItemRow() {
-            const tbody = document.getElementById('menuTableBody');
-            const newRow = `
-                <tr id="newMenuItemRow">
-                    <td><input type="text" class="menu-text" placeholder="菜单项文本"></td>
-                    <td><input type="url" class="menu-link" placeholder="菜单项链接 (可选)"></td>
-                    <td>
-                        <select class="menu-newtab">
-                            <option value="false">否</option>
-                            <option value="true">是</option>
-                        </select>
-                    </td>
-                    <td>
-                        <button type="button" class="action-btn" onclick="saveNewMenuItem()">保存</button>
-                        <button type="button" class="action-btn" onclick="cancelNewMenuItem()">取消</button>
-                    </td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', newRow);
-        }
-
-
-        function saveNewMenuItem() {
-            const newRow = document.getElementById('newMenuItemRow');
-            const textInput = newRow.querySelector('.menu-text');
-            const linkInput = newRow.querySelector('.menu-link');
-            const newTabSelect = newRow.querySelector('.menu-newtab');
-
-            const text = textInput.value;
-            const link = linkInput.value;
-            const newTab = newTabSelect.value === 'true';
-
-            if (text) {
-                const newItem = { text, link, newTab };
-                menuItems.push(newItem);
-                renderMenuItems(); // 先更新页面
-                saveMenuItem(menuItems.length - 1, newItem);
-                cancelNewMenuItem();
-            } else {
-                showAlert('请填写菜单项文本', 'error');
-            }
-        }
-
-        function cancelNewMenuItem() {
-            const newRow = document.getElementById('newMenuItemRow');
-            if (newRow) {
-                newRow.remove();
-            }
-        }
-
-        async function saveLogo() {
-            const logoUrl = document.getElementById('logoUrl').value;
-            if (!logoUrl) {
-                showAlert('Logo URL 不可为空', 'error');
-                return;
-            }
-            try {
-                await saveConfig({ logo: logoUrl });
-                showAlert('Logo 保存成功', 'success');
-            } catch (error) {
-                showAlert('Logo 保存失败: ' + error.message, 'error');
-            }
-        }
-
-        async function saveProxyDomain() {
-            const proxyDomain = document.getElementById('proxyDomain').value;
-            if (!proxyDomain) {
-                showAlert('Docker镜像代理地址不可为空', 'error');
-                return;
-            }
-            try {
-                await saveConfig({ proxyDomain });
-                showAlert('代理地址保存成功', 'success');
-            } catch (error) {
-                showAlert('代理地址保存失败: ' + error.message, 'error');
-            }
-        }
-
-        async function saveMenuItem(index, item) {
-            const config = { menuItems: menuItems };
-            config.menuItems[index] = item;
-            await saveConfig(config);
-        }
-
-        async function deleteMenuItem(index) {
-            try {
-                menuItems.splice(index, 1);
-                const response = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ menuItems: menuItems })
-                });
-                if (response.ok) {
-                    console.log('Menu item deleted successfully');
-                    renderMenuItems(); // 重新渲染菜单项
-                } else {
-                    throw new Error('Failed to delete menu item');
-                }
-            } catch (error) {
-                console.error('删除菜单项失败:', error);
-                showAlert('删除菜单项失败: ' + error.message, 'error');
-            }
-        }
-
-        async function saveConfig(partialConfig) {
-            try {
-                const response = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(partialConfig)
-                });
-                if (!response.ok) {
-                    throw new Error('保存失败');
-                }
-            } catch (error) {
-                console.error('保存失败: ' + error.message);
-                throw error;
-            }
-        }
-
-        // Fix 6: Ad-related code has been removed
-
-        async function refreshCaptcha() {
-            try {
-                const response = await fetch('/api/captcha');
-                const data = await response.json();
-                document.getElementById('captchaText').textContent = data.captcha;
-            } catch (error) {
-                console.error('刷新验证码失败:', error);
-            }
-        }
-
-        async function refreshDockerStatus() {
-            const spinner = document.getElementById('loadingSpinner');
-            const refreshButton = document.getElementById('refreshDockerStatusButton');
-            const table = document.getElementById('dockerStatusTable');
-            
-            try {
-                spinner.style.display = 'block';
-                refreshButton?.classList.add('disabled');
-                table.classList.add('disabled');
-                
-                await loadDockerStatus();
-            } catch (error) {
-                console.error('刷新 Docker 状态失败:', error);
-                showAlert('刷新 Docker 状态失败: ' + error.message, 'error');
-            } finally {
-                spinner.style.display = 'none';
-                refreshButton?.classList.remove('disabled');
-                table.classList.remove('disabled');
-            }
-        }
-
-        function saveDockerStatusToCache(containerStatus) {
-            localStorage.setItem('dockerStatus', JSON.stringify(containerStatus));
-            localStorage.setItem('dockerStatusTimestamp', Date.now());
-        }
-
-        function getDockerStatusFromCache() {
-            const cachedStatus = localStorage.getItem('dockerStatus');
-            const timestamp = localStorage.getItem('dockerStatusTimestamp');
-            if (cachedStatus && timestamp) {
-                // 检查缓存是否在过去5分钟内更新过
-                if (Date.now() - parseInt(timestamp) < 5 * 60 * 1000) {
-                    return JSON.parse(cachedStatus);
-                }
-            }
-            return null;
-        }
-
-        let isDockerStatusLoaded = false;
-        
-        async function loadDockerStatus() {
-            const tbody = document.getElementById('dockerStatusTableBody');
-            
-            // 尝试从缓存加载数据
-            const cachedStatus = getDockerStatusFromCache();
-            if (cachedStatus) {
-                renderDockerStatus(cachedStatus);
-                isDockerStatusLoaded = true;
-            } else if (!isDockerStatusLoaded) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">加载中...</td></tr>';
-            }
-
-            try {
-                const response = await fetch('/api/docker-status');
-                if (!response.ok) {
-                    if (response.status === 503) {
-                        throw new Error('无法连接到 Docker 守护进程');
-                    }
-                    throw new Error('Failed to fetch Docker status');
-                }
-                const containerStatus = await response.json();
-                renderDockerStatus(containerStatus);
-                isDockerStatusLoaded = true;
-                saveDockerStatusToCache(containerStatus);
-            } catch (error) {
-                console.error('Error loading Docker status:', error);
-                if (!cachedStatus) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: red;">${error.message}</td></tr>`;
-                }
-                isDockerStatusLoaded = false;
-            }
-        }
-
-        function renderDockerStatus(containerStatus) {
-            const table = document.getElementById('dockerStatusTable');
-            const thead = table.getElementsByTagName('thead')[0];
-            const tbody = document.getElementById('dockerStatusTableBody');
-
-            thead.innerHTML = `
-                <tr>
-                    <th>容器 ID</th>
-                    <th>名称</th>
-                    <th>镜像</th>
-                    <th>状态</th>
-                    <th>CPU</th>
-                    <th>内存</th>
-                    <th>创建时间</th>
-                    <th>操作</th>
-                </tr>
-            `;
-
-            tbody.innerHTML = '';
-
-            containerStatus.forEach(container => {
-                const row = `
-                <tr>
-                    <td>${container.id}</td>
-                    <td>${container.name}</td>
-                    <td>${container.image}</td>
-                    <td class="status-cell" id="status-${container.id}">
-                        <div class="status-content">${container.state}</div>
-                    </td>
-                    <td>${container.cpu}</td>
-                    <td>${container.memory}</td>
-                    <td>${container.created}</td>
-                    <td>
-                        <select onchange="handleContainerAction('${container.id}', '${container.image}', this.value)" class="action-select">
-                            <option value="">选择操作</option>
-                            <option value="restart">重启</option>
-                            <option value="stop">停止</option>
-                            <option value="update">更新</option>
-                            <option value="delete">删除</option>
-                            <option value="logs">查看日志</option>                            
-                        </select>
-                    </td>
-                </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-
-        function showAlert(message, type = 'info') {
-            Swal.fire({
-                title: type === 'error' ? '错误' : '提示',
-                text: message,
-                icon: type,
-                confirmButtonText: '确定',
-                confirmButtonColor: '#3D7CF4'
-            });
-        }
-
-        function showConfirm(message, callback) {
-            Swal.fire({
-                title: '确认操作',
-                text: message,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                confirmButtonColor: '#3D7CF4',
-                cancelButtonColor: '#6C757D'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    callback();
-                }
-            });
-        }
-
-        function handleContainerAction(id, image, action) {
-            if (action === '') return;
-            
-            switch(action) {
-                case 'restart':
-                    showConfirm(`确定要重启容器 ${id} 吗？`, () => restartContainer(id));
-                    break;
-                case 'stop':
-                    showConfirm(`确定要停止容器 ${id} 吗？`, () => stopContainer(id));
-                    break;
-                case 'update':
-                    updateContainer(id, image);
-                    break;
-                case 'logs':
-                    viewLogs(id);
-                    break;
-                case 'delete':
-                    showConfirm(`确定要删除容器 ${id} 吗？此操作不可逆。`, () => deleteContainer(id));
-                    break;
-            }
-            
-            document.querySelector(`select[onchange*="${id}"]`).value = "";
-        }
-
-        async function viewLogs(id) {
-            try {
-                // 创建模态框
-                const modal = document.createElement('div');
-                modal.style.position = 'fixed';
-                modal.style.left = '0';
-                modal.style.top = '0';
-                modal.style.width = '100%';
-                modal.style.height = '100%';
-                modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-                modal.style.display = 'flex';
-                modal.style.justifyContent = 'center';
-                modal.style.alignItems = 'center';
-                modal.style.zIndex = '1000';
-
-                const content = document.createElement('div');
-                content.style.backgroundColor = 'black';
-                content.style.color = 'white';
-                content.style.padding = '20px';
-                content.style.borderRadius = '5px';
-                content.style.width = '80%';
-                content.style.height = '80%';
-                content.style.display = 'flex';
-                content.style.flexDirection = 'column';
-                content.style.position = 'relative';
-
-                const logContent = document.createElement('pre');
-                logContent.style.flex = '1';
-                logContent.style.overflowY = 'auto';
-                logContent.style.padding = '10px';
-                logContent.style.backgroundColor = '#1e1e1e';
-                logContent.style.color = '#d4d4d4';
-                logContent.style.fontFamily = 'monospace';
-                logContent.style.fontSize = '14px';
-                logContent.style.lineHeight = '1.5';
-                logContent.style.whiteSpace = 'pre-wrap';
-                logContent.style.wordBreak = 'break-all';
-
-                const closeButton = document.createElement('button');
-                closeButton.textContent = '关闭';
-                closeButton.style.position = 'absolute';
-                closeButton.style.top = '10px';
-                closeButton.style.right = '10px';
-                closeButton.style.padding = '5px 10px';
-                closeButton.style.backgroundColor = '#4CAF50';
-                closeButton.style.color = 'white';
-                closeButton.style.border = 'none';
-                closeButton.style.borderRadius = '3px';
-                closeButton.style.cursor = 'pointer';
-
-                content.appendChild(logContent);
-                content.appendChild(closeButton);
-                modal.appendChild(content);
-                document.body.appendChild(modal);
-
-                // 使用 WebSocket 或长轮询获取日志
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                let ws;
-
-                try {
-                    ws = new WebSocket(`${protocol}//${window.location.host}/api/docker/logs/${id}`);
-                    
-                    ws.onopen = () => {
-                        logContent.textContent += "WebSocket 连接已建立，正在接收日志...\n";
-                    };
-
-                    ws.onmessage = (event) => {
-                        const filteredData = event.data.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g, '');
-                        logContent.textContent += filteredData;
-                        logContent.scrollTop = logContent.scrollHeight;
-                    };
-
-                    ws.onerror = (error) => {
-                        console.error('WebSocket错误:', error);
-                        logContent.textContent += "WebSocket 连接错误，切换到长轮询模式...\n";
-                        useLongPolling(id, logContent);
-                    };
-
-                    ws.onclose = () => {
-                        logContent.textContent += "WebSocket 连接已关闭。\n";
-                    };
-                } catch (error) {
-                    console.error('WebSocket连接失败:', error);
-                    logContent.textContent += "无法建立 WebSocket 连接，使用长轮询模式...\n";
-                    useLongPolling(id, logContent);
-                }
-
-                // 关闭按钮和模态框点击事件
-                closeButton.onclick = () => {
-                    if (ws) ws.close();
-                    document.body.removeChild(modal);
-                };
-
-                modal.onclick = (e) => {
-                    if (e.target === modal) {
-                        if (ws) ws.close();
-                        document.body.removeChild(modal);
-                    }
-                };
-
-            } catch (error) {
-                console.error('查看日志失败:', error);
-                showAlert('查看日志失败: ' + error.message, 'error');
-            }
-        }
-
-        function useLongPolling(id, logContent) {
-            let isPolling = true;
-
-            async function pollLogs() {
-                if (!isPolling) return;
-
-                try {
-                    const response = await fetch(`/api/docker/logs-poll/${id}`);
-                    if (!response.ok) throw new Error('获取日志失败');
-                    
-                    const logs = await response.text();
-                    logContent.textContent += logs;
-                    logContent.scrollTop = logContent.scrollHeight;
-                } catch (error) {
-                    console.error('轮询日志失败:', error);
-                    logContent.textContent += "获取日志失败，请检查网络连接...\n";
-                }
-
-                // 继续轮询
-                setTimeout(pollLogs, 2000);
-            }
-
-            pollLogs();
-
-            // 返回一个停止轮询的函数
-            return () => { isPolling = false; };
-        }
-
-
-        async function restartContainer(id) {
-            try {
-                const statusCell = document.getElementById(`status-${id}`);
-                statusCell.innerHTML = '<div class="loading-container"><div class="loading"></div></div>';
-
-                const response = await fetch(`/api/docker/restart/${id}`, { method: 'POST' });
-                if (response.ok) {
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒，确保状态已更新
-                    const newStatus = await getContainerStatus(id);
-                    statusCell.textContent = newStatus;
-                } else {
-                    throw new Error('重启失败');
-                }
-            } catch (error) {
-                console.error('重启容器失败:', error);
-                showAlert('重启容器失败: ' + error.message, 'error');
-                loadDockerStatus(); // 重新加载所有容器状态
-            }
-        }
-
-        async function stopContainer(id) {
-            try {
-                const statusCell = document.getElementById(`status-${id}`);
-                statusCell.innerHTML = '<div class="loading-container"><div class="loading"></div></div>';
-                
-                const response = await fetch(`/api/docker/stop/${id}`, { method: 'POST' });
-                if (response.ok) {
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // 等待2秒，确保状态已更新
-                    const newStatus = await getContainerStatus(id);
-                    statusCell.innerHTML = `<div class="status-content">${newStatus}</div>`;
-                } else {
-                    throw new Error('停止失败');
-                }
-            } catch (error) {
-                console.error('停止容器失败:', error);
-                showAlert('停止容器失败: ' + error.message, 'error');
-                loadDockerStatus(); // 重新加载所有容器状态
-            }
-        }
-
-        async function getContainerStatus(id) {
-            const response = await fetch(`/api/docker/status/${id}`);
-            if (response.ok) {
-                const data = await response.json();
-                return data.state;
-            } else {
-                throw new Error('获取容器状态失败');
-            }
-        }
-
-
-        async function updateContainer(id, currentImage) {
-            const tag = prompt(`请输入 ${currentImage} 的新标签:`, 'latest');
-            if (tag) {
-                try {
-                    const statusCell = document.getElementById(`status-${id}`);
-                    statusCell.textContent = 'Updating';
-                    statusCell.style.color = 'orange';
-
-                    const response = await fetch(`/api/docker/update/${id}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tag })
-                    });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        showAlert(result.message || '容器更新成功', 'success');
-                    } else {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || '更新失败');
-                    }
-                } catch (error) {
-                    console.error('更新容器失败:', error);
-                    showAlert('更新容器失败: ' + error.message, 'error');
-                } finally {
-                    loadDockerStatus(); // 重新加载容器状态
-                }
-            }
-        }
-
-        function refreshDockerStatus() {
-            isDockerStatusLoaded = false;
-            localStorage.removeItem('dockerStatus');
-            localStorage.removeItem('dockerStatusTimestamp');
-            loadDockerStatus();
-        }
-        async function deleteContainer(id) {
-            try {
-                const statusCell = document.getElementById(`status-${id}`);
-                statusCell.textContent = 'Deleting';
-                statusCell.style.color = 'red';
-
-                const response = await fetch(`/api/docker/delete/${id}`, { method: 'POST' });
-                if (response.ok) {
-                    showAlert('容器删除成功', 'success');
-                    loadDockerStatus(); // 重新加载容器状态
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || '删除失败');
-                }
-            } catch (error) {
-                console.error('删除容器失败:', error);
-                showAlert('删除容器失败: ' + error.message, 'error');
-                loadDockerStatus(); // 重新加载所有容器状态
-            }
-        }
-
+        // 在DOM加载完成后初始化登录表单
         document.addEventListener('DOMContentLoaded', function() {
-            const sidebarItems = document.querySelectorAll('.sidebar li');
-            const contentSections = document.querySelectorAll('.content-section');
-
-            // 只使用domainSelect
-            const domainSelect = document.getElementById('domainSelect');
-
-            // 网络测试函数
-            function runNetworkTest() {
-                const domain = domainSelect.value;
-                const testType = document.getElementById('testType').value;
-                const resultsDiv = document.getElementById('testResults');
-
-                // 验证选择了域名
-                if (!domain) {
-                    showAlert('请选择目标域名', 'error');
-                    return;
-                }
-
-                resultsDiv.innerHTML = '测试中，请稍候...';
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
-
-                fetch('/api/network-test', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ domain, type: testType }),
-                    signal: controller.signal
-                })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    if (!response.ok) {
-                        throw new Error('网络测试失败');
-                    }
-                    return response.text();
-                })
-                .then(result => {
-                    resultsDiv.textContent = result;
-                })
-                .catch(error => {
-                    console.error('网络测试出错:', error);
-                    if (error.name === 'AbortError') {
-                        resultsDiv.textContent = '测试超时，请稍后再试';
-                    } else {
-                        resultsDiv.textContent = '测试失败: ' + error.message;
-                    }
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    auth.login();
                 });
             }
 
-            // 绑定测试按钮点击事件
-            document.querySelector('#network-test button').addEventListener('click', runNetworkTest);
-
-            // docker监控
-            loadContainers();
-            loadMonitoringConfig();
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            if (changePasswordForm) {
+                changePasswordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    userCenter.changePassword();
+                });
+            }
             
-            // 绑定测试通知按钮的点击事件
-            document.querySelector('#docker-monitoring button:nth-of-type(1)').addEventListener('click', testNotification);
-            
-            // 绑定保存配置按钮的点击事件
-            document.querySelector('#docker-monitoring button:nth-of-type(2)').addEventListener('click', saveMonitoringConfig);
-            
-            // 绑定开启/关闭监控按钮的点击事件
-            document.querySelector('#docker-monitoring button:nth-of-type(3)').addEventListener('click', toggleMonitoring);
-
-            // 为通知类型下拉框添加变更事件监听器
-            document.getElementById('notificationType').addEventListener('change', toggleNotificationFields);
-
-            refreshStoppedContainers(); // 初始加载已停止的容器
-
-            // 侧边栏点击事件 - 使用全局的showSection函数
-            sidebarItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const sectionId = this.getAttribute('data-section');
-                    showSection(sectionId);
-                });
-            });
-
-
-            // docker 监控
-            // 显示消息
-            function showMessage(message, isError = false) {
-                const messageContainer = document.getElementById('messageContainer');
-                const messageElement = document.createElement('div');
-                messageElement.textContent = message;
-                messageElement.className = isError ? 'error-message' : 'success-message';
-                messageContainer.appendChild(messageElement);
-                setTimeout(() => messageElement.remove(), 3000);
-            }
-
-            // 加载容器列表
-            async function loadContainers() {
-                try {
-                    const response = await fetch('/api/stopped-containers');
-                    const containers = await response.json();
-                    renderStoppedContainers(containers);
-                } catch (error) {
-                    showMessage('加载容器列表失败: ' + error.message, true);
-                }
-            }
-            // 确保在页面加载时调用 loadContainers
-            document.addEventListener('DOMContentLoaded', loadContainers);
-
-            // 切换单个容器的监控状态
-            async function toggleContainerMonitoring(containerId, isMonitored) {
-                try {
-                    const response = await fetch(`/api/container/${containerId}/monitor`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ isMonitored })
-                    });
-                    if (response.ok) {
-                        showMessage(`容器 ${containerId} 监控状态已${isMonitored ? '开启' : '关闭'}`);
-                    } else {
-                        throw new Error('操作失败');
+            // 设置超时自动显示登录框，避免一直显示"加载中..."
+            setTimeout(function() {
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                if (loadingIndicator && loadingIndicator.style.display !== 'none') {
+                    console.log('超时自动显示登录框');
+                    if (core && typeof core.hideLoadingIndicator === 'function') {
+                        core.hideLoadingIndicator();
                     }
-                } catch (error) {
-                    showMessage(`切换容器监控状态失败: ${error.message}`, true);
-                }
-            }
-
-            function toggleNotificationFields() {
-                const notificationType = document.getElementById('notificationType').value;
-                const wechatFields = document.getElementById('wechatFields');
-                const telegramFields = document.getElementById('telegramFields');
-
-                if (notificationType === 'wechat') {
-                    wechatFields.style.display = 'block';
-                    telegramFields.style.display = 'none';
-                } else if (notificationType === 'telegram') {
-                    wechatFields.style.display = 'none';
-                    telegramFields.style.display = 'block';
-                }
-            }
-
-            async function testNotification() {
-                const notificationType = document.getElementById('notificationType').value;
-                let data = {
-                    notificationType: notificationType,
-                    monitorInterval: document.getElementById('monitorInterval').value
-                };
-
-                if (notificationType === 'wechat') {
-                    data.webhookUrl = document.getElementById('webhookUrl').value;
-                } else if (notificationType === 'telegram') {
-                    data.telegramToken = document.getElementById('telegramToken').value;
-                    data.telegramChatId = document.getElementById('telegramChatId').value;
-                }
-
-                try {
-                    const response = await fetch('/api/test-notification', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        showMessage(result.message || '通知测试成功！');
-                    } else {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || '测试失败');
-                    }
-                } catch (error) {
-                    showMessage('通知测试失败: ' + error.message, true);
-                }
-            }
-
-            // 修改保存配置的函数
-            async function saveMonitoringConfig() {
-                const notificationType = document.getElementById('notificationType').value;
-                let data = {
-                    notificationType: notificationType,
-                    monitorInterval: document.getElementById('monitorInterval').value,
-                    isEnabled: document.getElementById('monitoringStatus').textContent === '已开启',
-                    webhookUrl: document.getElementById('webhookUrl').value,
-                    telegramToken: document.getElementById('telegramToken').value,
-                    telegramChatId: document.getElementById('telegramChatId').value
-                };
-
-                try {
-                    const response = await fetch('/api/monitoring-config', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                    if (response.ok) {
-                        showMessage('监控配置已保存');
-                    } else {
-                        throw new Error('保存失败');
-                    }
-                } catch (error) {
-                    showMessage('保存监控配置失败: ' + error.message, true);
-                }
-            }
-
-            async function toggleMonitoring() {
-                const currentStatus = document.getElementById('monitoringStatus').textContent;
-                const newStatus = currentStatus === '已开启' ? false : true;
-
-                try {
-                    const response = await fetch('/api/toggle-monitoring', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ isEnabled: newStatus })
-                    });
-                    if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        updateMonitoringStatus(newStatus);
-                        showMessage(newStatus ? '监控已开启' : '监控已关闭');
-                    } else {
-                        throw new Error(result.message || '操作失败');
-                    }
-                    } else {
-                    throw new Error('切换失败');
-                    }
-                } catch (error) {
-                    showMessage('切换监控状态失败: ' + error.message, true);
-                }
-            }
-
-            // 加载监控配置
-            async function loadMonitoringConfig() {
-                try {
-                    const response = await fetch('/api/monitoring-config');
-                    const config = await response.json();
                     
-                    document.getElementById('notificationType').value = config.notificationType || 'wechat';
-                    document.getElementById('webhookUrl').value = config.webhookUrl || '';
-                    document.getElementById('telegramToken').value = config.telegramToken || '';
-                    document.getElementById('telegramChatId').value = config.telegramChatId || '';
-                    document.getElementById('monitorInterval').value = config.monitorInterval || 60;
-                    
-                    updateMonitoringStatus(config.isEnabled);
-                    toggleNotificationFields(); // 确保根据加载的配置显示正确的字段
-                } catch (error) {
-                    showMessage('加载监控配置失败: ' + error.message, true);
-                }
-            }
-
-            // 更新监控状态显示
-            function updateMonitoringStatus(isEnabled) {
-                const statusElement = document.getElementById('monitoringStatus');
-                statusElement.textContent = isEnabled ? '已开启' : '已关闭';
-                statusElement.style.color = isEnabled ? 'green' : 'red';
-                document.getElementById('toggleMonitoringBtn').textContent = isEnabled ? '关闭监控' : '开启监控';
-            }
-
-            async function refreshStoppedContainers() {
-                const spinner = document.getElementById('loadingSpinner');
-                const refreshButton = document.querySelector('#docker-monitoring button:last-child');
-                const table = document.getElementById('stoppedContainersTable');
-                
-                try {
-                    spinner.style.display = 'block';
-                    refreshButton.disabled = true;
-                    table.classList.add('disabled');
-                    
-                    const response = await fetch('/api/refresh-stopped-containers');
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch stopped containers');
-                    }
-                    const containers = await response.json();
-                    renderStoppedContainers(containers);
-                    showMessage('已停止的容器状态已刷新', false);
-                } catch (error) {
-                    console.error('Error refreshing stopped containers:', error);
-                    showMessage('刷新已停止的容器状态失败: ' + error.message, true);
-                } finally {
-                    spinner.style.display = 'none';
-                    refreshButton.disabled = false;
-                    table.classList.remove('disabled');
-                }
-            }
-
-            function renderStoppedContainers(containers) {
-                const tbody = document.getElementById('stoppedContainersBody');
-                tbody.innerHTML = '';
-
-                if (containers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3">没有已停止的容器</td></tr>';
-                    return;
-                }
-
-                containers.forEach(container => {
-                    const row = `
-                        <tr>
-                            <td>${container.id}</td>
-                            <td>${container.name}</td>
-                            <td>${container.status}</td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-            }
-
-            // 确保在页面加载时初始化停止的容器列表
-            document.addEventListener('DOMContentLoaded', () => {
-                loadMonitoringConfig();
-                document.getElementById('notificationType').addEventListener('change', toggleNotificationFields);
-            });
-        });
-
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const captcha = document.getElementById('captcha').value;
-            
-            try {
-                document.getElementById('loadingSpinner').style.display = 'block';
-                
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, captcha })
-                });
-                
-                if (response.ok) {
-                    isLoggedIn = true;
-                    localStorage.setItem('isLoggedIn', 'true');
-                    persistSession();
-                    
-                    document.getElementById('loginModal').style.display = 'none';
-                    document.getElementById('adminContainer').style.display = 'flex';
-                    
-                    document.getElementById('currentUsername').textContent = username;
-                    document.getElementById('welcomeUsername').textContent = username;
-                    
-                    await loadConfig();
-                    loadDocumentList();
-                    initEditor();
-                    
-                    bindUserActionButtons();
-                    
-                    bindDashboardCardActions();
-                    
-                    refreshSystemStatus();
-                    loadUserStats();
-                    loadDockerStatus();
-
-                    showSection('dashboard');
-                } else {
-                    const errorData = await response.json();
-                    showAlert(errorData.error || '登录失败', 'error');
-                }
-            } catch (error) {
-                showAlert('登录失败: ' + error.message, 'error');
-            } finally {
-                document.getElementById('loadingSpinner').style.display = 'none';
-            }
-        }
-
-        async function loadConfig() {
-            try {
-                const response = await fetch('/api/config');
-                const config = await response.json();
-                document.getElementById('logoUrl').value = config.logo || '';
-                document.getElementById('proxyDomain').value = config.proxyDomain || '';
-                setMenuItems(config.menuItems || []);
-            } catch (error) {
-                console.error('加载配置失败:', error);
-            }
-        }
-
-        // Fix 5: Improved session handling for logout
-        async function logout() {
-            console.log("注销操作被触发");
-            try {
-                // Show loading indicator
-                document.getElementById('loadingSpinner').style.display = 'block';
-                
-                const response = await fetch('/api/logout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    // Fix 5: Clear both localStorage and sessionStorage
-                    localStorage.removeItem('isLoggedIn');
-                    sessionStorage.removeItem('sessionActive');
-                    
-                    // Clean up cookies if possible
-                    document.cookie = 'connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    
-                    // Reload page to show login screen
-                    window.location.reload();
-                } else {
-                    throw new Error('退出登录失败');
-                }
-            } catch (error) {
-                console.error('退出登录失败:', error);
-                showAlert('退出登录失败: ' + error.message, 'error');
-                document.getElementById('loadingSpinner').style.display = 'none';
-            }
-        }
-
-        async function changePassword() {
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&])[A-Za-z\d.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&]{8,16}$/;
-
-            if (!currentPassword || !newPassword) {
-                showAlert('请填写当前密码和新密码', 'error');
-                return;
-            }
-            if (!passwordRegex.test(newPassword)) {
-                showAlert('密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间', 'error');
-                return;
-            }
-            try {
-                const response = await fetch('/api/change-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ currentPassword, newPassword })
-                });
-                if (response.ok) {
-                    showAlert('密码已修改，即将退出登录', 'success');
-                    
-                    // 延迟一会儿再清除会话
-                    setTimeout(() => {
-                        // 清除当前会话并显示登录模态框
-                        localStorage.removeItem('isLoggedIn');
-                        sessionStorage.removeItem('sessionActive');
-                        isLoggedIn = false;
-                        document.getElementById('loginModal').style.display = 'block';
-                        document.getElementById('adminContainer').style.display = 'none';
-                        refreshCaptcha();
-
-                        // 清除登录表单中的输入数据
-                        document.getElementById('username').value = '';
-                        document.getElementById('password').value = '';
-                        document.getElementById('captcha').value = '';
-                    }, 1500);
-                } else {
-                    showAlert('修改密码失败', 'error');
-                }
-            } catch (error) {
-                showAlert('修改密码失败: ' + error.message, 'error');
-            }
-        }
-
-        function checkPasswordStrength() {
-            const newPassword = document.getElementById('newPassword').value;
-            const passwordHint = document.getElementById('passwordHint');
-
-            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&])[A-Za-z\d.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&]{8,16}$/;
-
-            if (!passwordRegex.test(newPassword)) {
-                passwordHint.style.display = 'block';
-            } else {
-                passwordHint.style.display = 'none';
-            }
-        }
-
-        async function refreshSystemStatus() {
-            console.log("刷新系统状态");
-            try {
-                // 首先获取系统整体状态
-                const response = await fetch('/api/system-stats');
-                let data;
-                
-                if (response.ok) {
-                    data = await response.json();
-                    console.log("接收到的系统状态数据:", data);
-                } else {
-                    // 如果API请求失败，创建一个带警告信息的默认数据对象
-                    console.warn("系统状态API返回错误:", response.status);
-                    data = {
-                        dockerAvailable: false,
-                        containerCount: '0',
-                        memoryUsage: '未知',
-                        cpuLoad: '未知',
-                        diskSpace: '未知',
-                        recentActivities: [{
-                            time: new Date().toLocaleString(),
-                            action: 'API错误',
-                            container: '系统',
-                            status: `错误代码: ${response.status}`
-                        }]
-                    };
-                    
-                    // 如果是503错误，显示Docker服务不可用
-                    if (response.status === 503) {
-                        showAlert('Docker守护进程不可用，某些功能可能受限', 'warning');
-                    } else {
-                        showAlert('获取系统状态失败，使用默认数据', 'warning');
-                    }
-                }
-                
-                // 更新Docker状态指示器
-                updateDockerStatusIndicator(data.dockerAvailable);
-                
-                // 更新控制面板数据
-                document.getElementById('totalContainers').textContent = data.containerCount || '0';
-                document.getElementById('systemMemory').textContent = data.memoryUsage || '未知';
-                document.getElementById('cpuLoad').textContent = data.cpuLoad || '未知';
-                
-                // 获取磁盘空间的实际数据
-                try {
-                    const diskResponse = await fetch('/api/disk-space');
-                    if (diskResponse.ok) {
-                        const diskData = await diskResponse.json();
-                        // 更新磁盘空间显示为实际使用百分比
-                        document.getElementById('diskSpace').textContent = diskData.usagePercent + '%';
-                        console.log("获取到的磁盘数据:", diskData);
-                    } else {
-                        // 如果获取磁盘数据失败，使用系统状态中的数据或默认值
-                        document.getElementById('diskSpace').textContent = data.diskSpace || '未知';
-                    }
-                } catch (diskError) {
-                    console.error('获取磁盘数据失败:', diskError);
-                    document.getElementById('diskSpace').textContent = data.diskSpace || '未知';
-                }
-                
-                // 更新UI的视觉状态
-                updateDashboardVisualState(data.dockerAvailable);
-                
-                // 更新最近活动表
-                const activitiesBody = document.getElementById('recentActivitiesBody');
-                activitiesBody.innerHTML = '';
-                
-                if (data.recentActivities && data.recentActivities.length > 0) {
-                    data.recentActivities.forEach(activity => {
-                        const row = `
-                            <tr>
-                                <td>${activity.time}</td>
-                                <td>${activity.action}</td>
-                                <td>${activity.container}</td>
-                                <td>${activity.status}</td>
-                            </tr>
-                        `;
-                        activitiesBody.innerHTML += row;
-                    });
-                } else {
-                    activitiesBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">暂无活动记录</td></tr>';
-                }
-            } catch (error) {
-                console.error('刷新系统状态失败:', error);
-                
-                // 更新Docker状态指示器为离线
-                updateDockerStatusIndicator(false);
-                
-                // 更新UI为默认状态
-                document.getElementById('totalContainers').textContent = '0';
-                document.getElementById('systemMemory').textContent = '未知';
-                document.getElementById('cpuLoad').textContent = '未知';
-                document.getElementById('diskSpace').textContent = '未知';
-                
-                // 更新活动表显示错误
-                const activitiesBody = document.getElementById('recentActivitiesBody');
-                activitiesBody.innerHTML = `
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: red;">
-                            系统状态获取失败: ${error.message}
-                        </td>
-                    </tr>
-                `;
-                
-                // 显示错误提示
-                showAlert('刷新系统状态失败: ' + error.message, 'error');
-            }
-        }
- 
-        
-        // 根据Docker可用性更新仪表板视觉状态
-        function updateDashboardVisualState(dockerAvailable) {
-            const cards = document.querySelectorAll('.dashboard-card');
-            
-            cards.forEach(card => {
-                const cardTitle = card.querySelector('.card-title');
-                const cardValue = card.querySelector('.card-value');
-                
-                if (!dockerAvailable && cardTitle && cardValue) {
-                    // 如果Docker不可用，添加视觉提示
-                    card.style.opacity = '0.7';
-                    
-                    // 只为容器相关卡片添加提示
-                    if (cardTitle.textContent.includes('容器')) {
-                        // 检查是否已经添加了提示，避免重复添加
-                        if (!cardValue.innerHTML.includes('Docker离线')) {
-                            cardValue.innerHTML += ' <small style="color:orange">(Docker离线)</small>';
+                    const loginModal = document.getElementById('loginModal');
+                    if (loginModal) {
+                        loginModal.style.display = 'flex';
+                        if (window.auth && typeof window.auth.refreshCaptcha === 'function') {
+                            window.auth.refreshCaptcha();
                         }
                     }
-                } else {
-                    // 恢复正常状态
-                    card.style.opacity = '1';
-                    
-                    // 移除已有的离线提示
-                    if (cardValue && cardValue.innerHTML.includes('Docker离线')) {
-                        cardValue.innerHTML = cardValue.innerHTML.replace(/<small.*?<\/small>/g, '');
-                    }
                 }
-            });
-        }
-
-        function updateDockerStatusIndicator(available) {
-            const indicator = document.getElementById('dockerStatusIndicator');
-            const statusText = document.getElementById('dockerStatusText');
+            }, 3000); // 3秒后如果仍在加载，则显示登录框
             
-            if (!indicator || !statusText) {
-                console.warn('Docker状态指示器元素不存在');
-                return;
-            }
-            
-            if (available) {
-                indicator.style.backgroundColor = '#4CAF50';
-                statusText.textContent = 'Docker 在线';
-            } else {
-                indicator.style.backgroundColor = '#F44336';
-                statusText.textContent = 'Docker 离线';
-            }
-        }
-
-        // 检查磁盘空间的函数
-        function checkDiskSpace() {
-            console.log("检查磁盘空间");
-            fetch('/api/disk-space')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('获取磁盘信息失败');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // 更新磁盘空间显示为实际值
-                    document.getElementById('diskSpace').textContent = data.usagePercent + '%';
-                    // 显示更详细的信息
-                    showAlert(`磁盘使用情况: ${data.diskSpace}, 使用率: ${data.usagePercent}%`);
-                })
-                .catch(error => {
-                    console.error('获取磁盘空间信息失败:', error);
-                    showAlert('获取磁盘空间信息失败: ' + error.message, 'error');
-                });
-        }
-        
-        // 加载用户统计数据
-        async function loadUserStats() {
-            try {
-                const response = await fetch('/api/user-info');
-                if (!response.ok) {
-                    throw new Error('获取用户信息失败');
-                }
-                const data = await response.json();
-                
-                // 更新用户统计数据
-                document.getElementById('loginCount').textContent = data.loginCount || '0';
-                document.getElementById('lastLogin').textContent = data.lastLogin || '未知';
-                document.getElementById('accountAge').textContent = data.accountAge || '0';
-                
-                // 更新欢迎信息
-                document.getElementById('welcomeUsername').textContent = data.username || '管理员';
-                document.getElementById('currentUsername').textContent = data.username || '管理员';
-            } catch (error) {
-                console.error('加载用户统计数据失败:', error);
-            }
-        }
-        
-        // 安全设置保存函数
-        function saveSecuritySettings() {
-            console.log("保存安全设置");
-            const loginNotification = document.getElementById('loginNotification').value;
-            showAlert('安全设置已保存', 'success');
-        }
-
-        window.onload = async function() {
-            try {
-                // 改进会话检查逻辑，同时检查localStorage和sessionStorage
-                const response = await fetch('/api/check-session');
-                if (response.ok) {
-                    // 使用双重检查，提高会话持久性
-                    isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || checkSessionPersistence();
-                    
-                    if (isLoggedIn) {
-                        // 确保会话持久化
-                        persistSession();
-                        document.getElementById('adminContainer').style.display = 'flex';
-                        await loadConfig();
-                        // 加载其他必要数据...
-                        bindUserActionButtons(); // 确保按钮绑定事件
-                        // 继续其他初始化...
-                    } else {
-                        document.getElementById('loginModal').style.display = 'flex';
-                        refreshCaptcha();
-                    }
-                } else {
-                    throw new Error('Session check failed');
-                }
-            } catch (error) {
-                console.error('Error during initialization:', error);
-                // 清除会话数据
-                sessionStorage.removeItem('sessionActive');
-                localStorage.removeItem('isLoggedIn');
-                document.getElementById('loginModal').style.display = 'flex';
-                refreshCaptcha();
-            } finally {
-                document.getElementById('loadingIndicator').style.display = 'none';
-            }
-        };
-
-        // 覆盖默认的 alert 和 confirm 函数，使用 Sweet Alert
-        const originalAlert = window.alert;
-        window.alert = function(message) {
-            showAlert(message, message.toLowerCase().includes('失败') || message.toLowerCase().includes('错误') ? 'error' : 'success');
-        };
-
-        const originalConfirm = window.confirm;
-        window.confirm = function(message) {
-            return new Promise((resolve) => {
-                showConfirm(message, () => resolve(true));
-            });
-        };
+            // 确保saveConfig可用
+            window.saveConfig = window.app ? window.app.saveConfig : function(data) {
+                console.error('saveConfig未定义');
+            };
+        });
     </script>
 </body>
 </html>

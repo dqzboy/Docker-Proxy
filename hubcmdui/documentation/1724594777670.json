@@ -1,1 +1,0 @@
-{"title":"Docker 配置镜像加速","content":"### Docker 配置镜像加速\n- 修改文件 `/etc/docker/daemon.json`（如果不存在则创建）\n\n```shell\nsudo mkdir -p /etc/docker\nsudo vi /etc/docker/daemon.json\n{\n  \"registry-mirrors\": [\"https://<代理加速地址>\"]\n}\n\nsudo systemctl daemon-reload\nsudo systemctl restart docker\n```","published":true}

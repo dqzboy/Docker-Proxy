@@ -8,3 +8,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 30080:3000
+    environment:
+      # 日志配置
+      - LOG_LEVEL=INFO # 可选: TRACE, DEBUG, INFO, SUCCESS, WARN, ERROR, FATAL
+      - SIMPLE_LOGS=true # 启用简化日志输出，减少冗余信息
+      # - DETAILED_LOGS=false # 默认关闭详细日志记录（请求体、查询参数等）
+      # - SHOW_STACK=false # 默认关闭错误堆栈跟踪
+      # - LOG_FILE_ENABLED=true # 是否启用文件日志，默认启用
+      # - LOG_CONSOLE_ENABLED=true # 是否启用控制台日志，默认启用
+      # - LOG_MAX_SIZE=10 # 单个日志文件最大大小(MB)，默认10MB
+      # - LOG_MAX_FILES=14 # 保留的日志文件数量，默认14个

@@ -4,7 +4,7 @@
     --primary-color: #3D7CF4;
     --primary-light: #5D95FD;
     --primary-dark: #2F62C9;
-    
+    --primary-dark-color: #2c5282; /* 深蓝色，可以根据您的主题调整 */
     /* 辅助色 */
     --secondary-color: #FF6B6B;
     --secondary-light: #FF8E8E;
@@ -749,34 +749,169 @@
 }
 
 #documentationText {
-    padding: 0 1rem;
+    padding: 0.5rem 1.5rem; /* 增加左右内边距 */
+    max-width: 900px; /* 限制最大宽度以提高可读性 */
+    /* margin-left: auto;  移除左边距自动 */
+    /* margin-right: auto; 移除右边距自动 */
 }
 
 #documentationText h2 {
-    font-size: 1.8rem;
-    margin: 0 0 1.5rem 0;
-    color: var(--text-primary);
+    font-size: 1.8em;
+    margin-top: 2.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.4em;
+    font-weight: 600;
 }
 
 #documentationText p {
-    line-height: 1.7;
-    color: var(--text-secondary);
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem; /* 增大段落间距 */
+    font-size: 1.05rem; /* 稍微增大正文字号 */
 }
 
 #documentationText ul, #documentationText ol {
-    color: var(--text-secondary);
-    line-height: 1.7;
-    padding-left: 1.5rem;
+    padding-left: 1.8em; /* 调整缩进 */
     margin-bottom: 1.5rem;
 }
 
 #documentationText li {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 
 #documentationText pre {
-    margin: 1.5rem 0;
+    background-color: #1F2937; /* 深色背景 */
+    color: #F3F4F6; /* 浅色文字 */
+    padding: 1.2rem 1.5rem; /* 调整内边距 */
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin: 1.8rem 0; /* 增加垂直外边距 */
+    line-height: 1.6; /* 调整行高 */
+    border: 1px solid #374151; /* 深色边框 */
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 使用适合编程的字体 */
+    font-size: 0.95rem; /* 标准化字体大小 */
+    position: relative; /* 为复制按钮定位 */
+}
+
+.doc-content pre::before {
+    content: ''; /* 模拟终端窗口的顶部栏 */
+    display: block;
+    height: 28px; /* 顶部栏高度 */
+    background-color: #111827; /* 顶部栏颜色 */
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    margin: -1.2rem -1.5rem 1rem -1.5rem; /* 定位和添加下方间距 */
+    position: relative;
+}
+
+/* 模拟窗口按钮 */
+.doc-content pre::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 15px;
+    width: 12px;
+    height: 12px;
+    background-color: #FF5F57;
+    border-radius: 50%;
+    box-shadow: 20px 0 #FEBC2E, 40px 0 #28C840;
+}
+
+.doc-content pre code {
+    display: block; /* 确保代码块充满 pre */
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    border-radius: 0;
+    border: none;
+    line-height: inherit;
+    font-family: inherit;
+    white-space: pre; /* 保留空格和换行 */
+    font-size: inherit; /* 继承 pre 的字号 */
+}
+
+/* 行内代码样式 */
+.doc-content code {
+    font-family: 'Fira Code', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.9em; /* 调整大小 */
+    background-color: rgba(61, 124, 244, 0.1); /* 更柔和的背景 */
+    padding: 0.25em 0.5em;
+    margin: 0 0.1em;
+    border-radius: 4px;
+    color: #2c5282; /* 主色调的深色 */
+    border: 1px solid rgba(61, 124, 244, 0.2);
+    vertical-align: middle; /* 垂直对齐 */
+}
+
+/* 链接样式 */
+.doc-content a {
+    color: var(--primary-dark); /* 使用更深的蓝色 */
+    text-decoration: underline;
+    text-decoration-color: rgba(61, 124, 244, 0.4);
+    transition: all 0.2s ease;
+}
+
+.doc-content a:hover {
+    color: var(--primary-color);
+    text-decoration-color: var(--primary-color);
+    background-color: rgba(61, 124, 244, 0.05);
+}
+
+/* 引用块样式 */
+.doc-content blockquote {
+    margin: 2em 0;
+    padding: 1em 1.5em;
+    color: #555;
+    border-left: 4px solid var(--primary-light);
+    background-color: #f8faff; /* 淡蓝色背景 */
+    border-radius: var(--radius-sm);
+}
+
+.doc-content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* 表格样式 */
+.doc-content table {
+    border-collapse: separate; /* 使用 separate 以应用圆角 */
+    border-spacing: 0;
+    margin: 1.8rem 0;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    overflow: hidden; /* 应用圆角 */
+}
+
+.doc-content th,
+.doc-content td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.8em 1.2em;
+    text-align: left;
+}
+
+.doc-content tr:last-child td {
+    border-bottom: none;
+}
+
+.doc-content th {
+    font-weight: 600;
+    background-color: #f7f9fc; /* 更浅的表头背景 */
+    color: #4a5568;
+}
+
+.doc-content tr:nth-child(even) td {
+    background-color: #fafcff; /* 斑马纹 */
+}
+
+/* 元数据 (更新时间) 样式 */
+.doc-meta {
+    font-size: 0.9em;
+    color: #888;
+    text-align: right; /* 右对齐 */
+    margin-top: 0rem; /* 调整与内容的距离 */
+    padding-top: 0.5rem; /* 增加顶部内边距 */
+    border-top: 1px dashed #eee; /* 放到顶部 */
+    clear: both; /* 确保在内容下方 */
 }
 
 /* 加载中和消息提示 */
@@ -2006,3 +2141,637 @@
     font-size: 1.1rem;
     text-align: center;
 }
+
+/* 登录页面特定样式 - 确保按钮正确显示 */
+.login-container .captcha-area {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.login-container #captcha {
+  flex: 1.5 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.login-container #captchaText {
+  flex: 1 !important;
+  min-width: 80px !important;
+  height: 44px !important;
+  text-align: center !important;
+  line-height: 44px !important;
+  background-color: #f5f7fa !important;
+  border: 1px solid #ddd !important;
+  border-radius: 5px !important;
+  margin: 0 !important;
+}
+
+.login-container .btn-login {
+  flex: 1 !important;
+  min-width: 80px !important;
+  height: 44px !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  width: auto !important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 处理登录按钮在hover时的行为 */
+.login-container .btn-login:hover {
+  background-color: var(--primary-dark) !important;
+  transform: none !important; /* 防止按钮hover时的上移效果导致布局变化 */
+}
+
+/* 确保登录表单中的其他按钮不受影响 */
+.login-container button:not(.btn-login) {
+  width: 100%;
+}
+
+/* 修复在移动设备上的显示 */
+@media (max-width: 480px) {
+  .login-container .captcha-area {
+    flex-wrap: wrap !important;
+  }
+  
+  .login-container #captcha {
+    flex: 100% !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .login-container #captchaText {
+    flex: 1 !important;
+  }
+  
+  .login-container .btn-login {
+    flex: 1 !important;
+  }
+}
+
+/* 登录按钮样式 */
+#loginButton {
+  display: block !important;
+  width: 100% !important;
+  padding: 10px !important;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  margin-top: 15px !important;
+}
+
+#loginButton:hover {
+  background-color: var(--primary-dark-color) !important;
+}
+
+.login-form button {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.login-form button:hover {
+  background-color: var(--primary-dark-color) !important;
+  color: white !important;
+}
+
+.login-modal .login-content .login-form #loginButton:hover {
+  background-color: var(--primary-dark-color) !important;
+  color: white !important;
+}
+
+/* ======================
+   文档内容样式 (Doc Content) - 优化版
+   ====================== */
+
+/* 文档文本容器整体调整 */
+#documentationText {
+    padding: 0.5rem 1.5rem; /* 增加左右内边距 */
+    max-width: 900px; /* 限制最大宽度以提高可读性 */
+    /* margin-left: auto;  移除左边距自动 */
+    /* margin-right: auto; 移除右边距自动 */
+}
+
+.doc-content {
+    font-family: 'Georgia', 'Times New Roman', 'Source Han Serif CN', 'Songti SC', serif; /* 使用更适合阅读的衬线字体 */
+    line-height: 1.8; /* 增加行高 */
+    color: #333;
+    padding-top: 0; /* 移除顶部padding，让标题控制间距 */
+    margin-bottom: 2rem; /* 内容和元数据之间的间距 */
+}
+
+/* 标题样式调整 */
+.doc-content h1:first-of-type, /* 优先将第一个h1作为主标题 */
+.doc-content h2:first-of-type, 
+.doc-content h3:first-of-type { 
+    margin-top: 0; /* 移除主标题上方的间距 */
+    margin-bottom: 1rem; /* 主标题下方间距 */
+    padding-bottom: 0.5rem; /* 标题下划线间距 */
+    border-bottom: 2px solid var(--primary-color); /* 强调主标题下划线 */
+    font-size: 2.5em; /* 增大主标题字号 */
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.doc-content h2 {
+    font-size: 1.8em;
+    margin-top: 2.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.4em;
+    font-weight: 600;
+}
+
+.doc-content h3 {
+    font-size: 1.5em;
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+    font-weight: 600;
+}
+
+.doc-content h4 {
+    font-size: 1.25em;
+    margin-top: 1.8em;
+    margin-bottom: 0.7em;
+    font-weight: 600;
+    color: #444;
+}
+
+/* 段落样式 */
+.doc-content p {
+    margin-bottom: 1.5rem; /* 增大段落间距 */
+    font-size: 1.05rem; /* 稍微增大正文字号 */
+}
+
+/* 列表样式 */
+.doc-content ul,
+.doc-content ol {
+    padding-left: 1.8em; /* 调整缩进 */
+    margin-bottom: 1.5rem;
+}
+
+.doc-content li {
+    margin-bottom: 0.6rem;
+}
+
+/* 元数据 (更新时间) 样式 */
+.doc-meta {
+    font-size: 0.9em;
+    color: #888;
+    text-align: right; /* 右对齐 */
+    margin-top: 0rem; /* 调整与内容的距离 */
+    padding-top: 0.5rem; /* 增加顶部内边距 */
+    border-top: 1px dashed #eee; /* 放到顶部 */
+    clear: both; /* 确保在内容下方 */
+}
+
+/* 代码块样式统一 */
+.doc-content pre {
+    background-color: #1F2937; /* 深色背景 */
+    color: #F3F4F6; /* 浅色文字 */
+    padding: 1.2rem 1.5rem; /* 调整内边距 */
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin: 1.8rem 0; /* 增加垂直外边距 */
+    line-height: 1.6; /* 调整行高 */
+    border: 1px solid #374151; /* 深色边框 */
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 使用适合编程的字体 */
+    font-size: 0.95rem; /* 标准化字体大小 */
+    position: relative; /* 为复制按钮定位 */
+}
+
+.doc-content pre::before {
+    content: ''; /* 模拟终端窗口的顶部栏 */
+    display: block;
+    height: 28px; /* 顶部栏高度 */
+    background-color: #111827; /* 顶部栏颜色 */
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+    margin: -1.2rem -1.5rem 1rem -1.5rem; /* 定位和添加下方间距 */
+    position: relative;
+}
+
+/* 模拟窗口按钮 */
+.doc-content pre::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 15px;
+    width: 12px;
+    height: 12px;
+    background-color: #FF5F57;
+    border-radius: 50%;
+    box-shadow: 20px 0 #FEBC2E, 40px 0 #28C840;
+}
+
+.doc-content pre code {
+    display: block; /* 确保代码块充满 pre */
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    border-radius: 0;
+    border: none;
+    line-height: inherit;
+    font-family: inherit;
+    white-space: pre; /* 保留空格和换行 */
+    font-size: inherit; /* 继承 pre 的字号 */
+}
+
+/* 行内代码样式 */
+.doc-content code {
+    font-family: 'Fira Code', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.9em; /* 调整大小 */
+    background-color: rgba(61, 124, 244, 0.1); /* 更柔和的背景 */
+    padding: 0.25em 0.5em;
+    margin: 0 0.1em;
+    border-radius: 4px;
+    color: #2c5282; /* 主色调的深色 */
+    border: 1px solid rgba(61, 124, 244, 0.2);
+    vertical-align: middle; /* 垂直对齐 */
+}
+
+/* 链接样式 */
+.doc-content a {
+    color: var(--primary-dark); /* 使用更深的蓝色 */
+    text-decoration: underline;
+    text-decoration-color: rgba(61, 124, 244, 0.4);
+    transition: all 0.2s ease;
+}
+
+.doc-content a:hover {
+    color: var(--primary-color);
+    text-decoration-color: var(--primary-color);
+    background-color: rgba(61, 124, 244, 0.05);
+}
+
+/* 引用块样式 */
+.doc-content blockquote {
+    margin: 2em 0;
+    padding: 1em 1.5em;
+    color: #555;
+    border-left: 4px solid var(--primary-light);
+    background-color: #f8faff; /* 淡蓝色背景 */
+    border-radius: var(--radius-sm);
+}
+
+.doc-content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* 表格样式 */
+.doc-content table {
+    border-collapse: separate; /* 使用 separate 以应用圆角 */
+    border-spacing: 0;
+    margin: 1.8rem 0;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    overflow: hidden; /* 应用圆角 */
+}
+
+.doc-content th,
+.doc-content td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.8em 1.2em;
+    text-align: left;
+}
+
+.doc-content tr:last-child td {
+    border-bottom: none;
+}
+
+.doc-content th {
+    font-weight: 600;
+    background-color: #f7f9fc; /* 更浅的表头背景 */
+    color: #4a5568;
+}
+
+.doc-content tr:nth-child(even) td {
+    background-color: #fafcff; /* 斑马纹 */
+}
+
+/* 提示消息增强样式 - 修改为居中模态样式 */
+.toast-notification {
+  position: fixed;
+  /* top: 20px; */ /* 移除顶部定位 */
+  top: 50%; /* 垂直居中 */
+  left: 50%;
+  transform: translate(-50%, -50%); /* 水平垂直居中 */
+  background-color: white; /* 使用白色背景更像弹窗 */
+  color: var(--text-primary);
+  padding: 2rem 2.5rem; /* 增加内边距 */
+  border-radius: var(--radius-lg); /* 更大的圆角 */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* 更明显的阴影 */
+  z-index: 1100;
+  /* animation: fadeIn 0.3s ease-in; */ /* 可以保留或换成缩放动画 */
+  animation: fadeInScale 0.3s ease-out; /* 使用新的缩放动画 */
+  text-align: center;
+  min-width: 300px; /* 设置最小宽度 */
+  max-width: 90%;
+  display: flex;
+  flex-direction: column; /* 让图标和文字垂直排列 */
+  align-items: center;
+  gap: 1rem; /* 图标和文字之间的间距 */
+  border-left: none; /* 移除之前的左边框 */
+  border-top: 5px solid var(--info-color); /* 使用顶部边框指示类型 */
+}
+
+/* 不同类型的顶部边框颜色 */
+.toast-notification.error {
+  border-top-color: var(--danger-color);
+}
+
+.toast-notification.success {
+    border-top-color: var(--success-color);
+}
+
+.toast-notification.info {
+  border-top-color: var(--info-color);
+}
+
+/* 图标样式 */
+.toast-notification i {
+  font-size: 2.5rem; /* 增大图标 */
+  margin-bottom: 0.5rem; /* 图标下方间距 */
+}
+
+.toast-notification.error i {
+  color: var(--danger-color);
+}
+
+.toast-notification.success i {
+    color: var(--success-color);
+}
+
+.toast-notification.info i {
+  color: var(--info-color);
+}
+
+/* 消息文本样式 */
+.toast-notification span {
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+/* 淡出动画 */
+.toast-notification.fade-out {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9); /* 淡出时缩小 */
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+/* 新增：淡入和缩放动画 */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ... 其他样式 ... */
+
+/* 表格通用样式 */
+.admin-container table {
+    /* ... (现有表格样式) ... */
+}
+
+/* Docker 状态表格特定样式 */
+#dockerStatusTable {
+    table-layout: fixed; /* 固定表格布局，让列宽设定生效 */
+    width: 100%;
+    border-collapse: collapse; /* 合并边框 */
+    margin-top: 1rem; /* 与上方元素保持距离 */
+}
+
+#dockerStatusTable th,
+#dockerStatusTable td {
+    padding: 0.8rem 1rem; /* 统一内边距 */
+    border: 1px solid var(--border-light, #e5e7eb); /* 添加边框 */
+    vertical-align: middle; 
+    font-size: 0.9rem; /* 稍小字体 */
+}
+
+#dockerStatusTable thead th {
+    background-color: var(--table-header-bg, #f9fafb); /* 表头背景色 */
+    color: var(--text-secondary, #6b7280);
+    font-weight: 600; /* 表头字体加粗 */
+    position: sticky; /* 尝试粘性定位，如果表格滚动 */
+    top: 0; /* 配合 sticky */
+    z-index: 1; /* 确保表头在加载提示之上 */
+}
+
+/* 为 ID 列设置较窄宽度 */
+#dockerStatusTable th:nth-child(1),
+#dockerStatusTable td:nth-child(1) {
+    width: 120px; /* 或 10% */
+}
+
+/* 为 名称 列设置最大宽度和文本溢出处理 */
+#dockerStatusTable th:nth-child(2),
+#dockerStatusTable td:nth-child(2) {
+    max-width: 200px; /* 根据需要调整 */
+    width: 25%; /* 尝试百分比宽度 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 为 镜像 列设置最大宽度和文本溢出处理 */
+#dockerStatusTable th:nth-child(3),
+#dockerStatusTable td:nth-child(3) {
+    max-width: 300px; /* 可以比名称宽一些 */
+    width: 35%; /* 尝试百分比宽度 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 为 状态 列设置宽度 */
+#dockerStatusTable th:nth-child(4),
+#dockerStatusTable td:nth-child(4) {
+     width: 100px; /* 或 10% */
+     text-align: center; /* 状态居中 */
+}
+
+/* 为 操作 列设置宽度 */
+#dockerStatusTable th:nth-child(5),
+#dockerStatusTable td:nth-child(5) {
+    width: 150px; /* 或 20% */
+    text-align: center; /* 操作按钮居中 */
+}
+
+/* 确保 title 属性的提示能正常显示 */
+#dockerStatusTable td:nth-child(2),
+#dockerStatusTable td:nth-child(3) {
+    cursor: default; /* 或 help，提示用户悬停可查看完整信息 */
+}
+
+/* 加载提示行样式调整 */
+#dockerStatusTable .loading-container td {
+    background-color: rgba(255, 255, 255, 0.8); /* 半透明背景，避免完全遮挡 */
+    padding: 2rem 0; /* 增加垂直内边距 */
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* --- 新增：操作下拉菜单样式 --- */
+.action-cell {
+    position: relative; /* 确保下拉菜单相对于单元格定位 */
+    text-align: center; /* 让按钮居中 */
+}
+
+.action-dropdown .dropdown-toggle {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem; /* 按钮字体小一点 */
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.action-dropdown .dropdown-toggle:hover,
+.action-dropdown .dropdown-toggle:focus {
+    background-color: var(--background-color);
+    border-color: var(--border-dark);
+    color: var(--text-primary);
+}
+
+.action-dropdown .dropdown-menu {
+    min-width: 160px; /* 设置最小宽度 */
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    padding: 0.5rem 0;
+    margin-top: 0.25rem; /* 微调与按钮的距离 */
+}
+
+.action-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1.2rem; /* 调整内边距 */
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.action-dropdown .dropdown-item:hover {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+}
+
+.action-dropdown .dropdown-item i {
+    width: 16px; /* 固定图标宽度 */
+    text-align: center;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+}
+
+.action-dropdown .dropdown-item:hover i {
+     color: var(--primary-color);
+}
+
+.action-dropdown .dropdown-item.text-danger,
+.action-dropdown .dropdown-item.text-danger:hover {
+    color: var(--danger-color) !important;
+}
+.action-dropdown .dropdown-item.text-danger i {
+     color: var(--danger-color) !important;
+}
+/* --- 结束：操作下拉菜单样式 --- */
+
+
+/* --- 新增：详情弹窗表格样式 --- */
+.details-swal-popup .details-table-container {
+    max-height: 60vh; /* 限制最大高度，出现滚动条 */
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+
+.details-swal-popup .details-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.details-swal-popup .details-table thead th {
+    background-color: var(--table-header-bg, #f9fafb);
+    color: var(--text-secondary, #6b7280);
+    font-weight: 600;
+    text-align: left; /* 确保表头左对齐 */
+    padding: 0.8rem 1rem;
+    border-bottom: 2px solid var(--border-dark, #e5e7eb);
+    position: sticky; /* 表头粘性定位 */
+    top: 0;
+    z-index: 1;
+}
+
+.details-swal-popup .details-table tbody td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-light, #e5e7eb);
+    vertical-align: middle;
+    color: var(--text-primary);
+    text-align: left; /* 确保单元格左对齐 */
+}
+
+.details-swal-popup .details-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.details-swal-popup .details-table tbody tr:hover td {
+    background-color: var(--background-color, #f8f9fa);
+}
+
+.details-swal-popup .details-table .badge {
+     font-size: 0.8rem; /* 状态徽章字体稍小 */
+}
+/* --- 结束：详情弹窗表格样式 --- */
+
+/* --- 新增：资源详情表格特殊样式 (两列) --- */
+.details-swal-popup .resource-details-table td.label {
+    font-weight: 600; /* 标签加粗 */
+    width: 40%; /* 设定标签列宽度 */
+    color: var(--text-secondary); /* 标签颜色稍浅 */
+    padding-right: 1.5rem; /* 标签和值之间的距离 */
+    white-space: nowrap; /* 防止标签换行 */
+}
+
+.details-swal-popup .resource-details-table td {
+    border-bottom: 1px dashed var(--border-light, #e5e7eb); /* 使用虚线分隔行 */
+}
+/* --- 结束：资源详情表格特殊样式 --- */
+
+/* --- 新增：资源详情类 Excel 表格样式 --- */
+.details-swal-popup .resource-details-excel {
+    table-layout: fixed; /* 固定布局 */
+    width: 100%;
+    margin-top: 0; /* 移除与容器的顶部距离 */
+}
+
+.details-swal-popup .resource-details-excel thead th {
+    text-align: center; /* 表头居中 */
+    white-space: nowrap;
+    border: 1px solid var(--border-dark, #dee2e6); /* 使用更深的边框 */
+    padding: 0.6rem 0.5rem; /* 调整内边距 */
+}
+
+.details-swal-popup .resource-details-excel tbody td {
+    text-align: center; /* 数据居中 */
+    padding: 0.6rem 0.5rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    word-break: break-all; /* 允许长内容换行 */
+}
+/* --- 结束：资源详情类 Excel 表格样式 --- */
+
+/* ... 其他样式 ... */

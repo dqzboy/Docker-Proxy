@@ -1,0 +1,662 @@
+/**
+ * 自定义样式表 - 增强UI交互和视觉效果
+ */
+
+/* 仪表盘错误通知 */
+.dashboard-error-notice {
+    background-color: #fee;
+    border-left: 4px solid #f44336;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.4s ease-out;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.dashboard-error-notice.fade-out {
+    animation: fadeOut 0.5s forwards;
+}
+
+.dashboard-error-notice i {
+    color: #f44336;
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.dashboard-error-notice span {
+    flex: 1;
+    color: #333;
+}
+
+.dashboard-error-notice button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.dashboard-error-notice button:hover {
+    background-color: #d32f2f;
+}
+
+/* Docker状态指示器样式增强 */
+#dockerStatusIndicator {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.docker-help-btn {
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Docker错误显示样式 */
+.docker-error-container {
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.docker-error {
+    background-color: #fff6f6;
+    border-radius: 8px;
+    padding: 25px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #ffcdd2;
+}
+
+.docker-error i {
+    color: #f44336;
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.docker-error h3 {
+    color: #d32f2f;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.docker-error p {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.docker-error .retry-btn,
+.docker-error .help-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin: 5px;
+    transition: all 0.3s;
+}
+
+.docker-error .retry-btn {
+    background-color: #3d7cf4;
+    color: white;
+}
+
+.docker-error .help-btn {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.docker-error .retry-btn:hover {
+    background-color: #2962ff;
+}
+
+.docker-error .help-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* 容器状态徽章 */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.status-running {
+    background-color: rgba(46, 204, 64, 0.15);
+    color: #2ecc40;
+    border: 1px solid rgba(46, 204, 64, 0.3);
+}
+
+.status-stopped,
+.status-exited {
+    background-color: rgba(255, 65, 54, 0.15);
+    color: #ff4136;
+    border: 1px solid rgba(255, 65, 54, 0.3);
+}
+
+.status-paused {
+    background-color: rgba(255, 133, 27, 0.15);
+    color: #ff851b;
+    border: 1px solid rgba(255, 133, 27, 0.3);
+}
+
+.status-created {
+    background-color: rgba(0, 116, 217, 0.15);
+    color: #0074d9;
+    border: 1px solid rgba(0, 116, 217, 0.3);
+}
+
+.status-unknown {
+    background-color: rgba(170, 170, 170, 0.15);
+    color: #aaaaaa;
+    border: 1px solid rgba(170, 170, 170, 0.3);
+}
+
+/* 操作按钮样式 */
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn i {
+    font-size: 14px;
+}
+
+.log-btn {
+    background-color: #3d7cf4;
+    color: white;
+}
+
+.start-btn,
+.unpause-btn {
+    background-color: #2ecc40;
+    color: white;
+}
+
+.stop-btn {
+    background-color: #ff4136;
+    color: white;
+}
+
+.restart-btn {
+    background-color: #ff851b;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #85144b;
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.action-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 加载动画 */
+.loading-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(61, 124, 244, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #3d7cf4;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.loading-spinner-small {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(61, 124, 244, 0.1);
+    border-radius: 50%;
+    border-top: 2px solid #3d7cf4;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+    0% { transform: translateY(-20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* 无容器状态样式 */
+.no-containers {
+    padding: 30px 0;
+    text-align: center;
+    color: #777;
+}
+
+.no-containers i {
+    font-size: 32px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.no-containers p {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.no-containers small {
+    font-size: 14px;
+    color: #999;
+}
+
+/* Docker故障排除指南样式 */
+.troubleshooting-guide {
+    text-align: left;
+}
+
+.troubleshooting-guide h4 {
+    margin: 15px 0 10px;
+    color: #333;
+    font-size: 16px;
+}
+
+.troubleshooting-guide ol {
+    padding-left: 20px;
+}
+
+.troubleshooting-guide li {
+    margin-bottom: 15px;
+}
+
+.troubleshooting-guide strong {
+    color: #3d7cf4;
+}
+
+.troubleshooting-guide .solution {
+    background-color: #f8f8f8;
+    padding: 8px 12px;
+    margin-top: 5px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.troubleshooting-guide code {
+    background-color: #e8e8e8;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.check-command,
+.docker-logs {
+    margin-top: 20px;
+    background-color: #f3f7ff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border-left: 3px solid #3d7cf4;
+}
+
+/* 菜单管理美化 */
+#menuTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+#menuTable th {
+    background-color: #3d7cf4;
+    color: white;
+    padding: 15px;
+    font-weight: 500;
+    text-align: left;
+    font-size: 15px;
+    border: none;
+}
+
+#menuTable tr:nth-child(even) {
+    background-color: rgba(61, 124, 244, 0.05);
+}
+
+#menuTable td {
+    padding: 12px 15px;
+    border-top: 1px solid #e9edf5;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.new-item-row td {
+    background-color: #f2f7ff !important;
+    border-bottom: 2px solid #3d7cf4 !important;
+}
+
+#menuTable input[type="text"],
+#menuTable select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+}
+
+#menuTable input[type="text"]:focus,
+#menuTable select:focus {
+    border-color: #3d7cf4;
+    box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.2);
+    outline: none;
+}
+
+/* 文档管理增强 */
+#documentTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin: 20px 0 30px;
+    width: 100%;
+}
+
+#documentTable th {
+    background-color: #3d7cf4;
+    color: white;
+    padding: 15px;
+    font-weight: 500;
+    text-align: left;
+    font-size: 15px;
+    border: none;
+}
+
+#documentTable td {
+    padding: 12px 15px;
+    border-top: 1px solid #e9edf5;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+/* 文档编辑器增强 */
+#editorContainer {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 30px;
+    display: none;
+}
+
+#documentTitle {
+    font-size: 18px;
+    font-weight: 500;
+    padding: 15px 20px;
+    border: none;
+    border-bottom: 1px solid #eee;
+    width: 100%;
+    box-shadow: none;
+    margin: 0;
+}
+
+#documentTitle:focus {
+    outline: none;
+    border-bottom-color: #3d7cf4;
+}
+
+.editormd-fullscreen {
+    z-index: 1000;
+}
+
+.editor-toolbar {
+    border-top: none !important;
+}
+
+.editor-preview-side {
+    border-left: 1px solid #ddd !important;
+}
+
+.editor-statusbar {
+    border-top: 1px solid #ddd !important;
+    padding: 8px 15px !important;
+}
+
+.editor-actions {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* 文本输入框和表单样式增强 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    border-color: #3d7cf4;
+    box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.2);
+    outline: none;
+}
+
+/* SweetAlert2自定义样式 */
+.swal2-popup {
+    padding: 25px !important;
+    border-radius: 10px !important;
+    width: auto !important;
+    min-width: 400px !important;
+}
+
+.swal2-title {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+}
+
+.swal2-content {
+    font-size: 16px !important;
+    color: #555 !important;
+}
+
+.swal2-input, .swal2-textarea, .swal2-select {
+    margin: 15px auto !important;
+}
+
+.swal2-styled.swal2-confirm {
+    background-color: #3d7cf4 !important;
+    padding: 12px 25px !important;
+    font-size: 16px !important;
+    border-radius: 6px !important;
+}
+
+/* 文档预览样式 */
+.document-preview-container {
+    z-index: 1100 !important;
+}
+
+.document-preview-popup {
+    max-width: 1000px !important;
+    overflow-y: hidden !important;
+}
+
+.document-preview-content {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.document-preview {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 20px;
+    text-align: left;
+    background-color: white;
+    border-radius: 4px;
+    line-height: 1.6;
+}
+
+.document-preview h1 {
+    color: #2c3e50;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.document-preview h2 {
+    color: #3d7cf4;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.document-preview pre {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    overflow-x: auto;
+}
+
+.document-preview code {
+    background-color: #f5f5f5;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: "JetBrains Mono", monospace;
+}
+
+.document-preview img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 15px auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.document-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 15px 0;
+}
+
+.document-preview table th,
+.document-preview table td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+}
+
+.document-preview table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.document-preview blockquote {
+    border-left: 4px solid #3d7cf4;
+    padding: 10px 15px;
+    color: #555;
+    background-color: #f9f9f9;
+    margin: 15px 0;
+}
+
+/* 为文档添加打印样式 */
+@media print {
+    .document-preview {
+        height: auto;
+        overflow: visible;
+        background: white;
+        color: black;
+    }
+    
+    .document-preview * {
+        color: black !important;
+    }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    #documentTable th,
+    #documentTable td,
+    #menuTable th,
+    #menuTable td {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    .status-badge {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+    
+    .swal2-popup {
+        min-width: 300px !important;
+        padding: 15px !important;
+    }
+}

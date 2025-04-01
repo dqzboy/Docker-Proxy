@@ -1,0 +1,396 @@
+/* 今天登录的高亮样式 */
+.today-login {
+    background-color: #e6f7ff;
+    color: #1890ff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* 用户信息显示优化 */
+.account-info-item {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.account-info-item .label {
+    font-weight: 500;
+    width: 120px;
+    flex-shrink: 0;
+    color: #555;
+}
+
+.account-info-item .value {
+    color: #1f2937;
+    font-weight: 400;
+}
+
+/* 加载中占位符样式 */
+.loading-placeholder {
+    display: inline-block;
+    width: 80px;
+    height: 14px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* 菜单编辑弹窗样式 */
+.menu-edit-popup {
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.menu-edit-title {
+    font-size: 1.5em;
+    color: #1f2937;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f3f4f6;
+    font-weight: 600;
+}
+
+.menu-edit-container {
+    text-align: left;
+}
+
+.menu-edit-container .form-group {
+    margin-bottom: 24px;
+}
+
+.menu-edit-container label {
+    display: block;
+    margin-bottom: 8px;
+    color: #4b5563;
+    font-weight: 500;
+    font-size: 0.95em;
+}
+
+.menu-edit-container .swal2-input,
+.menu-edit-container .swal2-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #f9fafb;
+}
+
+.menu-edit-container .swal2-input:hover,
+.menu-edit-container .swal2-select:hover {
+    border-color: #d1d5db;
+    background-color: #ffffff;
+}
+
+.menu-edit-container .swal2-input:focus,
+.menu-edit-container .swal2-select:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    background-color: #ffffff;
+}
+
+.menu-edit-confirm {
+    background-color: #4CAF50 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.menu-edit-confirm:hover {
+    background-color: #45a049 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.menu-edit-cancel {
+    background-color: #f3f4f6 !important;
+    color: #4b5563 !important;
+    padding: 10px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    font-size: 14px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.menu-edit-cancel:hover {
+    background-color: #e5e7eb !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 操作按钮样式优化 */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background-color: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.action-btn i {
+    font-size: 14px;
+}
+
+.action-btn.edit-btn {
+    color: #3b82f6;
+}
+
+.action-btn.edit-btn:hover {
+    background-color: #dbeafe;
+}
+
+.action-btn.delete-btn {
+    color: #ef4444;
+}
+
+.action-btn.delete-btn:hover {
+    background-color: #fee2e2;
+}
+
+.action-btn.log-btn {
+    color: #10b981;
+}
+
+.action-btn.log-btn:hover {
+    background-color: #d1fae5;
+}
+
+.action-btn.start-btn {
+    color: #10b981;
+}
+
+.action-btn.start-btn:hover {
+    background-color: #d1fae5;
+}
+
+.action-btn.stop-btn {
+    color: #ef4444;
+}
+
+.action-btn.stop-btn:hover {
+    background-color: #fee2e2;
+}
+
+.action-btn.restart-btn {
+    color: #f59e0b;
+}
+
+.action-btn.restart-btn:hover {
+    background-color: #fef3c7;
+}
+
+/* Docker 状态指示器样式 */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.status-indicator.running {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.status-indicator.stopped {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #F44336;
+}
+
+.status-indicator i {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+/* 文档操作按钮样式优化 */
+.view-btn {
+    background-color: #f0f9ff !important;
+    color: #0ea5e9 !important;
+}
+
+.view-btn:hover {
+    background-color: #e0f2fe !important;
+    color: #0284c7 !important;
+}
+
+.edit-btn {
+    background-color: #f0fdf4 !important;
+    color: #22c55e !important;
+}
+
+.edit-btn:hover {
+    background-color: #dcfce7 !important;
+    color: #16a34a !important;
+}
+
+.delete-btn {
+    background-color: #fef2f2 !important;
+    color: #ef4444 !important;
+}
+
+.delete-btn:hover {
+    background-color: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.publish-btn {
+    background-color: #f0fdfa !important;
+    color: #14b8a6 !important;
+}
+
+.publish-btn:hover {
+    background-color: #ccfbf1 !important;
+    color: #0d9488 !important;
+}
+
+.unpublish-btn {
+    background-color: #fffbeb !important;
+    color: #f59e0b !important;
+}
+
+.unpublish-btn:hover {
+    background-color: #fef3c7 !important;
+    color: #d97706 !important;
+}
+
+/* 刷新按钮交互反馈 */
+.refresh-btn {
+    background-color: #f9fafb;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    padding: 6px 12px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.refresh-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.refresh-btn.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Docker未运行友好提示 */
+.docker-offline-container {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.docker-offline-icon {
+    font-size: 40px;
+    color: #9ca3af;
+    margin-bottom: 16px;
+}
+
+.docker-offline-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 8px;
+}
+
+.docker-offline-message {
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.docker-offline-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.docker-offline-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.docker-offline-btn.primary {
+    background-color: #4f46e5;
+    color: white;
+}
+
+.docker-offline-btn.primary:hover {
+    background-color: #4338ca;
+}
+
+.docker-offline-btn.secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.docker-offline-btn.secondary:hover {
+    background-color: #e5e7eb;
+}

@@ -1,0 +1,29 @@
+{
+  "logo": "",
+  "menuItems": [
+    {
+      "text": "首页",
+      "link": "",
+      "newTab": false
+    },
+    {
+      "text": "GitHub",
+      "link": "https://github.com/dqzboy/Docker-Proxy",
+      "newTab": true
+    },
+    {
+      "text": "VPS推荐",
+      "link": "https://dqzboy.github.io/proxyui/racknerd",
+      "newTab": true
+    }
+  ],
+  "monitoringConfig": {
+    "notificationType": "telegram",
+    "webhookUrl": "",
+    "telegramToken": "",
+    "telegramChatId": "",
+    "monitorInterval": 60,
+    "isEnabled": false
+  },
+  "proxyDomain": "dqzboy.github.io"
+}

@@ -1,39 +1,36 @@
 {
-  "logo": "",
+  "theme": "light",
+  "language": "zh_CN",
+  "notifications": true,
+  "autoRefresh": true,
+  "refreshInterval": 30000,
+  "dockerHost": "localhost",
+  "dockerPort": 2375,
+  "useHttps": false,
   "menuItems": [
     {
-      "text": "首页",
-      "link": "",
+      "text": "控制台",
+      "link": "/admin",
+      "newTab": false
+    },
+    {
+      "text": "镜像搜索",
+      "link": "/",
+      "newTab": false
+    },
+    {
+      "text": "文档",
+      "link": "/docs",
       "newTab": false
     },
     {
       "text": "GitHub",
-      "link": "https://github.com/dqzboy/Docker-Proxy",
-      "newTab": true
-    },
-    {
-      "text": "VPS推荐",
-      "link": "https://dqzboy.github.io/proxyui/racknerd",
+      "link": "https://github.com/dqzboy/hubcmdui",
       "newTab": true
     }
   ],
-  "adImages": [
-    {
-      "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/reacknerd-ad.png",
-      "link": "https://my.racknerd.com/aff.php?aff=12151"
-    },
-    {
-      "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/racknerd_vps.png",
-      "link": "https://my.racknerd.com/aff.php?aff=12151"
-    },
-    {
-      "url": "https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy-vip.png",
-      "link": "https://www.dqzboy.com/17834.html"
-    }
-  ],
-  "proxyDomain": "dqzboy.github.io",
   "monitoringConfig": {
-    "notificationType": "telegram",
+    "notificationType": "wechat",
     "webhookUrl": "",
     "telegramToken": "",
     "telegramChatId": "",
