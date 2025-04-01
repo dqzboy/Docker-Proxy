@@ -65,55 +65,90 @@
   
   /* 头部导航 */
   .header {
-    background-color: var(--container-bg);
-    box-shadow: var(--shadow-md);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 0;
-    transition: all var(--transition-normal);
+    background-color: #ffffff; /* 白色背景 */
+    padding: 20px 0; /* 增加上下padding */
+    position: relative;
+    border-bottom: 1px solid #e0e0e0; /* 添加边框分隔 */
   }
   
   .header-content {
-    max-width: 1320px;
-    margin: 0 auto;
-    padding: 0.75rem 1.5rem;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 30px; /* 增加左右padding */
   }
   
   .logo {
-    height: 42px;
+    height: 60px; /* 将原来的40px增大到60px */
     width: auto;
-    transition: transform var(--transition-fast);
+    transition: transform 0.3s ease;
   }
   
   .logo:hover {
-    transform: scale(1.05);
+    transform: scale(1.05); /* 添加悬停效果 */
   }
   
+  /* 导航菜单修复 */
   .nav-menu {
     display: flex;
-    gap: 1.2rem;
     align-items: center;
   }
   
-  .nav-menu a {
-    color: var(--text-secondary);
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
-    font-weight: 500;
-    font-size: 0.95rem;
-    letter-spacing: 0.2px;
+  .menu-toggle {
+    display: none;
+    font-size: 24px;
+    color: #333333; /* 深色图标 */
+    cursor: pointer;
   }
   
-  .nav-menu a:hover {
-    background-color: var(--primary-light);
-    color: white;
-    transform: translateY(-2px);
+  .nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-list li {
+    margin-left: 20px;
+  }
+  
+  /* 注意：菜单项的具体样式由JS中的内联样式控制 */
+  
+  /* 移动设备适配 */
+  @media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-list {
+        position: absolute;
+        top: 100%;
+        right: 20px;
+        background-color: #ffffff; /* 白色背景 */
+        border-radius: 5px;
+        padding: 20px;
+        flex-direction: column;
+        display: none;
+        z-index: 100;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
+    }
+    
+    .nav-menu.active .nav-list {
+        display: flex;
+    }
+    
+    .nav-list li {
+        margin: 10px 0;
+    }
+  }
+  
+  .no-menu, .menu-error {
+    color: #ff6b6b;
+    font-size: 14px;
+    margin-right: 20px;
   }
   
   /* 主容器 */
@@ -2581,11 +2616,11 @@
 /* 为 名称 列设置最大宽度和文本溢出处理 */
 #dockerStatusTable th:nth-child(2),
 #dockerStatusTable td:nth-child(2) {
-    max-width: 200px; /* 根据需要调整 */
-    width: 25%; /* 尝试百分比宽度 */
+    width: 25%; /* 将宽度从原来的过大值减小到25% */
+    max-width: 250px; /* 限制最大宽度 */
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 /* 为 镜像 列设置最大宽度和文本溢出处理 */
@@ -2694,9 +2729,9 @@
 
 /* --- 新增：详情弹窗表格样式 --- */
 .details-swal-popup .details-table-container {
-    max-height: 60vh; /* 限制最大高度，出现滚动条 */
+    max-height: 70vh;
     overflow-y: auto;
-    margin-top: 1rem;
+    text-align: left; /* 确保内容左对齐 */
 }
 
 .details-swal-popup .details-table {
@@ -2718,11 +2753,13 @@
 }
 
 .details-swal-popup .details-table tbody td {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid var(--border-light, #e5e7eb);
-    vertical-align: middle;
-    color: var(--text-primary);
-    text-align: left; /* 确保单元格左对齐 */
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    word-break: break-word;
+    font-family: monospace;
+    white-space: pre-wrap;
+    text-align: left; /* 确保文本左对齐 */
+    font-size: 14px;
 }
 
 .details-swal-popup .details-table tbody tr:last-child td {
@@ -2775,3 +2812,174 @@
 /* --- 结束：资源详情类 Excel 表格样式 --- */
 
 /* ... 其他样式 ... */
+
+/* 导航菜单样式 */
+.nav-menu {
+    display: flex;
+    align-items: center;
+}
+
+.nav-menu .nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu .nav-list li {
+    margin-left: 20px;
+}
+
+.nav-menu .nav-list li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.nav-menu .nav-list li a:hover {
+    color: #3d7cf4;
+}
+
+.menu-toggle {
+    display: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+/* 移动设备适配 */
+@media (max-width: 768px) {
+    .nav-menu {
+        position: relative;
+    }
+    
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-menu .nav-list {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        flex-direction: column;
+        background-color: #111;
+        padding: 20px;
+        border-radius: 5px;
+        display: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+    
+    .nav-menu.active .nav-list {
+        display: flex;
+    }
+    
+    .nav-menu .nav-list li {
+        margin: 10px 0;
+    }
+}
+
+.no-menu, .menu-error {
+    color: #ff6b6b;
+    font-size: 14px;
+    margin-right: 20px;
+}
+
+/* 操作按钮布局优化 */
+.action-cell {
+    white-space: nowrap;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 5px; /* 使用gap来控制按钮间隔 */
+}
+
+.action-cell button,
+.action-cell .btn {
+    margin: 0;
+    padding: 5px 8px;
+    font-size: 13px;
+    display: inline-block;
+    min-width: auto; /* 防止按钮过宽 */
+    flex-shrink: 0; /* 防止按钮被压缩 */
+}
+
+/* 确保操作按钮保持在一行 */
+#dockerStatusTable th:last-child,
+#dockerStatusTable td:last-child {
+    width: auto;
+    min-width: 180px; /* 确保有足够的空间放置按钮 */
+    white-space: nowrap;
+}
+
+/* 日志弹窗内容优化 */
+.log-content {
+    text-align: left;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* 确保SweetAlert2弹窗内容左对齐 */
+.swal2-html-container {
+    text-align: left !important;
+}
+
+/* 确保弹窗样式优先级最高 */
+.swal2-popup .swal2-html-container,
+.swal2-popup .swal2-content {
+    text-align: left !important;
+}
+
+.swal2-popup pre,
+.swal2-popup code,
+.swal2-popup .log-content {
+    text-align: left !important;
+    direction: ltr !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+/* 调整容器表格布局 */
+#dockerStatusTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* 容器ID/名称列宽度 */
+#dockerStatusTable th:nth-child(1),
+#dockerStatusTable td:nth-child(1) {
+    width: 20%;
+}
+
+/* 镜像名称列宽度 */
+#dockerStatusTable th:nth-child(2),
+#dockerStatusTable td:nth-child(2) {
+    width: 25%;
+    max-width: 250px;
+}
+
+/* 容器状态列宽度 */
+#dockerStatusTable th:nth-child(3),
+#dockerStatusTable td:nth-child(3) {
+    width: 15%;
+}
+
+/* 创建时间列宽度 */
+#dockerStatusTable th:nth-child(4),
+#dockerStatusTable td:nth-child(4) {
+    width: 20%;
+}
+
+/* 操作列宽度 */
+#dockerStatusTable th:nth-child(5),
+#dockerStatusTable td:nth-child(5) {
+    width: 20%;
+}

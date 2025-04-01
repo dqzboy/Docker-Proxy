@@ -7,6 +7,7 @@
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <script src="js/nav-menu.js"></script>
 </head>
 <body>
     <header class="header">
@@ -168,12 +169,6 @@
         // 设置当前年份
         document.getElementById('currentYear').textContent = new Date().getFullYear();
         document.addEventListener('DOMContentLoaded', (event) => {
-            const menuToggle = document.getElementById('menuToggle');
-            const navMenu = document.getElementById('navMenu');
-            menuToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-            });
-            
             // 版权保护
             protectCopyright();
         });
@@ -342,6 +337,29 @@
         let totalPages = 1;
         let currentTagPage = 1;
         let currentImageData = null;
+
+        // 初始化时加载代理域名配置
+        async function initProxyDomain() {
+            try {
+                const response = await fetch('/api/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    if (config.proxyDomain) {
+                        proxyDomain = config.proxyDomain;
+                        console.log('成功加载代理域名:', proxyDomain);
+                    } else {
+                        console.warn('配置中没有proxyDomain字段');
+                        proxyDomain = 'registry-1.docker.io'; // 使用默认值
+                    }
+                } else {
+                    console.error('加载配置失败:', response.status, response.statusText);
+                    proxyDomain = 'registry-1.docker.io'; // 使用默认值
+                }
+            } catch (error) {
+                console.error('初始化代理域名失败:', error);
+                proxyDomain = 'registry-1.docker.io'; // 使用默认值
+            }
+        }
 
         // ========================================
         // === 新增：全局提示函数 ===
@@ -1648,6 +1666,9 @@
         
         // DOMContentLoaded 事件监听器
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化代理域名
+            initProxyDomain();
+            
             // 确保元素存在再添加事件监听器
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
