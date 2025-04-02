@@ -97,7 +97,7 @@ bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dqzboy/Docker-Proxy/install/Do
 bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Docker-Proxy/main/install/DockerProxy_Install.sh)"
 ```
 
-- **Hubcmd-UI** 面板,通过脚本安装
+- **Hubcmd-UI** 面板,通过脚本安装。Demo [查看](https://dqzboy.github.io/proxyui/) 模拟环境，请实际部署后体验完整功能！
 
 ```
 执行上面脚本，选项为：2 ---> 8 ---> 1
