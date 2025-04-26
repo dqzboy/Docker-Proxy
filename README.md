@@ -110,7 +110,7 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
 
 > Claw Cloud 提供免费额度， 首月送5$，不需要验证信用卡，GitHub账号超过180天的用户注册，可解锁每月5$
 
-使用Render快速部署: [点击查看教程](cloud/ClawCloud/README.md)
+使用Claw Cloud快速部署: [点击查看教程](cloud/ClawCloud/README.md)
 
 </details>
 
