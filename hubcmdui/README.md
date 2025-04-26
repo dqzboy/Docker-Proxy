@@ -26,75 +26,6 @@
 
 ---
 
-## 🔧 日志系统说明
-
-本项目实现了生产级别的日志系统，支持以下特性：
-
-### 日志级别
-
-支持的日志级别从低到高依次为：
-- `TRACE`: 最详细的追踪信息，用于开发调试
-- `DEBUG`: 调试信息，包含详细的程序执行流程
-- `INFO`: 一般信息，默认级别
-- `SUCCESS`: 成功信息，通常用于标记重要操作的成功完成
-- `WARN`: 警告信息，表示潜在的问题
-- `ERROR`: 错误信息，表示操作失败但程序仍可继续运行
-- `FATAL`: 致命错误，通常会导致程序退出
-
-### 环境变量配置
-
-可通过环境变量调整日志行为：
-
-```bash
-# 设置日志级别
-export LOG_LEVEL=INFO  # 可选值: TRACE, DEBUG, INFO, SUCCESS, WARN, ERROR, FATAL
-
-# 启用简化日志输出（减少浏览器请求详细信息）
-export SIMPLE_LOGS=true
-
-# 启用详细日志记录（包含请求体、查询参数等）
-export DETAILED_LOGS=true
-
-# 启用错误堆栈跟踪
-export SHOW_STACK=true
-
-# 禁用文件日志记录
-export LOG_FILE_ENABLED=false
-
-# 禁用控制台日志输出
-export LOG_CONSOLE_ENABLED=false
-
-# 设置日志文件大小上限(MB)
-export LOG_MAX_SIZE=10
-
-# 设置保留的日志文件数量
-export LOG_MAX_FILES=14
-```
-
-### Docker运行时配置
-
-使用Docker运行时，可以通过环境变量传递配置：
-
-```bash
-docker run -d \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -p 30080:3000 \
-  -e LOG_LEVEL=INFO \
-  -e SIMPLE_LOGS=true \
-  -e LOG_MAX_FILES=7 \
-  --name hubcmdui-server \
-  dqzboy/hubcmd-ui
-```
-
-### 日志文件轮转
-
-系统自动实现日志文件轮转：
-- 单个日志文件超过设定大小(默认10MB)会自动创建新文件
-- 自动保留指定数量(默认14个)的最新日志文件
-- 日志文件存储在`logs`目录下，格式为`app-YYYY-MM-DD.log`
-
----
-
 ## 📝 源码构建运行
 #### 1. 克隆项目
 ```bash
@@ -148,31 +79,31 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bfe09d99-6727-43bc-9c2d-73e34d881953"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_01.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/42c4337e-44cb-4c35-bc6f-a5d21f3d1184"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_02.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c1e938dc-d604-475c-8689-d60b09329af8"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_03.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/1be671e5-7bd5-4d63-9f4e-8936b819ee2d"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_04.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f97a0a37-457f-4ffb-893e-db68b204ee33"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_05.png?raw=true"></td>
     </tr>
 </table>
 
@@ -180,31 +111,31 @@ docker logs -f [容器ID或名称]
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/85a0c746-d44a-4168-8b4b-a1e7273cdd59"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_06.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bc066047-15d3-45fc-b363-ded37bfe1121"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_07.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c775abbe-0927-4a1f-b4e6-faf531784aea"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_08.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/78ad0e29-abfd-47d6-a132-c5b49b48bc95"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_09.png?raw=true"></td>
     </tr>
 </table>
 
 <table>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bfe99dc9-ecb8-4c47-9f68-2312e447f309"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_10.png?raw=true"></td>
     </tr>
 </table>
 

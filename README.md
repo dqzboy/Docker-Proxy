@@ -61,7 +61,7 @@
 > **部署过程中出现的问题或者疑问，请点击这里 [问题总结](Issue/issue.md)，查看是否有你遇到的情况！尝试先自己解决。**
 
 <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">
-    <img src="https://github.com/user-attachments/assets/88f7dd6c-cb5e-4fdb-ba6b-d882d39cba8c" alt="高性价比海外 VPS 推荐" title="点击查看">
+    <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/render-vps.png" alt="高性价比海外 VPS 推荐" title="点击查看">
 </a>
 
 ---
@@ -196,24 +196,24 @@ docker logs -f [容器ID或名称]
       <td width="50%" align="center"><b>镜像搜索</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/e8852bfb-8bda-4dee-805e-a93419aa54ab"?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/b3a6a80a-284c-4117-b1bf-9d4c4556717f"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_01.png?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_02.png?raw=true"></td>
     </tr>
     <tr>
       <td width="50%" align="center"><b>文档管理</b></td>
       <td width="50%" align="center"><b>TAG搜索</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/66be3dae-8d46-4144-932e-c5493c93fe2f"?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/f1208858-ec69-47b3-88d2-9a0bc112ea94"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_03.png?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_11.png?raw=true"></td>
     </tr>
     <tr>
       <td width="50%" align="center"><b>控制面板</b></td>
       <td width="50%" align="center"><b>容器管理</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/bc066047-15d3-45fc-b363-ded37bfe1121"?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/78ad0e29-abfd-47d6-a132-c5b49b48bc95"?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_07.png?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_09.png?raw=true"></td>
     </tr>
 </table>
 

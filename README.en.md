@@ -191,29 +191,35 @@ docker pull gcr.your_domain_name/google-containers/pause:3.1
 > [Self-built Docker Image Acceleration Service: Accelerating and Optimizing Image Management](https://www.dqzboy.com/8709.html) <br>
 > [Build your own Docker image acceleration, and host the domain name to CF to accelerate image pulling.](https://www.dqzboy.com/17665.html)
 
-## 📚 Display
-<br/>
-<table>
-    <tr>
-      <td width="50%" align="center"><b>System Environment Check</b></td>
-      <td width="50%" align="center"><b>Service Deployment and Installation</b></td>
-    </tr>
-    <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/55df7f6f-c788-4200-9bcd-631998dc53ef?raw=true"></td>
-        <td width="50%" align="center"><img src=https://github.com/dqzboy/Docker-Proxy/assets/42825450/c544fb1e-ecd5-447c-9661-0c5913586118?raw=true"></td>
-    </tr>
-</table>
 
-## 💻 UI
+## 💻 Hubcmd-UI
+> HubCMD-UI Manual Installation Guide: [View Tutorial](hubcmdui/README.md)
+
 <br/>
 <table>
     <tr>
-      <td width="50%" align="center"><b>Docker Registry UI</b></td>
-      <td width="50%" align="center"><b>Docker-Proxy CmdUI</b></td>
+      <td width="50%" align="center"><b>镜像加速</b></td>
+      <td width="50%" align="center"><b>镜像搜索</b></td>
     </tr>
     <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Docker-Proxy/assets/42825450/0ddb041b-64f6-4d93-b5bf-85ad3b53d0e0?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/c7e368ca-7f1a-4311-9a10-a5f4f06d86d8?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_01.png?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_02.png?raw=true"></td>
+    </tr>
+    <tr>
+      <td width="50%" align="center"><b>文档管理</b></td>
+      <td width="50%" align="center"><b>TAG搜索</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_03.png?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_11.png?raw=true"></td>
+    </tr>
+    <tr>
+      <td width="50%" align="center"><b>控制面板</b></td>
+      <td width="50%" align="center"><b>容器管理</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_07.png?raw=true"></td>
+        <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_09.png?raw=true"></td>
     </tr>
 </table>
 
