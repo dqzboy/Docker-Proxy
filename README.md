@@ -46,7 +46,7 @@
 <summary><strong>如果你没有上面提到的环境，那么你也可以尝试以下的几种方案</strong></summary>
 <div>
 
-**方案一：**  🚀 如果你身边没有上面提到的这些东西，那么你也可以部署到 **[Render](Render/README.md)**
+**方案一：**  🚀 如果你身边没有上面提到的这些东西，就想白嫖到底的，那么你也可以试试这些方法，使用第三方免费容器 **[ClawCloud](cloud/ClawCloud/README.md)、[Render](cloud/Render/README.md)**
 
 **方案二：** 如果你只有一台服务器，不想搞域名也不想配置TLS，那么你可以修改Docker的配置文件`daemon.json`，指定`insecure-registries` 为你的镜像加速地址
 
@@ -103,14 +103,24 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
 执行上面脚本，选项为：2 ---> 8 ---> 1
 ```
 
-### 部署到第三方平台
+### 部署到第三方免费平台
+<details>
+<summary><strong>部署到 Claw Cloud</strong></summary>
+<div>
+
+> Claw Cloud 提供免费额度， 首月送5$，不需要验证信用卡，GitHub账号超过180天的用户注册，可解锁每月5$
+
+使用Render快速部署: [点击查看教程](cloud/ClawCloud/README.md)
+
+</details>
+
 <details>
 <summary><strong>部署到 Render</strong></summary>
 <div>
 
 > Render 提供免费额度，绑卡后可以进一步提升额度
 
-使用Render快速部署: [点击查看教程](Render/README.md)
+使用Render快速部署: [点击查看教程](cloud/Render/README.md)
 
 </details>
 
@@ -120,7 +130,7 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
 
 > Koyeb 分配的域名在国内地区访问不是很稳定，不是很推荐！
 
-使用Koyeb快速部署: [点击查看教程](Koyeb/README.md)
+使用Koyeb快速部署: [点击查看教程](cloud/Koyeb/README.md)
 
 </details>
 
