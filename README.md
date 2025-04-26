@@ -46,7 +46,7 @@
 <summary><strong>如果你没有上面提到的环境，那么你也可以尝试以下的几种方案</strong></summary>
 <div>
 
-**方案一：**  🚀 如果你身边没有上面提到的这些东西，就想白嫖到底的，那么你也可以试试这些方法，使用第三方免费容器 **[ClawCloud](cloud/ClawCloud/README.md)、[Render](cloud/Render/README.md)**
+**方案一：**  🚀 如果你身边没有上面提到的这些东西，那么你也可以试试使用第三方免费容器部署服务 **[ClawCloud](cloud/ClawCloud/README.md)、[Render](cloud/Render/README.md)**
 
 **方案二：** 如果你只有一台服务器，不想搞域名也不想配置TLS，那么你可以修改Docker的配置文件`daemon.json`，指定`insecure-registries` 为你的镜像加速地址
 
