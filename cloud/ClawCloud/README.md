@@ -21,6 +21,11 @@
 
 **1. 注册账号 [点击此处，注册账号](https://console.run.claw.cloud/signin?link=PZNPEDMUAT4G)**
 
+<table>
+    <tr>
+        <td width="50%" align="center"><img src="https://github.com/user-attachments/assets/80f03947-96bb-47ff-b8f6-65a2dda61b21?raw=true"></td>
+    </tr>
+</table>
 
 <table>
     <tr>
