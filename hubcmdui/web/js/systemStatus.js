@@ -10,41 +10,41 @@ let DEBUG_MODE = false; // 控制是否输出调试信息
 const logger = {
     debug: function(...args) {
         if (DEBUG_MODE) {
-            console.log('[systemStatus:DEBUG]', ...args);
+            // console.log('[systemStatus:DEBUG]', ...args);
         }
     },
     log: function(...args) {
-        console.log('[systemStatus]', ...args);
+        // console.log('[systemStatus]', ...args);
     },
     warn: function(...args) {
-        console.warn('[systemStatus]', ...args);
+        // console.warn('[systemStatus]', ...args);
     },
     error: function(...args) {
-        console.error('[systemStatus]', ...args);
+        // console.error('[systemStatus]', ...args);
     },
     // 开启或关闭调试模式
     setDebug: function(enabled) {
         DEBUG_MODE = !!enabled;
-        console.log(`[systemStatus] 调试模式已${DEBUG_MODE ? '开启' : '关闭'}`);
+        // console.log(`[systemStatus] 调试模式已${DEBUG_MODE ? '开启' : '关闭'}`);
     }
 };
 
 // 刷新系统状态
 async function refreshSystemStatus() {
-    logger.log('刷新系统状态...');
+    // logger.log('刷新系统状态...');
     
     showSystemStatusLoading(); // 显示表格/活动列表的加载状态
     showDashboardLoading(); // 显示仪表盘卡片的加载状态
     
     try {
         // 并行获取Docker状态和系统资源信息
-        logger.log('获取Docker状态和系统资源信息');
+        // logger.log('获取Docker状态和系统资源信息');
         const [dockerResponse, resourcesResponse] = await Promise.all([
-            fetch('/api/docker/status').catch(err => { logger.error('Docker status fetch failed:', err); return null; }), // 添加 catch
-            fetch('/api/system-resources').catch(err => { logger.error('System resources fetch failed:', err); return null; }) // 添加 catch
+            fetch('/api/docker/status').catch(err => { /* logger.error('Docker status fetch failed:', err); */ return null; }), // 添加 catch
+            fetch('/api/system-resources').catch(err => { /* logger.error('System resources fetch failed:', err); */ return null; }) // 添加 catch
         ]);
         
-        logger.debug('API响应结果:', { dockerOk: dockerResponse?.ok, resourcesOk: resourcesResponse?.ok });
+        // logger.debug('API响应结果:', { dockerOk: dockerResponse?.ok, resourcesOk: resourcesResponse?.ok });
         
         let dockerDataArray = null; // 用于存放容器数组
         let isDockerServiceRunning = false; // 用于判断 Docker 服务本身是否响应
@@ -53,7 +53,7 @@ async function refreshSystemStatus() {
             try {
                 // 假设 API 直接返回容器数组
                 dockerDataArray = await dockerResponse.json(); 
-                logger.debug('Docker数据:', JSON.stringify(dockerDataArray));
+                // logger.debug('Docker数据:', JSON.stringify(dockerDataArray));
                 
                 // 只有当返回的是数组，且状态属性表明 Docker 正在运行时，才认为 Docker 服务是运行的
                 if (Array.isArray(dockerDataArray)) {
@@ -69,19 +69,19 @@ async function refreshSystemStatus() {
                     // 只有在没有这两种特定错误时，才认为 Docker 服务正常
                     isDockerServiceRunning = !hasDockerUnavailableError && !hasContainerListError;
                     
-                    logger.debug(`Docker服务状态: ${isDockerServiceRunning ? '运行中' : '未运行'}, 错误状态:`, 
-                        { hasDockerUnavailableError, hasContainerListError });
+                    // logger.debug(`Docker服务状态: ${isDockerServiceRunning ? '运行中' : '未运行'}, 错误状态:`, 
+                        // { hasDockerUnavailableError, hasContainerListError });
                 } else {
-                    logger.warn('Docker数据不是数组:', typeof dockerDataArray);
+                    // logger.warn('Docker数据不是数组:', typeof dockerDataArray);
                     isDockerServiceRunning = false;
                 }
             } catch (jsonError) {
-                logger.error('解析Docker数据失败:', jsonError);
+                // logger.error('解析Docker数据失败:', jsonError);
                 dockerDataArray = []; // 解析失败视为空数组
                 isDockerServiceRunning = false; // JSON 解析失败，认为服务有问题
             }
         } else {
-            logger.warn('获取Docker状态失败');
+            // logger.warn('获取Docker状态失败');
             dockerDataArray = []; // 请求失败视为空数组
             isDockerServiceRunning = false; // 请求失败，认为服务未运行
         }
@@ -91,15 +91,15 @@ async function refreshSystemStatus() {
             try {
                 // --- 添加日志：打印原始响应文本 ---
                 const resourcesText = await resourcesResponse.text();
-                logger.debug('原始系统资源响应:', resourcesText);
+                // logger.debug('原始系统资源响应:', resourcesText);
                 resourcesData = JSON.parse(resourcesText); // 解析文本
-                logger.debug('解析后的系统资源数据:', resourcesData);
+                // logger.debug('解析后的系统资源数据:', resourcesData);
             } catch (jsonError) {
-                logger.error('解析系统资源数据失败:', jsonError);
+                // logger.error('解析系统资源数据失败:', jsonError);
                 resourcesData = { cpu: null, memory: null, diskSpace: null }; 
             }
         } else {
-            logger.warn(`获取系统资源失败, 状态: ${resourcesResponse?.status}`);
+            // logger.warn(`获取系统资源失败, 状态: ${resourcesResponse?.status}`);
             resourcesData = { cpu: null, memory: null, diskSpace: null };
         }
         
@@ -121,9 +121,9 @@ async function refreshSystemStatus() {
         // --- 修改：将合并后的数据存入缓存 --- 
         currentSystemData = combinedData; // 缓存数据
         
-        logger.debug('合并后的状态数据:', currentSystemData);
+        // logger.debug('合并后的状态数据:', currentSystemData);
         updateSystemStatusUI(currentSystemData);
-        logger.log('系统状态加载完成');
+        // logger.log('系统状态加载完成');
         
         // 只在仪表盘页面（且登录框未显示时）才显示成功通知
         const adminContainer = document.querySelector('.admin-container');
@@ -144,7 +144,7 @@ async function refreshSystemStatus() {
             });
         }
     } catch (error) {
-        logger.error('刷新系统状态出错:', error);
+        // logger.error('刷新系统状态出错:', error);
         showSystemStatusError(error.message);
         showDashboardError(error.message);
         
@@ -171,7 +171,7 @@ async function refreshSystemStatus() {
 
 // 显示系统状态错误
 function showSystemStatusError(message) {
-    console.error('系统状态错误:', message);
+    // console.error('系统状态错误:', message);
     
     // 更新Docker容器表格状态为错误
     const containerBody = document.getElementById('dockerContainersBody');
@@ -250,16 +250,16 @@ function updateSystemStatusUI(data) {
     try {
         // 使用可选链和确保 parseDiskSpace 返回有效对象
         const diskData = parseDiskSpace(data.diskSpace);
-        console.log('[systemStatus] Parsed disk data for progress bar:', diskData);
+        // console.log('[systemStatus] Parsed disk data for progress bar:', diskData);
         if (diskData && typeof diskData.usagePercent === 'number') { 
             updateProgressBar('diskSpaceProgress', diskData.usagePercent);
-            console.log(`[systemStatus] Updated disk progress bar with: ${diskData.usagePercent}%`);
+            // console.log(`[systemStatus] Updated disk progress bar with: ${diskData.usagePercent}%`);
         } else {
             updateProgressBar('diskSpaceProgress', 0); // 出错或无数据时归零
-             console.log('[systemStatus] Disk data invalid or missing usagePercent for progress bar.');
+             // console.log('[systemStatus] Disk data invalid or missing usagePercent for progress bar.');
         }
     } catch (e) {
-        console.warn('[systemStatus] Failed to update disk progress bar:', e);
+        // console.warn('[systemStatus] Failed to update disk progress bar:', e);
         updateProgressBar('diskSpaceProgress', 0); // 出错时归零
     }
     
@@ -269,13 +269,13 @@ function updateSystemStatusUI(data) {
         const memPercent = data.memory?.usedPercentage;
         if (typeof memPercent === 'number') { 
             updateProgressBar('memoryProgress', memPercent);
-            console.log(`[systemStatus] Updated memory progress bar with: ${memPercent}%`);
+            // console.log(`[systemStatus] Updated memory progress bar with: ${memPercent}%`);
         } else {
             updateProgressBar('memoryProgress', 0);
-             console.log('[systemStatus] Memory data invalid or missing usedPercentage for progress bar.');
+             // console.log('[systemStatus] Memory data invalid or missing usedPercentage for progress bar.');
         }
     } catch (e) {
-        console.warn('[systemStatus] Failed to update memory progress bar:', e);
+        // console.warn('[systemStatus] Failed to update memory progress bar:', e);
         updateProgressBar('memoryProgress', 0);
     }
     
@@ -285,22 +285,22 @@ function updateSystemStatusUI(data) {
         const cpuUsage = data.cpu?.usage;
         if (typeof cpuUsage === 'number') { 
             updateProgressBar('cpuProgress', cpuUsage);
-            console.log(`[systemStatus] Updated CPU progress bar with: ${cpuUsage}%`);
+            // console.log(`[systemStatus] Updated CPU progress bar with: ${cpuUsage}%`);
         } else {
             updateProgressBar('cpuProgress', 0);
-            console.log('[systemStatus] CPU data invalid or missing usage for progress bar.');
+            // console.log('[systemStatus] CPU data invalid or missing usage for progress bar.');
         }
     } catch (e) {
-        console.warn('[systemStatus] Failed to update CPU progress bar:', e);
+        // console.warn('[systemStatus] Failed to update CPU progress bar:', e);
         updateProgressBar('cpuProgress', 0);
     }
     
-    console.log('[systemStatus] UI update process finished.');
+    // console.log('[systemStatus] UI update process finished.');
 }
 
 // 显示系统状态加载
 function showSystemStatusLoading() {
-    console.log('显示系统状态加载中...');
+    // console.log('显示系统状态加载中...');
     
     // 更新Docker容器表格状态为加载中
     const containerTable = document.getElementById('dockerContainersTable');
@@ -348,7 +348,7 @@ function updateProgressBar(id, percentage) {
     if (bar) {
         // 确保 percentage 是有效的数字，否则设为 0
         const validPercentage = (typeof percentage === 'number' && !isNaN(percentage)) ? Math.max(0, Math.min(100, percentage)) : 0;
-        console.log(`[systemStatus] Setting progress bar ${id} to ${validPercentage}%`);
+        // console.log(`[systemStatus] Setting progress bar ${id} to ${validPercentage}%`);
         bar.style.width = `${validPercentage}%`;
         bar.setAttribute('aria-valuenow', validPercentage); // 更新 aria 属性
         
@@ -361,7 +361,7 @@ function updateProgressBar(id, percentage) {
             bar.className = 'progress-bar bg-danger';
         }
     } else {
-         console.warn(`[systemStatus] Progress bar element with id '${id}' not found.`);
+         // console.warn(`[systemStatus] Progress bar element with id '${id}' not found.`);
     }
 }
 
@@ -409,7 +409,7 @@ function showDetailsDialog(type) {
             }
         });
     } catch (error) {
-        console.error('显示详情对话框失败:', error);
+        // console.error('显示详情对话框失败:', error);
         core.showAlert('加载详情时出错: ' + error.message, 'error');
     }
 }
@@ -545,7 +545,7 @@ function generateDiskDetailsHtml(diskData) {
 
 // 更新Docker状态指示器
 function updateDockerStatus(available) {
-    console.log(`[systemStatus] Updating top Docker status indicator to: ${available ? 'running' : 'stopped'}`);
+    // console.log(`[systemStatus] Updating top Docker status indicator to: ${available ? 'running' : 'stopped'}`);
     const statusIndicator = document.getElementById('dockerStatusIndicator'); // 假设这是顶部指示器的 ID
     const statusText = document.getElementById('dockerStatusText'); // 假设这是顶部文本的 ID
     
@@ -668,26 +668,43 @@ function initDashboard() {
     // 初始加载系统状态
     refreshSystemStatus(); // <-- 调用确保加载数据
     
-    console.log('仪表板初始化完成');
+    // console.log('仪表板初始化完成');
 }
 
 // 创建仪表板卡片
-function createDashboardCard(data) {
+function createDashboardCard(cardInfo) {
     const card = document.createElement('div');
     card.className = 'dashboard-card';
-    card.id = `${data.id}-card`;
-    
+    card.id = `${cardInfo.id}-card`;
+
+    // Icon: Use cardInfo.icon directly as it should contain the full class string (e.g., "fas fa-microchip")
+    const iconHtml = cardInfo.icon ? `<i class="${cardInfo.icon}"></i>` : '';
+
+    // Action: Determine if it's a link or a callback
+    let actionHtml = '';
+    if (cardInfo.actionLink) {
+        actionHtml = `<a href="${cardInfo.actionLink}" class="card-action">${cardInfo.actionText || '查看'}</a>`;
+    } else if (cardInfo.actionCallback && typeof cardInfo.actionCallback === 'function') {
+        // Register the callback and create a link to call handleCardAction
+        window.systemStatus.cardActionCallbacks[cardInfo.id] = cardInfo.actionCallback;
+        actionHtml = `<a href="javascript:void(0)" class="card-action" onclick="window.systemStatus.handleCardAction('${cardInfo.id}')">${cardInfo.actionText || '操作'}</a>`;
+    } else if (cardInfo.actionText) {
+        // Fallback if only actionText is provided (no specific action)
+        actionHtml = `<span class="card-action is-text">${cardInfo.actionText}</span>`;
+    }
+
     card.innerHTML = `
-        <div class="card-icon">
-            <i class="fas ${data.icon}"></i>
+        <div class="card-icon" style="background-color: ${cardInfo.color || 'var(--primary-light)'}; color: ${cardInfo.color ? 'white' : 'var(--primary-color)'};">
+            ${iconHtml}
         </div>
-        <h3 class="card-title">${data.title}</h3>
-        <div class="card-value" id="${data.id}-value">${data.value}</div>
-        <div class="card-description">${data.description}</div>
-        <div class="card-footer">
-            <div class="trend ${data.trend}" id="${data.id}-trend"></div>
-            <div class="card-action" onclick="systemStatus.showDetailsDialog('${data.id}')">${data.action}</div>
+        <div class="card-content">
+            <h3 class="card-title">${cardInfo.title || '未命名卡片'}</h3>
+            <div class="card-value ${cardInfo.valueClass || ''}" id="${cardInfo.id}-value">
+                ${cardInfo.value !== undefined ? cardInfo.value : '--'} ${cardInfo.unit || ''}
+            </div>
+            ${cardInfo.description ? `<div class="card-description">${cardInfo.description}</div>` : ''}
         </div>
+        ${actionHtml ? `<div class="card-footer">${actionHtml}</div>` : ''}
     `;
     
     return card;
@@ -695,190 +712,175 @@ function createDashboardCard(data) {
 
 // 更新仪表板卡片
 function updateDashboardCards(data) {
-    logger.debug('更新仪表板卡片:', data);
-    
-    if (!data) {
-        logger.error('仪表板数据为空');
+    logger.debug('Updating dashboard cards with data:', data);
+
+    const dashboardGrid = document.querySelector('.dashboard-grid');
+    if (!dashboardGrid) {
+        logger.warn('Dashboard grid not found. Cannot update cards.');
         return;
     }
+
+    // 清空旧的回调
+    window.systemStatus.cardActionCallbacks = {};
+
+    // 确保有 dockerContainers 数据
+    const containers = Array.isArray(data.dockerContainers) ? data.dockerContainers : [];
     
-    // 更新容器数量卡片
-    const containersValue = document.getElementById('containers-value');
-    if (containersValue) {
-        // 确保 dockerContainers 是数组
-        containersValue.textContent = Array.isArray(data?.dockerContainers) ? data.dockerContainers.length : '--'; 
-        logger.debug(`容器数量卡片更新为: ${containersValue.textContent}`);
-    }
-    
-    // 更新内存使用卡片
-    const memoryValue = document.getElementById('memory-value');
-    if (memoryValue) {
-        let memPercent = null;
-        
-        logger.debug(`内存数据:`, data.memory);
-        
-        // 特别处理兼容层返回的数据格式
-        if (data.memory && typeof data.memory === 'object') {
-            // 首先检查是否有 percent 属性
-            if (typeof data.memory.percent === 'string') {
-                memPercent = parseFloat(data.memory.percent.replace('%', ''));
-            } 
-            // 如果 percent 不存在或无效，尝试从 total 和 used 计算
-            else if (typeof data.memory.total === 'number' && typeof data.memory.used === 'number' && data.memory.total > 0) {
-                memPercent = (data.memory.used / data.memory.total) * 100;
-            }
-            // 将单位转换为更易读的格式
-            const totalMemory = formatByteSize(data.memory.total);
-            const usedMemory = formatByteSize(data.memory.used);
-            const freeMemory = formatByteSize(data.memory.free);
-            
-            // 更新内存详情表格中的值
-            updateMemoryDetailsTable(totalMemory, usedMemory, freeMemory, memPercent);
-        }
-        
-        memoryValue.textContent = (typeof memPercent === 'number' && !isNaN(memPercent)) 
-            ? `${memPercent.toFixed(1)}%` // 保留一位小数
-            : '未知'; 
-        logger.debug(`内存卡片更新为: ${memoryValue.textContent}`);
-        
-        // 更新内存进度条
-        const memoryProgressBar = document.getElementById('memory-progress');
-        if (memoryProgressBar && typeof memPercent === 'number' && !isNaN(memPercent)) {
-            memoryProgressBar.style.width = `${memPercent}%`;
-            if (memPercent > 90) {
-                memoryProgressBar.className = 'progress-bar bg-danger';
-            } else if (memPercent > 70) {
-                memoryProgressBar.className = 'progress-bar bg-warning';
-            } else {
-                memoryProgressBar.className = 'progress-bar bg-success';
-            }
-        }
-    }
-    
-    // 更新CPU负载卡片
-    const cpuValue = document.getElementById('cpu-value');
-    if (cpuValue) {
-        let cpuUsage = null;
-        
-        // 特别处理兼容层返回的CPU数据
-        if (data.cpu && typeof data.cpu === 'object') {
-            logger.debug(`CPU数据:`, data.cpu);
-            
-            // 如果有loadAvg数组，使用第一个值（1分钟平均负载）
-            if (Array.isArray(data.cpu.loadAvg) && data.cpu.loadAvg.length > 0) {
-                // 负载需要除以核心数来计算百分比
-                const cores = data.cpu.cores || 1;
-                cpuUsage = (data.cpu.loadAvg[0] / cores) * 100;
-                // 防止超过100%
-                cpuUsage = Math.min(cpuUsage, 100);
-                
-                // 更新CPU详情表格
-                updateCpuDetailsTable(data.cpu.cores, data.cpu.model, data.cpu.speed, cpuUsage);
-            }
-        }
-        
-        cpuValue.textContent = (typeof cpuUsage === 'number' && !isNaN(cpuUsage)) 
-             ? `${cpuUsage.toFixed(1)}%` // 保留一位小数
-             : '未知';
-        logger.debug(`CPU卡片更新为: ${cpuValue.textContent}`);
-        
-        // 更新CPU进度条
-        const cpuProgressBar = document.getElementById('cpu-progress');
-        if (cpuProgressBar && typeof cpuUsage === 'number' && !isNaN(cpuUsage)) {
-            cpuProgressBar.style.width = `${cpuUsage}%`;
-            if (cpuUsage > 90) {
-                cpuProgressBar.className = 'progress-bar bg-danger';
-            } else if (cpuUsage > 70) {
-                cpuProgressBar.className = 'progress-bar bg-warning';
-            } else {
-                cpuProgressBar.className = 'progress-bar bg-success';
-            }
-        }
-    }
-    
-    // 更新磁盘空间卡片
-    const diskValue = document.getElementById('disk-value');
-    const diskTrend = document.getElementById('disk-trend');
-    if (diskValue) {
-        let diskPercent = null;
-        
-        if (data.disk && typeof data.disk === 'object') {
-            logger.debug('磁盘数据:', data.disk); 
-            
-            // 特别处理直接从df命令返回的格式
-            if (data.disk.percent) {
-                // 如果percent属性存在，直接使用
-                if (typeof data.disk.percent === 'string') {
-                    diskPercent = parseFloat(data.disk.percent.replace('%', ''));
-                } else if (typeof data.disk.percent === 'number') {
-                    diskPercent = data.disk.percent;
+    // 过滤掉错误指示对象和没有有效ID的容器
+    const validContainers = containers.filter(c => c && c.id && c.id !== 'n/a' && !c.error);
+    const runningContainersCount = validContainers.filter(c => c.state && typeof c.state === 'string' && c.state.toLowerCase().includes('running')).length;
+    const totalValidContainersCount = validContainers.length;
+
+    logger.debug('Valid containers for dashboard:', validContainers);
+    logger.debug(`Running: ${runningContainersCount}, Total Valid: ${totalValidContainersCount}`);
+
+    const cardsData = [
+        {
+            id: 'dockerStatus',
+            title: 'Docker 服务',
+            value: data.dockerStatus === 'running' ? '运行中' : '已停止',
+            description: data.dockerStatus === 'running' ? '服务连接正常' : '服务未连接或不可用',
+            icon: 'fab fa-docker',
+            color: data.dockerStatus === 'running' ? 'var(--success-color)' : 'var(--danger-color)',
+            actionText: data.dockerStatus === 'running' ? '查看容器' : null,
+            actionLink: data.dockerStatus === 'running' ? '#docker-status' : null,
+            valueClass: data.dockerStatus === 'running' ? 'text-success' : 'text-danger'
+        },
+        {
+            id: 'containersCount',
+            title: '运行中容器',
+            value: runningContainersCount,
+            description: `总容器数: ${totalValidContainersCount}`,
+            icon: 'fas fa-box-open',
+            color: 'var(--primary-color)',
+            actionText: '管理容器',
+            actionCallback: () => {
+                if (typeof dockerManager !== 'undefined' && typeof dockerManager.showContainersPage === 'function') {
+                    core.navigateToSection('docker-status');
+                } else if (typeof dockerManager !== 'undefined' && typeof dockerManager.showManagementModal === 'function') {
+                    dockerManager.showManagementModal();
+                } else {
+                    window.location.hash = 'docker-status';
+                    if (window.app && typeof window.app.handleNavigation === 'function') {
+                        window.app.handleNavigation('docker-status');
+                    } else if (core && typeof core.navigateToSection === 'function') {
+                        core.navigateToSection('docker-status');
+                    } else {
+                        console.warn('No function found to display Docker management (modal or section).');
+                        const sidebarItem = document.querySelector('li[data-section="docker-status"]');
+                        if (sidebarItem) sidebarItem.click();
+                        else alert('容器管理功能导航失败');
+                    }
                 }
-                
-                // 更新磁盘详情表格
-                updateDiskDetailsTable(
-                    data.disk.size || "未知", 
-                    data.disk.used || "未知", 
-                    data.disk.available || "未知", 
-                    diskPercent
-                );
-            }
-        } else if (data.diskSpace && typeof data.diskSpace === 'object') {
-            logger.debug('使用旧磁盘数据格式:', data.diskSpace); 
-            
-            // 兼容老的diskSpace字段
-            if (data.diskSpace.percent) {
-                if (typeof data.diskSpace.percent === 'string') {
-                    diskPercent = parseFloat(data.diskSpace.percent.replace('%', ''));
-                } else if (typeof data.diskSpace.percent === 'number') {
-                    diskPercent = data.diskSpace.percent;
+            },
+            unit: '个'
+        },
+        {
+            id: 'cpuUsage',
+            title: 'CPU 使用率',
+            value: (() => {
+                if (data.cpu) {
+                    if (typeof data.cpu.usage === 'number' && !isNaN(data.cpu.usage)) return data.cpu.usage.toFixed(1) + '%';
+                    if (typeof data.cpu.currentLoad === 'number' && !isNaN(data.cpu.currentLoad)) return data.cpu.currentLoad.toFixed(1) + '%';
+                    if (typeof data.cpu.load === 'number' && !isNaN(data.cpu.load)) return data.cpu.load.toFixed(1) + '%';
+                    if (data.cpu.currentLoad && typeof data.cpu.currentLoad.avgload === 'number' && !isNaN(data.cpu.currentLoad.avgload)) return data.cpu.currentLoad.avgload.toFixed(1) + '%';
+                    // Add logic to calculate from loadAvg, similar to generateCpuDetailsHtml
+                    if (Array.isArray(data.cpu.loadAvg) && data.cpu.loadAvg.length > 0 && typeof data.cpu.loadAvg[0] === 'number' && !isNaN(data.cpu.loadAvg[0])) {
+                        const cores = data.cpu.cores || 1;
+                        const cpuUsageFromLoadAvg = (data.cpu.loadAvg[0] / cores) * 100;
+                        return Math.min(cpuUsageFromLoadAvg, 100).toFixed(1) + '%';
+                    }
                 }
-                
-                // 更新磁盘详情表格
-                updateDiskDetailsTable(
-                    data.diskSpace.size || "未知", 
-                    data.diskSpace.used || "未知", 
-                    data.diskSpace.available || "未知", 
-                    diskPercent
-                );
+                return 'N/A';
+            })(),
+            description: `核心数: ${data.cpu ? (data.cpu.cores || 'N/A') : 'N/A'}`,
+            icon: 'fas fa-microchip',
+            color: 'var(--warning-color)',
+            actionText: '详细信息',
+            actionCallback: () => showDetailsDialog('cpu'),
+            unit: ''
+        },
+        {
+            id: 'memoryUsage',
+            title: '内存使用率',
+            value: (() => {
+                if (data.memory) {
+                    // 优先基于 active 内存计算百分比 (更接近真实程序占用)
+                    if (typeof data.memory.active === 'number' && typeof data.memory.total === 'number' && data.memory.total > 0 && !isNaN(data.memory.active)) {
+                        return ((data.memory.active / data.memory.total) * 100).toFixed(1) + '%';
+                    }
+                    // 如果后端直接提供了基于某种标准计算的 usedPercentage，且 active 不可用，则使用它
+                    if (typeof data.memory.usedPercentage === 'number' && !isNaN(data.memory.usedPercentage)) {
+                         return data.memory.usedPercentage.toFixed(1) + '%';
+                    }
+                    // 最后，如果 active 和 usedPercentage 都没有，才基于 used 计算 (这可能包含缓存)
+                    if (typeof data.memory.used === 'number' && typeof data.memory.total === 'number' && data.memory.total > 0 && !isNaN(data.memory.used)) {
+                        return ((data.memory.used / data.memory.total) * 100).toFixed(1) + '%';
+                    }
+                }
+                return 'N/A';
+            })(),
+            description: `已用: ${data.memory && typeof data.memory.used === 'number' && !isNaN(data.memory.used) ? formatByteSize(data.memory.used) : 'N/A'} / 总量: ${data.memory && data.memory.total ? formatByteSize(data.memory.total) : 'N/A'}`,
+            icon: 'fas fa-memory',
+            color: 'var(--info-color)',
+            actionText: '详细信息',
+            actionCallback: () => showDetailsDialog('memory'),
+            unit: ''
+        },
+        {
+            id: 'diskUsage',
+            title: '磁盘使用率',
+            value: data.disk && data.disk.percent ? data.disk.percent : 'N/A',
+            description: `可用: ${data.disk && data.disk.available ? data.disk.available : 'N/A'} / 总量: ${data.disk && data.disk.size ? data.disk.size : 'N/A'}`,
+            icon: 'fas fa-hdd',
+            color: 'var(--secondary-color)',
+            actionText: '详细信息',
+            actionCallback: () => showDetailsDialog('disk'),
+            unit: ''
+        },
+        {
+            id: 'uptime', // 假设有一个API可以获取系统启动时间
+            title: '系统运行时长',
+            value: data.uptime || 'N/A', // 从 data.uptime 获取
+            description: '系统持续运行时间',
+            icon: 'fas fa-clock',
+            color: 'var(--purple-color)', // 自定义颜色变量
+            actionText: '系统日志',
+            actionLink: '#system-logs', // 假设有系统日志页面
+            unit: ''
+        }
+    ];
+
+    dashboardGrid.innerHTML = ''; // 清空现有卡片
+
+    cardsData.forEach(cardInfo => {
+        if ((cardInfo.id === 'uptime' && !data.uptime) && cardInfo.id !== 'dockerStatus' && cardInfo.id !== 'containersCount') {
+             // 如果是 uptime卡片且没有uptime数据，则跳过 (但保留 Docker 和容器数量卡片)
+            if (cardInfo.id !== 'cpuUsage' && cardInfo.id !== 'memoryUsage' && cardInfo.id !== 'diskUsage') {
+                logger.debug(`Skipping card ${cardInfo.id} due to missing data or specific condition.`);
+                return;
+            }
+        }
+        
+        // 特殊处理 Docker 服务卡片，即使服务未运行也显示
+        if (cardInfo.id === 'dockerStatus') {
+             // 总是创建 Docker 状态卡片
+        } else if (data.dockerStatus !== 'running' && 
+                  (cardInfo.id === 'containersCount')) {
+            // 如果Docker服务未运行，则只显示 "N/A" 或 0 对于容器数量
+             cardInfo.value = 0; // 或 'N/A'
+             cardInfo.description = 'Docker 服务未运行';
+        } else if (data.dockerStatus !== 'running' && cardInfo.id !== 'uptime') {
+             // 如果 Docker 服务未运行，并且不是 uptime 卡片，则跳过其他依赖 Docker 的卡片
+            if (cardInfo.id !== 'cpuUsage' && cardInfo.id !== 'memoryUsage' && cardInfo.id !== 'diskUsage') {
+                logger.debug(`Skipping card ${cardInfo.id} because Docker is not running.`);
+                return;
             }
         }
 
-        if (typeof diskPercent === 'number' && !isNaN(diskPercent)) {
-            diskValue.textContent = `${diskPercent.toFixed(0)}%`; // 磁盘百分比通常不带小数
-            logger.debug(`磁盘卡片更新为: ${diskValue.textContent}`);
-            
-            // 更新磁盘进度条
-            const diskProgressBar = document.getElementById('disk-progress');
-            if (diskProgressBar) {
-                diskProgressBar.style.width = `${diskPercent}%`;
-                if (diskPercent > 90) {
-                    diskProgressBar.className = 'progress-bar bg-danger';
-                } else if (diskPercent > 70) {
-                    diskProgressBar.className = 'progress-bar bg-warning';
-                } else {
-                    diskProgressBar.className = 'progress-bar bg-success';
-                }
-            }
-            
-            // 更新趋势信息
-            if (diskTrend) {
-                 if (diskPercent > 90) {
-                    diskTrend.className = 'trend down text-danger'; 
-                    diskTrend.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 磁盘空间不足';
-                } else if (diskPercent > 75) {
-                    diskTrend.className = 'trend down text-warning'; 
-                    diskTrend.innerHTML = '<i class="fas fa-arrow-up"></i> 磁盘使用率较高';
-                } else {
-                    diskTrend.className = 'trend up text-success'; 
-                    diskTrend.innerHTML = '<i class="fas fa-check-circle"></i> 磁盘空间充足';
-                }
-            }
-        } else {
-            diskValue.textContent = '未知'; 
-            if(diskTrend) diskTrend.innerHTML = ''; 
-            logger.debug(`磁盘卡片值为未知，无效百分比: ${diskPercent}`);
-        }
-    }
+        const cardElement = createDashboardCard(cardInfo);
+        dashboardGrid.appendChild(cardElement);
+    });
 }
 
 // 格式化字节大小为易读格式
@@ -999,13 +1001,24 @@ function formatTime(timestamp) {
 
 // 显示仪表盘加载状态
 function showDashboardLoading() {
-    const cards = ['containers', 'memory', 'cpu', 'disk'];
-    cards.forEach(id => {
-        const valueElement = document.getElementById(`${id}-value`);
-        if (valueElement) {
-            valueElement.innerHTML = '<div class="loading-spinner-small"></div>';
+    const dashboardGrid = document.querySelector('.dashboard-grid');
+    if (dashboardGrid) {
+        // Instead of targeting specific value elements, show a general loading message
+        // or a spinner within the grid itself if it's empty.
+        // For now, we'll rely on the card creation process to populate it.
+        // If cards are not yet defined, we can show a message.
+        if (dashboardGrid.children.length === 0) {
+             dashboardGrid.innerHTML = '<div class="loading-message"><div class="loading-spinner-large"></div><p>正在加载控制面板数据...</p></div>';
         }
-    });
+    } 
+    // The old method below targets specific value elements which might not exist before cards are drawn.
+    // const cards = ['dockerStatus', 'containersCount', 'cpuUsage', 'memoryUsage', 'diskUsage', 'uptime'];
+    // cards.forEach(id => {
+    //     const valueElement = document.getElementById(`${id}-value`);
+    //     if (valueElement) {
+    //         valueElement.innerHTML = '<div class="loading-spinner-small"></div>';
+    //     }
+    // });
 }
 
 // 显示仪表盘错误
@@ -1059,6 +1072,18 @@ window.systemStatus.initDashboard = initDashboard;
 
 // 暴露调试设置函数，方便开发时打开调试
 window.systemStatus.setDebug = logger.setDebug;
+
+// --- 新增：用于存储卡片操作回调 ---
+window.systemStatus.cardActionCallbacks = {};
+
+// --- 新增：处理卡片操作的通用函数 ---
+window.systemStatus.handleCardAction = function(cardId) {
+    if (window.systemStatus.cardActionCallbacks[cardId]) {
+        window.systemStatus.cardActionCallbacks[cardId]();
+    } else {
+        console.warn(`No action callback registered for card ID: ${cardId}`);
+    }
+};
 
 /* 添加一些基础样式到 CSS (如果 web/style.css 不可用，这里会失败) */
 /* 理想情况下，这些样式应该放在 web/style.css */

@@ -1,94 +1,94 @@
 // 应用程序入口模块
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM 加载完成，初始化模块...');
+    // console.log('DOM 加载完成，初始化模块...');
     
     // 启动应用程序
     core.initApp();
     
     // 在核心应用初始化后，再初始化其他模块
     initializeModules(); 
-    console.log('模块初始化已启动');
+    // console.log('模块初始化已启动');
 });
 
 // 初始化所有模块
 async function initializeModules() {
-    console.log('开始初始化所有模块...');
+    // console.log('开始初始化所有模块...');
     try {
         // 初始化核心模块
-        console.log('正在初始化核心模块...');
+        // console.log('正在初始化核心模块...');
         if (typeof core !== 'undefined') {
             // core.init() 已经在core.initApp()中调用，这里不再重复调用
-            console.log('核心模块初始化完成');
+            // console.log('核心模块初始化完成');
         } else {
-            console.error('核心模块未定义');
+            // console.error('核心模块未定义');
         }
 
         // 初始化认证模块
-        console.log('正在初始化认证模块...');
+        // console.log('正在初始化认证模块...');
         if (typeof auth !== 'undefined') {
             await auth.init();
-            console.log('认证模块初始化完成');
+            // console.log('认证模块初始化完成');
         } else {
-            console.error('认证模块未定义');
+            // console.error('认证模块未定义');
         }
 
         // 初始化用户中心
-        console.log('正在初始化用户中心...');
+        // console.log('正在初始化用户中心...');
         if (typeof userCenter !== 'undefined') {
             await userCenter.init();
-            console.log('用户中心初始化完成');
+            // console.log('用户中心初始化完成');
         } else {
-            console.error('用户中心未定义');
+            // console.error('用户中心未定义');
         }
 
         // 初始化菜单管理
-        console.log('正在初始化菜单管理...');
+        // console.log('正在初始化菜单管理...');
         if (typeof menuManager !== 'undefined') {
             await menuManager.init();
-            console.log('菜单管理初始化完成');
+            // console.log('菜单管理初始化完成');
         } else {
-            console.error('菜单管理未定义');
+            // console.error('菜单管理未定义');
         }
 
         // 初始化文档管理
-        console.log('正在初始化文档管理...');
+        // console.log('正在初始化文档管理...');
         if (typeof documentManager !== 'undefined') {
             await documentManager.init();
-            console.log('文档管理初始化完成');
+            // console.log('文档管理初始化完成');
         } else {
-            console.error('文档管理未定义');
+            // console.error('文档管理未定义');
         }
 
         // 初始化Docker管理
-        console.log('正在初始化Docker管理...');
+        // console.log('正在初始化Docker管理...');
         if (typeof dockerManager !== 'undefined') {
             await dockerManager.init();
-            console.log('Docker管理初始化完成');
+            // console.log('Docker管理初始化完成');
         } else {
-            console.error('Docker管理未定义');
+            // console.error('Docker管理未定义');
         }
 
         // 初始化系统状态
-        console.log('正在初始化系统状态...');
+        // console.log('正在初始化系统状态...');
         if (typeof systemStatus !== 'undefined') {
             if (typeof systemStatus.initDashboard === 'function') {
                  await systemStatus.initDashboard();
-                 console.log('系统状态初始化完成');
+                 // console.log('系统状态初始化完成');
             } else {
-                 console.error('systemStatus.initDashboard 函数未定义!');
+                 // console.error('systemStatus.initDashboard 函数未定义!');
             }
         } else {
-            console.error('系统状态未定义');
+            // console.error('系统状态未定义');
         }
 
         // 初始化网络测试
-        console.log('正在初始化网络测试...');
+        // console.log('正在初始化网络测试...');
         if (typeof networkTest !== 'undefined') {
             await networkTest.init();
-            console.log('网络测试初始化完成');
+            // console.log('网络测试初始化完成');
         } else {
-            console.error('网络测试未定义');
+            // console.error('网络测试未定义');
         }
 
         // 加载监控配置
@@ -97,31 +97,31 @@ async function initializeModules() {
         // 显示默认页面 - 使用core中的showSection函数
         core.showSection('dashboard');
         
-        console.log('所有模块初始化完成');
+        // console.log('所有模块初始化完成');
     } catch (error) {
-        console.error('初始化模块时发生错误:', error);
+        // console.error('初始化模块时发生错误:', error);
         // 尝试使用 core.showAlert，如果 core 本身加载失败则用 console.error
         if (typeof core !== 'undefined' && core.showAlert) {
              core.showAlert('初始化失败: ' + error.message, 'error');
         } else {
-             console.error('核心模块无法加载，无法显示警告弹窗');
+             // console.error('核心模块无法加载，无法显示警告弹窗');
         }
     }
 }
 
 // 监控配置相关函数
 function loadMonitoringConfig() {
-    console.log('正在加载监控配置...');
+    // console.log('正在加载监控配置...');
     fetch('/api/monitoring-config')
         .then(response => {
-            console.log('监控配置API响应:', response.status, response.statusText);
+            // console.log('监控配置API响应:', response.status, response.statusText);
             if (!response.ok) {
                 throw new Error(`HTTP状态错误 ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
         .then(config => {
-            console.log('获取到监控配置:', config);
+            // console.log('获取到监控配置:', config);
             // 填充表单
             document.getElementById('notificationType').value = config.notificationType || 'wechat';
             document.getElementById('webhookUrl').value = config.webhookUrl || '';
@@ -141,10 +141,10 @@ function loadMonitoringConfig() {
             document.getElementById('toggleMonitoringBtn').textContent = 
                 config.isEnabled ? '禁用监控' : '启用监控';
             
-            console.log('监控配置加载完成');
+            // console.log('监控配置加载完成');
         })
         .catch(error => {
-            console.error('加载监控配置失败:', error);
+            // console.error('加载监控配置失败:', error);
             // 使用安全的方式调用core.showAlert
             if (typeof core !== 'undefined' && core && typeof core.showAlert === 'function') {
                 core.showAlert('加载监控配置失败: ' + error.message, 'error');
@@ -230,7 +230,7 @@ function testNotification() {
         });
     })
     .catch(error => {
-        console.error('测试通知失败:', error);
+        // console.error('测试通知失败:', error);
         Swal.fire({
             icon: 'error',
             title: '发送失败',

@@ -531,27 +531,6 @@
     transform: translateY(0); /* 覆盖默认的按钮hover效果 */
 }
 
-.copy-success {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    z-index: 1000;
-    animation: fadeInOut 1.5s ease-in-out;
-    pointer-events: none;
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
-}
-
 /* 标签展示区域 - 修复宽度与主容器一致 */
 #imageTagsView {
     width: 100%;
@@ -1010,27 +989,6 @@
 .copy-btn:hover {
     background-color: rgba(255, 255, 255, 0.3);
     transform: translateY(0); /* 覆盖默认的按钮hover效果 */
-}
-
-.copy-success {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    z-index: 1000;
-    animation: fadeInOut 1.5s ease-in-out;
-    pointer-events: none;
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
 }
 
 /* 标签展示区域 - 修复宽度与主容器一致 */
@@ -1840,15 +1798,30 @@
     z-index: 1100;
     animation: fadeIn 0.3s ease-in;
     text-align: center;
-    max-width: 80%;
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .toast-notification i {
+    font-size: 1.2rem;
   }
   
   .toast-notification.error {
     border-left: 4px solid var(--danger-color);
   }
   
+  .toast-notification.error i {
+    color: var(--danger-color);
+  }
+  
   .toast-notification.info {
     border-left: 4px solid var(--info-color);
+  }
+  
+  .toast-notification.info i {
+    color: var(--info-color);
   }
   
   .toast-notification.fade-out {
@@ -1997,38 +1970,56 @@
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--container-bg);
-  color: var(--text-primary);
-  padding: 1rem 2rem;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  /* Glassmorphism styles - Simplified & Reinforced */
+  background-color: rgba(250, 250, 250, 0.4); /* 调整了Alpha值，使其更透明一些 */
+  backdrop-filter: blur(12px); /* 调整模糊值 */
+  -webkit-backdrop-filter: blur(12px); /* Safari 兼容 */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* 边框更柔和 */
+  color: #2A3749; /* 使用了您CSS变量中的 --text-primary */
+  padding: 1rem 1.5rem;
+  border-radius: 12px; /* 圆角调整 */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* 调整阴影 */
   z-index: 1100;
-  animation: fadeIn 0.3s ease-in;
+  animation: fadeIn 0.3s ease-in-out; /* 使用 ease-in-out */
   text-align: center;
-  max-width: 90%;
+  min-width: 250px; /* 最小宽度 */
+  max-width: 350px; /* 最大宽度，避免过宽 */
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.8rem; /* 图标与文字间距 */
 }
 
 .toast-notification i {
-  font-size: 1.2rem;
+  font-size: 1.25rem; /* 图标大小 */
+  color: inherit; /* 默认继承文本颜色 */
+}
+
+/* 状态特定样式 */
+.toast-notification.success {
+    /* background-color: rgba(230, 245, 230, 0.4); /* 可选：为成功状态叠加一层淡淡的绿色玻璃感 */
+    /* border-left: none !important; /* 强制移除任何可能的旧左边框 */
+}
+
+.toast-notification.success i {
+    color: var(--success-color); /* 使用CSS变量 */
 }
 
 .toast-notification.error {
-  border-left: 4px solid var(--danger-color);
+    /* background-color: rgba(250, 230, 230, 0.4); /* 可选：为错误状态叠加一层淡淡的红色玻璃感 */
+    /* border-left: none !important; */
 }
 
 .toast-notification.error i {
-  color: var(--danger-color);
+  color: var(--danger-color); /* 使用CSS变量 */
 }
 
 .toast-notification.info {
-  border-left: 4px solid var(--info-color);
+  /* background-color: rgba(230, 240, 250, 0.4); /* 可选：为信息状态叠加一层淡淡的蓝色玻璃感 */
+  /* border-left: none !important; */
 }
 
 .toast-notification.info i {
-  color: var(--info-color);
+  color: var(--info-color); /* 使用CSS变量 */
 }
 
 /* 优化标签表格性能 */
@@ -2104,50 +2095,6 @@
   box-shadow: none;
 }
 
-/* 更新toast通知样式 */
-.toast-notification {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--container-bg);
-  color: var(--text-primary);
-  padding: 1rem 2rem;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  z-index: 1100;
-  animation: fadeIn 0.3s ease-in;
-  text-align: center;
-  max-width: 90%;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.toast-notification i {
-  font-size: 1.2rem;
-}
-
-.toast-notification.error {
-  border-left: 4px solid var(--danger-color);
-}
-
-.toast-notification.error i {
-  color: var(--danger-color);
-}
-
-.toast-notification.info {
-  border-left: 4px solid var(--info-color);
-}
-
-.toast-notification.info i {
-  color: var(--info-color);
-}
-
-.toast-notification.fade-out {
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
-}
 
 /* 添加标签加载进度样式 */
 .loading-progress {
@@ -2643,7 +2590,7 @@
 /* 为 操作 列设置宽度 */
 #dockerStatusTable th:nth-child(5),
 #dockerStatusTable td:nth-child(5) {
-    width: 150px; /* 或 20% */
+    width: 20%;
     text-align: center; /* 操作按钮居中 */
 }
 
@@ -2982,4 +2929,10 @@
 #dockerStatusTable th:nth-child(5),
 #dockerStatusTable td:nth-child(5) {
     width: 20%;
+}
+
+/* 新增：使教程页面的代码块在悬停时也显示复制按钮 */
+#documentationText pre:hover .copy-btn,
+.doc-content pre:hover .copy-btn {
+    opacity: 1;
 }

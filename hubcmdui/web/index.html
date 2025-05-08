@@ -200,6 +200,7 @@
                 footer.innerHTML = `<p>Copyright © <span id="currentYear">${new Date().getFullYear()}</span> <span class="copyright-text">Docker-Proxy</span> All Rights Reserved. <a href="https://github.com/dqzboy/Docker-Proxy" target="_blank">GitHub</a></p>`;
             }
         }
+        window.protectCopyright = protectCopyright;
         
         // ========================================
         // === 文档加载相关函数 (移到此处) ===
@@ -208,7 +209,7 @@
         async function loadAndDisplayDocumentation() {
             // 防止重复加载
             if (documentationLoaded) {
-                console.log('文档已加载，跳过重复加载');
+                // console.log('文档已加载，跳过重复加载');
                 return;
             }
             
@@ -216,12 +217,12 @@
             const docContentContainer = document.getElementById('documentationText');
 
             if (!docListContainer || !docContentContainer) {
-                console.warn('找不到文档列表或内容容器，可能不是文档页面');
+                // console.warn('找不到文档列表或内容容器，可能不是文档页面');
                 return; // 如果容器不存在，则不执行加载
             }
 
             try {
-                console.log('开始加载文档列表和内容...');
+                // console.log('开始加载文档列表和内容...');
                 
                 // 显示加载状态
                 docListContainer.innerHTML = '<div class="loading-container"><i class="fas fa-spinner fa-spin"></i> 正在加载文档列表...</div>';
@@ -234,7 +235,7 @@
                 }
                 
                 const data = await response.json();
-                console.log('获取到文档列表:', data);
+                // console.log('获取到文档列表:', data);
                 
                 // 保存到全局变量
                 window.documentationData = data;
@@ -322,9 +323,30 @@
                 }
             }
         }
-        // ========================================
-        // === 文档加载相关函数结束 ===
-        // ========================================
+        // 
+        function useImage(imageName) {
+            // 切换到镜像加速标签页
+            switchTab('accelerate');
+            
+            // 填充镜像名称到输入框
+            const imageInput = document.getElementById('imageInput');
+            if (imageInput) {
+                imageInput.value = imageName;
+                
+                // 自动生成加速命令
+                generateCommands(imageName);
+                
+                // 滚动到结果区域
+                const resultDiv = document.getElementById('result');
+                if (resultDiv) {
+                    resultDiv.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            
+            // 显示用户友好的提示
+            showToastNotification(`已选择镜像: ${imageName}`, 'success');
+        }
+        window.useImage = useImage;
 
         // ========================================
         // === 全局变量和状态 ===
@@ -346,7 +368,7 @@
                     const config = await response.json();
                     if (config.proxyDomain) {
                         proxyDomain = config.proxyDomain;
-                        console.log('成功加载代理域名:', proxyDomain);
+                        // console.log('成功加载代理域名:', proxyDomain);
                     } else {
                         console.warn('配置中没有proxyDomain字段');
                         proxyDomain = 'registry-1.docker.io'; // 使用默认值
@@ -362,7 +384,7 @@
         }
 
         // ========================================
-        // === 新增：全局提示函数 ===
+        // === 全局提示函数 ===
         // ========================================
         function showToastNotification(message, type = 'info') { // types: info, success, error
             // 移除任何现有的通知
@@ -438,19 +460,52 @@
                 loadAndDisplayDocumentation();
             } else if (tabName === 'accelerate') {
                 // 重置显示状态
-                document.querySelector('.quick-guide').style.display = 'block';
-                document.querySelector('.popular-images').style.display = 'block';
-                document.getElementById('result').style.display = 'none';
+                const quickGuideEl = document.querySelector('.quick-guide');
+                if (quickGuideEl) quickGuideEl.style.display = 'block';
+
+                const popularImagesEl = document.querySelector('.popular-images');
+                if (popularImagesEl) popularImagesEl.style.display = 'block';
+
+                const accelerateFeaturesEl = document.querySelector('#accelerateContent .features');
+                if (accelerateFeaturesEl) accelerateFeaturesEl.style.display = 'grid';
+
+                const resultEl = document.getElementById('result');
+                if (resultEl) resultEl.style.display = 'none';
                 
-                const imageInput = document.getElementById('imageInput').value.trim();
-                if (imageInput) {
-                    generateCommands(imageInput);
-                }
-                document.getElementById('searchInput').value = '';
-                document.getElementById('searchResults').innerHTML = '';
-                document.querySelector('.popular-images').style.display = 'block';
+                // 清空搜索相关的输入和结果，因为我们切换到了加速标签
+                const searchInputEl = document.getElementById('searchInput');
+                if(searchInputEl) searchInputEl.value = '';
+
+                const searchResultsEl = document.getElementById('searchResults');
+                if(searchResultsEl) searchResultsEl.innerHTML = '';
             }
         }
+        window.switchTab = switchTab;
+
+        // 新增：返回搜索结果视图
+        function showSearchResults() {
+            const searchResultsList = document.getElementById('searchResultsList');
+            const imageTagsView = document.getElementById('imageTagsView');
+            const searchResults = document.getElementById('searchResults');
+            const paginationContainer = document.getElementById('paginationContainer');
+            const features = document.querySelector('#searchContent .features'); // 获取特性区域
+
+            if (searchResultsList) searchResultsList.style.display = 'block';
+            if (imageTagsView) imageTagsView.style.display = 'none';
+
+            // 检查 searchResults 是否有内容并且不是 "未找到" 消息
+            if (searchResults && searchResults.innerHTML.trim() !== '' && !searchResults.querySelector('.empty-result')) {
+                searchResults.style.display = 'block';
+                if (paginationContainer) paginationContainer.style.display = 'flex';
+                if (features) features.style.display = 'none'; // 隐藏特性区
+            } else {
+                // 如果 searchResults 为空, 或者包含 "未找到" 消息
+                if (searchResults) searchResults.style.display = 'block'; // 保持 searchResults 区域可见以显示 "未找到"
+                if (paginationContainer) paginationContainer.style.display = 'none';
+                if (features) features.style.display = 'grid'; // 显示特性区
+            }
+        }
+        window.showSearchResults = showSearchResults;
 
         // 添加formatNumber函数定义
         function formatNumber(num) {
@@ -467,15 +522,18 @@
         }
 
         // 生成加速命令
-        function generateCommands(imageInput) {
-            if (!imageInput) {
-                imageInput = document.getElementById('imageInput').value.trim();
+        function generateCommands(imageNameInput) {
+            let currentImageName = imageNameInput;
+            if (!currentImageName) {
+                const imageInputEl = document.getElementById('imageInput');
+                if (imageInputEl) currentImageName = imageInputEl.value.trim();
             }
-            if (!imageInput) {
+
+            if (!currentImageName) {
                 alert('请输入 Docker 镜像名称');
                 return;
             }
-            let [imageName, tag] = imageInput.split(':');
+            let [imageName, tag] = currentImageName.split(':');
             tag = tag || 'latest';
             
             let originalImage = `${imageName}:${tag}`;
@@ -518,48 +576,46 @@
             });
 
             // 显示结果并隐藏其他内容
-            resultDiv.style.display = 'flex';
-            resultDiv.style.flexDirection = 'column';
-            document.querySelector('.quick-guide').style.display = 'none';
-            document.querySelector('.features').style.display = 'none';
+            if (resultDiv) {
+                resultDiv.style.display = 'flex';
+                resultDiv.style.flexDirection = 'column';
+            }
+            
+            const quickGuideEl = document.querySelector('.quick-guide');
+            if (quickGuideEl) quickGuideEl.style.display = 'none';
+            
+            const accelerateFeaturesEl = document.querySelector('#accelerateContent .features');
+            if (accelerateFeaturesEl) accelerateFeaturesEl.style.display = 'none';
         }
+        window.generateCommands = generateCommands;
 
         // 复制命令到剪贴板
         function copyToClipboard(text, element) {
+            // console.log('[copyToClipboard] Received text to copy:', text); // Debug log
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
-                    showNotification();
+                    showToastNotification('已复制到剪贴板', 'success');
                 }, (err) => {
                     console.error('无法复制文本: ', err);
+                    showToastNotification('复制失败: ' + err.message, 'error');
                 });
             } else {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
                 textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showNotification();
+                try {
+                    document.execCommand('copy');
+                    showToastNotification('已复制到剪贴板', 'success');
+                } catch (err) {
+                    console.error('无法使用 execCommand 复制文本: ', err);
+                    showToastNotification('复制失败: ' + err.message, 'error');
+                } finally {
+                    document.body.removeChild(textarea);
+                }
             }
         }
-
-        function showNotification() {
-            // 移除任何现有的通知
-            const existingNotification = document.querySelector('.copy-success');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
-            // 创建新的通知
-            const successDiv = document.createElement('div');
-            successDiv.className = 'copy-success';
-            successDiv.textContent = '已复制到剪贴板';
-            // 添加到body而不是pre元素
-            document.body.appendChild(successDiv);
-            // 1.5秒后移除提示
-            setTimeout(() => {
-                successDiv.remove();
-            }, 1500);
-        }
+        window.copyToClipboard = copyToClipboard;
 
         // 改进的API请求函数，支持自动重试
         async function fetchWithRetry(url, options = {}, retries = 3, retryDelay = 1000) {
@@ -619,7 +675,7 @@
             document.getElementById('imageTagsView').style.display = 'none';
 
             try {
-                console.log(`搜索Docker Hub: 关键词=${searchTerm}, 页码=${page}`);
+                // console.log(`搜索Docker Hub: 关键词=${searchTerm}, 页码=${page}`);
                 
                 // 使用新的fetchWithRetry函数
                 const data = await fetchWithRetry(
@@ -662,6 +718,7 @@
                 document.getElementById('paginationContainer').style.display = 'none';
             }
         }
+        window.searchDockerHub = searchDockerHub;
 
         // 更新分页控件
         function updatePagination(currentPage, totalPages) {
@@ -748,10 +805,10 @@
             try {
                 // 使用新的fetchWithRetry函数获取标签计数
                 const countApiUrl = `/api/dockerhub/tag-count?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}`;
-                console.log('Requesting tag count from:', countApiUrl);
+                // console.log('Requesting tag count from:', countApiUrl);
                 
                 const countData = await fetchWithRetry(countApiUrl);
-                console.log('Received tag count data:', countData);
+                // console.log('Received tag count data:', countData);
                 
                 const tagCount = countData.count || 0;
                 const recommendedMode = countData.recommended_mode || 'paginated';
@@ -837,6 +894,7 @@
                 showToastNotification(`加载镜像详情失败: ${error.message}`, 'error');
             }
         }
+        window.viewImageDetails = viewImageDetails;
 
         // 新增: 加载所有标签 - 改进错误处理
         async function loadAllTags() {
@@ -965,6 +1023,7 @@
                 loadAllTagsBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> 加载全部TAG';
             }
         }
+        window.loadAllTags = loadAllTags;
         
         // 添加 loadImageTags 函数定义
         async function loadImageTags(page = 1) {
@@ -978,11 +1037,11 @@
             try {
                 // 构建API URL
                 const apiUrl = `/api/dockerhub/tags?name=${encodeURIComponent(currentImageData.name)}&official=${currentImageData.isOfficial}&page=${page}&page_size=25`;
-                console.log('Requesting tags from:', apiUrl);
+                // console.log('Requesting tags from:', apiUrl);
                 
                 // 使用fetchWithRetry获取数据
                 const data = await fetchWithRetry(apiUrl);
-                console.log('Received tags data:', data);
+                // console.log('Received tags data:', data);
                 currentTagPage = page; // 更新当前页码
                 
                 if (data.results && data.results.length > 0) {
@@ -1028,6 +1087,7 @@
                 showToastNotification(`加载标签失败: ${error.message}`, 'error');
             }
         }
+        window.loadImageTags = loadImageTags;
 
         // 新增: 显示客户端分页控制器
         function displayClientPagination(totalPages) {
@@ -1190,7 +1250,7 @@
             tableContainer.appendChild(tagTable); // 将表格添加到容器中
             
             // 添加调试信息
-            console.log(`显示了 ${tags.length} 个标签`);
+            // console.log(`显示了 ${tags.length} 个标签`);
         }
 
         // 新增的排序标签函数
@@ -1375,7 +1435,7 @@
                     const tagsResults = document.getElementById('tagsResults');
                     // 保留搜索统计信息
                     const statsHTML = tagsResults.innerHTML.split('</div>')[0] + '</div>';
-                    tagsResults.innerHTML = statsHTML + '<div class="no-filter-results"><p>没有匹配 "' + searchTerm + '" 的TAG</p></div>';
+                    tagsResults.innerHTML = statsHTML + '<div class="no-filter-results"><p>没有匹配 "' + searchTerm + '" 的标签</p></div>';
                 }
                 
                 return; // 已处理全局搜索，不继续执行
@@ -1421,6 +1481,7 @@
                 noResultsEl.remove();
             }
         }
+        window.filterTags = filterTags;
 
         // 添加重置搜索功能
         function resetTagSearch() {
@@ -1442,6 +1503,7 @@
                 loadImageTags(currentTagPage);
             }
         }
+        window.resetTagSearch = resetTagSearch;
 
         // 修改标签搜索容器，添加重置按钮
         function enhanceTagSearchContainer() {
@@ -1467,7 +1529,7 @@
 
         // 显示指定的文档
         function showDocument(index) {
-            console.log('显示文档索引:', index);
+            // console.log('显示文档索引:', index);
             
             if (!window.documentationData || !Array.isArray(window.documentationData)) {
                 console.error('文档数据不可用');
@@ -1497,7 +1559,7 @@
                 return;
             }
             
-            console.log('文档数据:', doc);
+            // console.log('文档数据:', doc);
             
             // 高亮选中的文档
             const docLinks = document.querySelectorAll('.doc-list li a');
@@ -1521,18 +1583,18 @@
             // 如果文档内容不存在，则需要获取完整内容
             if (!doc.content) {
                 const docId = doc.id || doc._id;
-                console.log('获取文档内容，ID:', docId);
+                // console.log('获取文档内容，ID:', docId);
                 
                 fetch(`/api/documentation/${docId}`)
                     .then(response => {
-                        console.log('文档API响应:', response.status, response.statusText);
+                        // console.log('文档API响应:', response.status, response.statusText);
                         if (!response.ok) {
                             throw new Error(`获取文档内容失败: ${response.status}`);
                         }
                         return response.json();
                     })
                     .then(fullDoc => {
-                        console.log('获取到完整文档:', fullDoc);
+                        // console.log('获取到完整文档:', fullDoc);
                         
                         // 更新缓存的文档内容
                         window.documentationData[docIndex].content = fullDoc.content;
@@ -1555,15 +1617,13 @@
                 renderDocumentContent(docContent, doc);
             }
         }
-        
-        // 确保showDocument函数在全局范围内可用
         window.showDocument = showDocument;
         
         // 渲染文档内容
         function renderDocumentContent(container, doc) {
             if (!container) return;
             
-            console.log('正在渲染文档:', doc);
+            // console.log('正在渲染文档:', doc);
 
             // 确保有内容可渲染
             if (!doc.content && !doc.path) {
@@ -1584,14 +1644,14 @@
                 // 如果是文件路径但无内容，尝试获取
                 fetch(`/api/documentation/file?path=${encodeURIComponent(doc.id + '.md')}`)
                     .then(response => {
-                        console.log('文件内容响应:', response.status, response.statusText);
+                        // console.log('文件内容响应:', response.status, response.statusText);
                         if (!response.ok) {
                             throw new Error(`获取文件内容失败: ${response.status}`);
                         }
                         return response.text();
                     })
                     .then(content => {
-                        console.log('获取到文件内容，长度:', content.length);
+                        // console.log('获取到文件内容，长度:', content.length);
                         doc.content = content;
                         renderMarkdownContent(container, doc);
                     })
@@ -1612,20 +1672,60 @@
         function renderMarkdownContent(container, doc) {
             if (!container) return;
             
-            console.log('渲染Markdown内容:', doc.title, '内容长度:', doc.content ? doc.content.length : 0);
+            // console.log('渲染Markdown内容:', doc.title, '内容长度:', doc.content ? doc.content.length : 0);
             
             if (doc.content) {
                 // 使用marked渲染Markdown内容
                 if (window.marked) {
                     try {
-                        const parsedContent = marked.parse(doc.content);
-                        // 结构：内容（含标题）-> 元数据
-                        container.innerHTML = ` 
-                            <div class="doc-content">${parsedContent}</div>
-                            <div class="doc-meta">
-                                ${doc.lastUpdated || doc.updatedAt ? `<span>最后更新: ${new Date(doc.lastUpdated || doc.updatedAt).toLocaleDateString('zh-CN')}</span>` : ''}
-                            </div>
-                        `;
+                        const rawHtml = marked.parse(doc.content);
+
+                        // 创建一个临时的根元素来容纳和处理已解析的Markdown内容
+                        const docFragmentRoot = document.createElement('div');
+                        docFragmentRoot.innerHTML = rawHtml;
+
+                        // 在这个临时根元素中查找所有的 <pre> 元素
+                        const preElements = docFragmentRoot.querySelectorAll('pre');
+                        preElements.forEach(preElement => {
+                            const codeElement = preElement.querySelector('code');
+                            let codeToCopy = '';
+                            if (codeElement) {
+                                codeToCopy = codeElement.textContent;
+                            } else {
+                                codeToCopy = preElement.textContent;
+                            }
+
+                            if (codeToCopy.trim() !== '') {
+                                const copyButton = document.createElement('button');
+                                copyButton.className = 'copy-btn'; // 应用现有样式
+                                copyButton.textContent = '复制';
+                                copyButton.onclick = function() { // 事件监听器在此处附加到按钮对象
+                                    // console.log('[Tutorial Copy Button] Attempting to copy:', codeToCopy); // 保留此调试日志
+                                    copyToClipboard(codeToCopy, this);
+                                };
+                                preElement.style.position = 'relative';
+                                preElement.appendChild(copyButton); // 按钮被追加到 docFragmentRoot 内的 preElement
+                            }
+                        });
+
+                        // 清空页面上的主容器
+                        container.innerHTML = '';
+
+                        // 创建 .doc-content div 并将处理过的文档片段追加进去
+                        const docContentDiv = document.createElement('div');
+                        docContentDiv.className = 'doc-content';
+                        // 将 docFragmentRoot 的所有子节点移动到 docContentDiv，以避免多余的包裹 div
+                        while (docFragmentRoot.firstChild) {
+                            docContentDiv.appendChild(docFragmentRoot.firstChild);
+                        }
+                        container.appendChild(docContentDiv); // docContentDiv 现在包含带有活动按钮的 PRE 元素
+
+                        // 创建并追加 .doc-meta div
+                        const docMetaDiv = document.createElement('div');
+                        docMetaDiv.className = 'doc-meta';
+                        docMetaDiv.innerHTML = `${doc.lastUpdated || doc.updatedAt ? `<span>最后更新: ${new Date(doc.lastUpdated || doc.updatedAt).toLocaleDateString('zh-CN')}</span>` : ''}`;
+                        container.appendChild(docMetaDiv);
+
                     } catch (error) {
                         console.error('Markdown解析失败:', error);
                         // 发生错误时，仍然显示原始Markdown内容 + Meta

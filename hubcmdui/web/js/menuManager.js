@@ -10,7 +10,7 @@ let currentConfig = {}; // 保存当前完整的配置
 const menuManager = {
     // 初始化菜单管理
     init: async function() {
-        console.log('初始化菜单管理 (config.json)...');
+        // console.log('初始化菜单管理 (config.json)...');
         this.renderMenuTableHeader(); // 渲染表头
         await this.loadMenuItems();   // 加载菜单项
         return Promise.resolve();
@@ -54,10 +54,10 @@ const menuManager = {
             configMenuItems = currentConfig.menuItems || []; // 提取菜单项，如果不存在则为空数组
 
             this.renderMenuItems();
-            console.log('成功从 /api/config 加载菜单项', configMenuItems);
+            // console.log('成功从 /api/config 加载菜单项', configMenuItems);
 
         } catch (error) {
-            console.error('加载菜单项失败:', error);
+            // console.error('加载菜单项失败:', error);
             const menuTableBody = document.getElementById('menuTableBody');
             if (menuTableBody) {
                 menuTableBody.innerHTML = `
@@ -83,7 +83,7 @@ const menuManager = {
         menuTableBody.innerHTML = ''; // 清空现有内容
 
         if (!Array.isArray(configMenuItems)) {
-            console.error("configMenuItems 不是一个数组:", configMenuItems);
+            // console.error("configMenuItems 不是一个数组:", configMenuItems);
             menuTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ff4d4f;">菜单数据格式错误</td></tr>';
             return;
         }
@@ -114,26 +114,37 @@ const menuManager = {
         const menuTableBody = document.getElementById('menuTableBody');
         if (!menuTableBody) return;
 
+        // 如果已存在新行，则不重复添加
+        if (document.getElementById('new-menu-item-row')) {
+            document.getElementById('new-text').focus();
+            return;
+        }
+
         const newRow = document.createElement('tr');
         newRow.id = 'new-menu-item-row';
-        newRow.className = 'new-item-row';
+        newRow.className = 'new-item-row'; // 可以为此行添加特定样式
 
         newRow.innerHTML = `
             <td>#</td>
-            <td><input type="text" id="new-text" placeholder="菜单文本"></td>
-            <td><input type="text" id="new-link" placeholder="链接地址"></td>
+            <td><input type="text" id="new-text" class="form-control form-control-sm" placeholder="菜单文本"></td>
+            <td><input type="text" id="new-link" class="form-control form-control-sm" placeholder="链接地址 (例如 /about 或 https://example.com)"></td>
             <td>
-                <select id="new-newTab">
+                <select id="new-newTab" class="form-select form-select-sm">
                     <option value="false">否</option>
                     <option value="true">是</option>
                 </select>
             </td>
-            <td>
-                <button class="action-btn" onclick="menuManager.saveNewMenuItem()">保存</button>
-                <button class="action-btn" onclick="menuManager.cancelNewMenuItem()">取消</button>
+            <td class="action-buttons-new-menu">
+                <button class="btn btn-sm btn-success save-new-menu-btn" onclick="menuManager.saveNewMenuItem()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+                <button class="btn btn-sm btn-danger cancel-new-menu-btn" onclick="menuManager.cancelNewMenuItem()">
+                    <i class="fas fa-times"></i> 取消
+                </button>
             </td>
         `;
-        menuTableBody.appendChild(newRow);
+        // 将新行添加到表格体的最上方
+        menuTableBody.insertBefore(newRow, menuTableBody.firstChild);
         document.getElementById('new-text').focus();
     },
 
@@ -174,7 +185,7 @@ const menuManager = {
             core.showAlert('菜单项已添加', 'success');
 
         } catch (error) {
-            console.error('添加菜单项失败:', error);
+            // console.error('添加菜单项失败:', error);
             core.showAlert('添加菜单项失败: ' + error.message, 'error');
         }
     },
@@ -505,7 +516,7 @@ const menuManager = {
                 });
                 
             } catch (error) {
-                console.error('更新菜单项失败:', error);
+                // console.error('更新菜单项失败:', error);
                 Swal.fire({
                     icon: 'error',
                     title: '保存失败',
@@ -562,7 +573,7 @@ const menuManager = {
                 core.showAlert('菜单项已删除', 'success');
                 
             } catch (error) {
-                console.error('删除菜单项失败:', error);
+                // console.error('删除菜单项失败:', error);
                 core.showAlert('删除菜单项失败: ' + error.message, 'error');
             }
         });

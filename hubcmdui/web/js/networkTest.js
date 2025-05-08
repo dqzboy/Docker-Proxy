@@ -4,16 +4,27 @@
 const networkTest = {
     // 初始化函数
     init: function() {
-        console.log('初始化网络测试模块...');
-        this.initNetworkTest();
-        return Promise.resolve();
+        // console.log('初始化网络测试模块...');
+        this.initNetworkTestControls(); // Renamed for clarity
+        this.displayInitialResultsMessage();
+        return Promise.resolve(); // Keep if other inits expect a Promise
     },
 
-    // 初始化网络测试界面
-    initNetworkTest: function() {
+    displayInitialResultsMessage: function() {
+        const resultsDiv = document.getElementById('testResults');
+        if (resultsDiv) {
+            resultsDiv.innerHTML = '<p class="text-muted text-center p-3">请选择参数并开始测试。</p>';
+        }
+    },
+
+    // 初始化网络测试界面控件和事件
+    initNetworkTestControls: function() {
         const domainSelect = document.getElementById('domainSelect');
-        const testType = document.getElementById('testType');
-        
+        const testTypeSelect = document.getElementById('testType'); // Corrected ID reference
+        const startTestButton = document.getElementById('startTestBtn'); // Use ID
+        const clearResultsButton = document.getElementById('clearTestResultsBtn');
+        const resultsDiv = document.getElementById('testResults');
+
         // 填充域名选择器
         if (domainSelect) {
             domainSelect.innerHTML = `
@@ -26,68 +37,128 @@ const networkTest = {
                 <option value="mcr.microsoft.com">mcr.microsoft.com</option>
                 <option value="docker.elastic.co">docker.elastic.co</option>
                 <option value="registry-1.docker.io">registry-1.docker.io</option>
+                <option value="google.com">google.com (测试用)</option>
+                <option value="cloudflare.com">cloudflare.com (测试用)</option>
+                <option value="custom">自定义域名</option>
             `;
+            
+            // 添加选择变化事件，显示/隐藏自定义域名输入框
+            domainSelect.addEventListener('change', () => {
+                const customDomainContainer = document.getElementById('customDomainContainer');
+                if (customDomainContainer) {
+                    customDomainContainer.style.display = domainSelect.value === 'custom' ? 'block' : 'none';
+                }
+            });
         }
         
         // 填充测试类型选择器
-        if (testType) {
-            testType.innerHTML = `
-                <option value="ping">Ping</option>
+        if (testTypeSelect) {
+            testTypeSelect.innerHTML = `
+                <option value="ping">Ping (ICMP)</option>
                 <option value="traceroute">Traceroute</option>
             `;
         }
         
-        // 绑定测试按钮点击事件
-        const testButton = document.querySelector('#network-test button');
-        if (testButton) {
-            testButton.addEventListener('click', this.runNetworkTest);
+        // 绑定开始测试按钮点击事件
+        if (startTestButton) {
+            // Bind the function correctly, preserving 'this' context if necessary, 
+            // or ensure runNetworkTest doesn't rely on 'this' from the event handler.
+            // Using an arrow function or .bind(this) if runNetworkTest uses 'this.someOtherMethod'
+            startTestButton.addEventListener('click', () => this.runNetworkTest()); 
+        } else {
+            // console.error('未找到开始测试按钮 (ID: startTestBtn)');
+        }
+
+        // 绑定清空结果按钮点击事件
+        if (clearResultsButton && resultsDiv) {
+            clearResultsButton.addEventListener('click', () => {
+                resultsDiv.innerHTML = '<p class="text-muted text-center p-3">结果已清空。</p>'; 
+                // Optionally, remove loading class if it was somehow stuck
+                resultsDiv.classList.remove('loading'); 
+            });
+        } else {
+            if (!clearResultsButton) { /* console.error('未找到清空结果按钮 (ID: clearTestResultsBtn)'); */ }
+            if (!resultsDiv) { /* console.error('未找到测试结果区域 (ID: testResults)'); */ }
         }
     },
 
     // 运行网络测试
-    runNetworkTest: function() {
-        const domain = document.getElementById('domainSelect').value;
+    runNetworkTest: async function() { // Changed to async for await
+        let domain = document.getElementById('domainSelect').value;
         const testType = document.getElementById('testType').value;
         const resultsDiv = document.getElementById('testResults');
+        const startTestButton = document.getElementById('startTestBtn');
 
-        // 验证选择了域名
-        if (!domain) {
-            core.showAlert('请选择目标域名', 'error');
+        // 处理自定义域名
+        if (domain === 'custom') {
+            const customDomain = document.getElementById('customDomain')?.value?.trim();
+            if (!customDomain) {
+                core.showAlert('请输入自定义域名进行测试。', 'warning');
+                return;
+            }
+            domain = customDomain;
+        } else if (!domain) {
+            core.showAlert('请选择目标域名进行测试。', 'warning');
             return;
         }
 
-        resultsDiv.innerHTML = '测试中，请稍候...';
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
+        if (!testType) {
+            core.showAlert('请选择测试类型。', 'warning');
+            return;
+        }
 
-        fetch('/api/network-test', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ domain, type: testType }),
-            signal: controller.signal
-        })
-        .then(response => {
+        resultsDiv.innerHTML = ''; // Clear previous content before adding loading class
+        resultsDiv.classList.add('loading');
+        if(startTestButton) startTestButton.disabled = true; // Disable button during test
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            // logger.warn('Network test aborted due to timeout.');
+        }, 60000); // 60秒超时
+
+        try {
+            const response = await fetch('/api/network-test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add any necessary auth headers if your API requires them
+                    // 'Authorization': 'Bearer ' + localStorage.getItem('authToken'), 
+                },
+                body: JSON.stringify({ domain, type: testType }),
+                signal: controller.signal
+            });
+            
             clearTimeout(timeoutId);
+
             if (!response.ok) {
-                throw new Error('网络测试失败');
+                const errorText = await response.text();
+                let detail = errorText;
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    detail = errorJson.message || errorJson.error || errorText;
+                } catch (e) { /* ignore parsing error, use raw text */ }
+                throw new Error(`网络连接正常，但测试执行失败 (状态: ${response.status}): ${detail}`);
             }
-            return response.text();
-        })
-        .then(result => {
-            resultsDiv.textContent = result;
-        })
-        .catch(error => {
-            console.error('网络测试出错:', error);
+            const result = await response.text();
+            // Format the plain text result in a <pre> tag for better display
+            resultsDiv.innerHTML = `<pre>${result}</pre>`;
+        } catch (error) {
+            clearTimeout(timeoutId); // Ensure timeout is cleared on any error
+            // console.error('网络测试出错:', error);
+            let errorMessage = '测试失败: ' + error.message;
             if (error.name === 'AbortError') {
-                resultsDiv.textContent = '测试超时，请稍后再试';
-            } else {
-                resultsDiv.textContent = '测试失败: ' + error.message;
+                errorMessage = '测试请求超时 (60秒)。请检查网络连接或目标主机状态。';
             }
-        });
+             resultsDiv.innerHTML = `<pre class="text-danger">${errorMessage}</pre>`;
+        } finally {
+            resultsDiv.classList.remove('loading');
+            if(startTestButton) startTestButton.disabled = false; // Re-enable button
+        }
     }
 };
 
-// 全局公开网络测试模块
+// 全局公开网络测试模块 (或者 integrate with app.js module system if you have one)
+// Ensure this is called after the DOM is ready, e.g., in app.js or a DOMContentLoaded listener
+// For now, let's assume app.js handles calling networkTest.init()
 window.networkTest = networkTest;

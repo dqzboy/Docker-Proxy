@@ -1518,6 +1518,272 @@
             color: #333;
             margin: 0;
         }
+
+        /* 菜单管理 - 新增行样式 */
+        #new-menu-item-row input[type="text"],
+        #new-menu-item-row select {
+            /* 使用 Bootstrap 的 form-control-sm 已经减小了 padding 和 font-size */
+            margin-bottom: 0; /* 移除下方外边距，使其在表格行内更紧凑 */
+        }
+
+        #new-menu-item-row .form-control-sm {
+            padding: 0.3rem 0.6rem; /* 微调内边距 */
+            font-size: 0.875rem; /* 统一字体大小 */
+        }
+
+        #new-menu-item-row .form-select-sm {
+            padding: 0.3rem 1.5rem 0.3rem 0.6rem; /* 微调 select 内边距以适应箭头 */
+            font-size: 0.875rem;
+        }
+
+        .action-buttons-new-menu .btn {
+            margin-right: 5px; /* 按钮间距 */
+            min-width: 80px; /* 给按钮一个最小宽度 */
+        }
+
+        .action-buttons-new-menu .btn:last-child {
+            margin-right: 0;
+        }
+
+        .action-buttons-new-menu .btn i {
+            margin-right: 4px; /* 图标和文字间距 */
+        }
+
+        /* 使新行单元格垂直居中 */
+        #new-menu-item-row td {
+            vertical-align: middle;
+        }
+
+        /* 网络测试页面美化 */
+        #network-test {
+            /* 可以考虑将整个 #network-test 作为一个卡片，如果它还没有被 .content-section 样式化为卡片的话 */
+        }
+
+        /* 直接覆盖#testResults.loading的样式，防止旋转 */
+        #network-test #testResults.loading {
+            animation: none !important;
+            border: none !important;
+            display: block !important;
+            position: relative !important;
+            text-align: center !important;
+            padding: 15px !important;
+            color: var(--text-secondary, #6c757d) !important;
+            font-size: 1rem !important;
+            width: auto !important;
+            height: auto !important;
+        }
+
+        /* 使用:before添加文本内容 */
+        #network-test #testResults.loading:before {
+            content: "测试进行中..." !important;
+            animation: none !important;
+            border: none !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            color: var(--text-light, #e9ecef) !important;
+            font-size: 1rem !important;
+            font-weight: 500 !important;
+            padding: 0 !important;
+            background-color: transparent !important;
+            z-index: 10 !important;
+            text-align: center !important;
+        }
+
+        #network-test .form-row {
+            display: flex;
+            flex-wrap: wrap; /* 允许换行到小屏幕 */
+            gap: 1.5rem; /* 各个元素之间的间距 */
+            margin-bottom: 1.5rem;
+            align-items: flex-end; /* 使得按钮和选择框底部对齐 */
+        }
+
+        #network-test .form-group {
+            flex: 1; /* 让表单组占据可用空间 */
+            min-width: 250px; /* 避免在小屏幕上过于挤压 */
+            background-color: transparent; /* 移除之前 #network-test .input-group 的背景色 */
+            padding: 0; /* 移除内边距 */
+            box-shadow: none; /* 移除阴影 */
+            border-radius: 0;
+        }
+
+        #network-test label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        #network-test .form-control,
+        #network-test .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--input-bg, var(--container-bg)); /* 允许自定义输入背景或使用容器背景 */
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        #network-test .form-control:focus,
+        #network-test .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 61, 124, 244), 0.25); /* 使用RGB变量 */
+            outline: none;
+        }
+
+        #network-test .test-controls-container {
+            /* 这个容器包裹选择器和按钮 */
+            display: flex;
+            flex-wrap: wrap; /* 允许换行 */
+            gap: 1rem; /* 控件之间的间距 */
+            align-items: flex-end; /* 使得按钮和选择框底部对齐 */
+            margin-bottom: 1.5rem;
+        }
+
+        #network-test .test-controls-container .form-group {
+             flex-grow: 1;
+             flex-basis: 200px; /* 给每个控件一个基础宽度 */
+        }
+
+        #network-test .start-test-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            white-space: nowrap; /* 防止按钮文字换行 */
+            height: fit-content; /* 与调整后的 select 高度匹配 */
+            flex-shrink: 0; /* 防止按钮在 flex 布局中被压缩 */
+        }
+        
+        #network-test .start-test-btn i {
+            margin-right: 0.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .results-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light, #e9ecef); /* Changed to light color for dark background */
+            margin: 0;
+        }
+
+        #clearTestResultsBtn {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+        }
+
+        #testResultsContainer {
+            background-color: var(--container-bg-dark, #1e2532); /* 使用变量或默认暗色 */
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            margin-top: 1rem;
+            padding: 0; /* 移除外层padding，让头部和内容区自己控制 */
+            position: relative; /* Add this to be a positioning context for absolute children if needed by headers etc. */
+        }
+
+        #testResults {
+            padding: 1rem;
+            color: var(--text-light, #e9ecef);
+            font-family: var(--font-mono, 'JetBrains Mono', monospace);
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: transparent;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            box-shadow: none;
+            border: none;
+            margin-top: 0;
+            position: relative; 
+        }
+
+        /* Use higher specificity and !important to force override */
+        #network-test #testResults.loading::before {
+            content: "测试进行中..."; /* Force text content */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the text block */
+            color: var(--text-secondary, #6c757d);
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            background-color: transparent !important;
+            border: none !important; /* 移除边框 */
+            border-radius: var(--radius-md, 0.375rem);
+            z-index: 10;
+            text-align: center;
+            /* Force removal of spinner styles */
+            animation: none !important; 
+            border-top-color: transparent !important; /* Force override any spinner head */
+            width: auto !important; /* Force width */
+            height: auto !important; /* Force height */
+            box-sizing: border-box; /* Ensure padding is included correctly */
+        }
+
+        /* Ensure keyframes for the spinner are removed or commented out */
+        /* @keyframes testResultSpinner { to { transform: rotate(360deg); } } */
+
+        /* Style for the <pre> tag inside #testResults for consistent output formatting */
+        #testResults pre {
+            margin: 0; /* Remove default pre margin */
+            font-family: inherit; /* Inherit from #testResults (monospace) */
+            font-size: inherit;   /* Inherit from #testResults */
+            color: inherit;       /* Inherit from #testResults */
+            white-space: pre-wrap; /* Ensure wrapping */
+            word-break: break-all;   /* Ensure long lines break */
+            background-color: transparent; /* Ensure no pre background interferes */
+            padding: 0; /* No extra padding for pre, parent div handles it */
+        }
+
+        #testResults pre.text-danger {
+            color: var(--danger-color, #dc3545); /* Ensure error text is colored */
+        }
+
+        /* Placeholder text styling (if using <p class="text-muted...">) */
+        #testResults .text-muted.text-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(100% - 2rem); /* Consider padding of #testResults */
+        }
+
+        /* 保持容器监控页面已停止容器列表的表头在鼠标悬停时背景色不变 */
+        #docker-monitoring .container-table th:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* SweetAlert2 弹窗内容文本居中 */
+        #swal2-html-container, /* 使用 ID 提高特异性 */
+        .swal2-html-container {  /* 保留类选择器作为备用 */
+            text-align: center !important;
+        }
+
+        #swal2-html-container p,
+        .swal2-html-container p {
+            text-align: center !important;
+        }
+
+        #swal2-html-container div,
+        .swal2-html-container div {
+            text-align: center !important;
+        }
     </style>
 </head>
 <body>
@@ -1636,11 +1902,6 @@
                 <!-- 文档管理部分 -->
                 <div id="documentation-management" class="content-section">
                     <h2 class="menu-label">文档管理</h2>
-                    <div class="action-bar" style="margin-bottom: 15px;">
-                        <button type="button" class="btn btn-primary" onclick="documentManager.newDocument()">
-                            <i class="fas fa-plus"></i> 新建文档
-                        </button>
-                    </div>
                     
                     <table id="documentTable">
                         <thead>
@@ -1650,6 +1911,12 @@
                             <!-- 文档列表将在这里动态添加 -->
                         </tbody>
                     </table>
+
+                    <div class="action-bar" style="margin-top: 15px; margin-bottom: 15px;">
+                        <button type="button" class="btn btn-primary add-btn" onclick="documentManager.newDocument()">
+                            <i class="fas fa-plus"></i> 新建文档
+                        </button>
+                    </div>
                     
                     <div id="editorContainer" style="display: none;">
                         <input type="text" id="documentTitle" placeholder="请输入文档标题" autocomplete="off">
@@ -1678,20 +1945,40 @@
                 <!-- 网络测试 -->
                 <div id="network-test" class="content-section">
                     <h1 class="admin-title">网络测试</h1>
-                    <div class="input-group">
-                        <label for="domainSelect">目标域名：</label>
-                        <select id="domainSelect" class="form-control">
-                            <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
-                        </select>
+                    
+                    <div class="test-controls-container">
+                        <div class="form-group">
+                            <label for="domainSelect">目标域名：</label>
+                            <select id="domainSelect" class="form-select">
+                                <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
+                            </select>
+                        </div>
+                        <div class="form-group" id="customDomainContainer" style="display: none;">
+                            <label for="customDomain">自定义域名：</label>
+                            <input type="text" id="customDomain" class="form-control" placeholder="请输入域名，如 example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="testType">测试类型：</label>
+                            <select id="testType" class="form-select">
+                                <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
+                            </select>
+                        </div>
+                        <button id="startTestBtn" class="btn btn-primary start-test-btn">
+                            <i class="fas fa-play"></i> 开始测试
+                        </button>
                     </div>
-                    <div class="input-group">
-                        <label for="testType">测试类型：</label>
-                        <select id="testType">
-                            <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
-                        </select>
+
+                    <div id="testResultsContainer">
+                        <div class="results-header">
+                            <h3>测试结果</h3>
+                            <button id="clearTestResultsBtn" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times-circle"></i> 清空结果
+                            </button>
+                        </div>
+                        <div id="testResults">
+                            <!-- 测试结果将显示在这里 -->
+                        </div>
                     </div>
-                    <button class="btn btn-primary">开始测试</button>
-                    <div id="testResults" style="margin-top: 20px; white-space: pre-wrap; font-family: monospace;"></div>
                 </div>
 
                 <!-- Docker服务状态 -->

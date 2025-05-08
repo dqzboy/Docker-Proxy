@@ -11,24 +11,24 @@ async function getUserInfo() {
         
         if (!sessionData.authenticated) {
             // 用户未登录，不显示错误，静默返回
-            console.log('用户未登录或会话无效，跳过获取用户信息');
+            // console.log('用户未登录或会话无效，跳过获取用户信息');
             return;
         }
         
         // 用户已登录，获取用户信息
-        console.log('会话有效，尝试获取用户信息...');
+        // console.log('会话有效，尝试获取用户信息...');
         const response = await fetch('/api/user-info');
         if (!response.ok) {
             // 检查是否是认证问题
             if (response.status === 401) {
-                console.log('会话已过期，需要重新登录');
+                // console.log('会话已过期，需要重新登录');
                 return;
             }
             throw new Error('获取用户信息失败');
         }
         
         const data = await response.json();
-        console.log('获取到用户信息:', data);
+        // console.log('获取到用户信息:', data);
         
         // 更新顶部导航栏的用户名
         const currentUsername = document.getElementById('currentUsername');
@@ -58,7 +58,7 @@ async function getUserInfo() {
             }
         }
     } catch (error) {
-        console.error('获取用户信息失败:', error);
+        // console.error('获取用户信息失败:', error);
         // 不显示错误通知，只在控制台记录错误
     }
 }
@@ -146,12 +146,12 @@ async function changePassword(event) {
         }).then((result) => {
             // 当计时器结束或弹窗被关闭时 (包括点击确定按钮)
             if (result.dismiss === Swal.DismissReason.timer || result.isConfirmed) {
-                console.log('计时器结束或手动确认，执行登出');
+                // console.log('计时器结束或手动确认，执行登出');
                 auth.logout();
             }
         });
     } catch (error) {
-        console.error('修改密码失败:', error);
+        // console.error('修改密码失败:', error);
         core.showAlert('修改密码失败: ' + error.message, 'error');
     }
 }
@@ -219,7 +219,7 @@ function checkUcPasswordStrength() {
 
 // 初始化用户中心
 function initUserCenter() {
-    console.log('初始化用户中心');
+    // console.log('初始化用户中心');
     
     // 获取用户信息
     getUserInfo();
@@ -241,7 +241,7 @@ function loadUserStats() {
 // 导出模块
 const userCenter = {
     init: function() {
-        console.log('初始化用户中心模块...');
+        // console.log('初始化用户中心模块...');
         // 可以在这里调用初始化逻辑，也可以延迟到需要时调用
         return Promise.resolve(); // 返回一个已解决的 Promise，保持与其他模块一致
     },

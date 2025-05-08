@@ -13,21 +13,21 @@ let systemConfig = {};
  * 检查登录状态，加载基础配置
  */
 async function initApp() {
-    console.log('初始化应用...');
-    console.log('-------------调试信息开始-------------');
-    console.log('当前URL:', window.location.href);
-    console.log('浏览器信息:', navigator.userAgent);
-    console.log('DOM已加载状态:', document.readyState);
+    // console.log('初始化应用...');
+    // console.log('-------------调试信息开始-------------');
+    // console.log('当前URL:', window.location.href);
+    // console.log('浏览器信息:', navigator.userAgent);
+    // console.log('DOM已加载状态:', document.readyState);
     
     // 检查当前页面是否为登录页
     const isLoginPage = window.location.pathname.includes('admin');
-    console.log('是否为管理页面:', isLoginPage);
+    // console.log('是否为管理页面:', isLoginPage);
     
     try {
         // 检查会话状态
         const sessionResult = await checkSession();
         const isAuthenticated = sessionResult.authenticated;
-        console.log('会话检查结果:', isAuthenticated);
+        // console.log('会话检查结果:', isAuthenticated);
 
         // 检查localStorage中的登录状态 (主要用于刷新页面时保持UI)
         const localLoginState = localStorage.getItem('isLoggedIn') === 'true';
@@ -40,12 +40,12 @@ async function initApp() {
             
             if (isLoginPage) {
                 // 在登录页，但会话有效，显示管理界面
-                console.log('已登录，显示管理界面...');
+                // console.log('已登录，显示管理界面...');
                 await loadSystemConfig();
                 showAdminInterface();
             } else {
                 // 在非登录页，正常显示
-                console.log('已登录，继续应用初始化...');
+                // console.log('已登录，继续应用初始化...');
                 await loadSystemConfig();
                 showAdminInterface(); // 确保管理界面可见
             }
@@ -56,27 +56,27 @@ async function initApp() {
             
             if (!isLoginPage) {
                 // 在非登录页，重定向到登录页
-                console.log('未登录，重定向到登录页...');
+                // console.log('未登录，重定向到登录页...');
                 window.location.href = '/admin';
                 return false;
             } else {
                 // 在登录页，显示登录框
-                console.log('未登录，显示登录模态框...');
+                // console.log('未登录，显示登录模态框...');
                 hideLoadingIndicator();
                 showLoginModal();
             }
         }
         
-        console.log('应用初始化完成');
-        console.log('-------------调试信息结束-------------');
+        // console.log('应用初始化完成');
+        // console.log('-------------调试信息结束-------------');
         return isAuthenticated;
     } catch (error) {
-        console.error('初始化应用失败:', error);
-        console.log('-------------调试错误信息-------------');
-        console.log('错误堆栈:', error.stack);
-        console.log('错误类型:', error.name);
-        console.log('错误消息:', error.message);
-        console.log('---------------------------------------');
+        // console.error('初始化应用失败:', error);
+        // console.log('-------------调试错误信息-------------');
+        // console.log('错误堆栈:', error.stack);
+        // console.log('错误类型:', error.name);
+        // console.log('错误消息:', error.message);
+        // console.log('---------------------------------------');
         showAlert('加载应用失败：' + error.message, 'error');
         hideLoadingIndicator();
         showLoginModal();
@@ -111,7 +111,7 @@ async function checkSession() {
             authenticated: false
         };
     } catch (error) {
-        console.error('检查会话状态出错:', error);
+        // console.error('检查会话状态出错:', error);
         return {
             authenticated: false,
             error: error.message
@@ -133,12 +133,12 @@ function loadSystemConfig() {
             return response.json();
         })
         .then(config => {
-            console.log('加载配置成功:', config);
+            // console.log('加载配置成功:', config);
             // 应用配置 
             applySystemConfig(config);
         })
         .catch(error => {
-            console.error('加载配置失败:', error);
+            // console.error('加载配置失败:', error);
             showAlert('加载配置失败: ' + error.message, 'warning');
         });
 }
@@ -157,18 +157,18 @@ function applySystemConfig(config) {
  * 显示管理界面
  */
 function showAdminInterface() {
-    console.log('开始显示管理界面...');
+    // console.log('开始显示管理界面...');
     hideLoadingIndicator();
     
     const adminContainer = document.getElementById('adminContainer');
     if (adminContainer) {
-        console.log('找到管理界面容器，设置为显示');
+        // console.log('找到管理界面容器，设置为显示');
         adminContainer.style.display = 'flex';
     } else {
-        console.error('未找到管理界面容器元素 #adminContainer');
+        // console.error('未找到管理界面容器元素 #adminContainer');
     }
     
-    console.log('管理界面已显示，正在初始化事件监听器');
+    // console.log('管理界面已显示，正在初始化事件监听器');
     
     // 初始化菜单事件监听
     initEventListeners();
@@ -178,13 +178,13 @@ function showAdminInterface() {
  * 隐藏加载提示器
  */
 function hideLoadingIndicator() {
-    console.log('正在隐藏加载提示器...');
+    // console.log('正在隐藏加载提示器...');
     const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
         loadingIndicator.style.display = 'none';
-        console.log('加载提示器已隐藏');
+        // console.log('加载提示器已隐藏');
     } else {
-        console.warn('未找到加载提示器元素 #loadingIndicator');
+        // console.warn('未找到加载提示器元素 #loadingIndicator');
     }
 }
 
@@ -331,54 +331,47 @@ function throttle(func, wait = 300) {
  * 初始化事件监听
  */
 function initEventListeners() {
-    console.log('开始初始化事件监听器...');
+    // console.log('开始初始化事件监听器...');
     
-    // 侧边栏菜单切换事件
+    // 侧边栏菜单项事件
     const menuItems = document.querySelectorAll('.sidebar-nav li');
-    console.log('找到侧边栏菜单项数量:', menuItems.length);
-    
-    if (menuItems.length > 0) {
-        menuItems.forEach((item, index) => {
-            const sectionId = item.getAttribute('data-section');
-            console.log(`绑定事件到菜单项 #${index+1}: ${sectionId}`);
-            item.addEventListener('click', function() {
-                const sectionId = this.getAttribute('data-section');
-                showSection(sectionId);
-            });
-        });
-        console.log('侧边栏菜单事件监听器已绑定');
-    } else {
-        console.error('未找到侧边栏菜单项 .sidebar-nav li');
-    }
+    // console.log('找到侧边栏菜单项数量:', menuItems.length);
+    menuItems.forEach((item, index) => {
+        const section = item.getAttribute('data-section');
+        // console.log(`绑定事件到菜单项 #${index + 1}: ${section}`);
+        item.addEventListener('click', () => showSection(section));
+    });
+    // console.log('侧边栏菜单事件监听器已绑定');
     
     // 用户中心按钮
     const userCenterBtn = document.getElementById('userCenterBtn');
     if (userCenterBtn) {
-        console.log('找到用户中心按钮，绑定事件');
+        // console.log('找到用户中心按钮，绑定事件');
         userCenterBtn.addEventListener('click', () => showSection('user-center'));
-    } else {
-        console.warn('未找到用户中心按钮 #userCenterBtn');
     }
-    
-    // 登出按钮
+
+    // 登出按钮 (侧边栏)
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
-        console.log('找到登出按钮，绑定事件');
-        logoutBtn.addEventListener('click', () => auth.logout());
-    } else {
-        console.warn('未找到登出按钮 #logoutBtn');
+        // console.log('找到登出按钮，绑定事件');
+        logoutBtn.addEventListener('click', () => {
+            if (window.auth && typeof window.auth.logout === 'function') {
+                window.auth.logout();
+            }
+        });
     }
-    
-    // 用户中心内登出按钮
+
+    // 登出按钮 (用户中心)
     const ucLogoutBtn = document.getElementById('ucLogoutBtn');
     if (ucLogoutBtn) {
-        console.log('找到用户中心内登出按钮，绑定事件');
-        ucLogoutBtn.addEventListener('click', () => auth.logout());
-    } else {
-        console.warn('未找到用户中心内登出按钮 #ucLogoutBtn');
+        // console.log('找到用户中心内登出按钮，绑定事件');
+        ucLogoutBtn.addEventListener('click', () => {
+            if (window.auth && typeof window.auth.logout === 'function') {
+                window.auth.logout();
+            }
+        });
     }
-    
-    console.log('事件监听器初始化完成');
+    // console.log('事件监听器初始化完成');
 }
 
 /**
@@ -386,77 +379,108 @@ function initEventListeners() {
  * @param {string} sectionId 要显示的内容区域ID
  */
 function showSection(sectionId) {
-    console.log(`尝试显示内容区域: ${sectionId}`);
-    
-    // 获取所有内容区域和菜单项
+    // console.log('尝试显示内容区域:', sectionId);
+
     const contentSections = document.querySelectorAll('.content-section');
     const menuItems = document.querySelectorAll('.sidebar-nav li');
-    
-    console.log(`找到 ${contentSections.length} 个内容区域和 ${menuItems.length} 个菜单项`);
-    
+    // console.log('找到', contentSections.length, '个内容区域和', menuItems.length, '个菜单项');
+
     let sectionFound = false;
-    let menuItemFound = false;
-    
-    // 隐藏所有内容区域，取消激活所有菜单项
     contentSections.forEach(section => {
-        section.classList.remove('active');
+        if (section.id === sectionId) {
+            section.classList.add('active');
+            sectionFound = true;
+            // console.log('成功激活内容区域:', sectionId);
+        } else {
+            section.classList.remove('active');
+        }
     });
-    
+
+    if (!sectionFound) {
+        // console.warn('未找到要显示的内容区域:', sectionId, '. 默认显示dashboard.');
+        document.getElementById('dashboard').classList.add('active');
+        sectionId = 'dashboard'; // 更新 sectionId 以便正确高亮菜单
+    }
+
+    let menuItemFound = false;
     menuItems.forEach(item => {
-        item.classList.remove('active');
+        if (item.getAttribute('data-section') === sectionId) {
+            item.classList.add('active');
+            menuItemFound = true;
+            // console.log('成功激活菜单项:', sectionId);
+        } else {
+            item.classList.remove('active');
+        }
     });
-    
-    // 激活指定的内容区域
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.classList.add('active');
-        sectionFound = true;
-        console.log(`成功激活内容区域: ${sectionId}`);
-        
-        // 特殊处理：切换到用户中心时，确保用户信息已加载
-        if (sectionId === 'user-center' && window.userCenter) {
-            console.log('切换到用户中心，调用 getUserInfo()');
-            window.userCenter.getUserInfo();
-        }
-    } else {
-        console.error(`未找到指定的内容区域: ${sectionId}`);
+
+    if (!menuItemFound) {
+        // console.warn('未找到要激活的菜单项 for section:', sectionId);
+        // 尝试激活 dashboard 作为回退
+        const dashboardItem = document.querySelector('.sidebar-nav li[data-section="dashboard"]');
+        if(dashboardItem) dashboardItem.classList.add('active');
     }
-    
-    // 激活相应的菜单项
-    const targetMenuItem = document.querySelector(`.sidebar-nav li[data-section="${sectionId}"]`);
-    if (targetMenuItem) {
-        targetMenuItem.classList.add('active');
-        menuItemFound = true;
-        console.log(`成功激活菜单项: ${sectionId}`);
-    } else {
-        console.error(`未找到对应的菜单项: ${sectionId}`);
-    }
-    
-    // 如果没有找到指定的内容区域和菜单项，显示仪表盘
-    if (!sectionFound && !menuItemFound) {
-        console.warn(`未找到指定的内容区域和菜单项，将显示默认仪表盘`);
-        const dashboard = document.getElementById('dashboard');
-        if (dashboard) {
-            dashboard.classList.add('active');
-            const dashboardMenuItem = document.querySelector('.sidebar-nav li[data-section="dashboard"]');
-            if (dashboardMenuItem) {
-                dashboardMenuItem.classList.add('active');
-            }
-        }
-    }
-    
-    // 切换内容区域后可能需要执行的额外操作
+
+    // 更新 URL hash
+    window.location.hash = sectionId;
+
+    // 刷新特定部分的内容，例如仪表盘
     if (sectionId === 'dashboard') {
-        console.log('已激活仪表盘，无需再次刷新系统状态');
-        // 不再自动刷新系统状态，仅在首次加载或用户手动点击刷新按钮时刷新
+        // console.log('已激活仪表盘，无需再次刷新系统状态');
+        // if (window.systemStatus && typeof window.systemStatus.refreshSystemStatus === 'function') {
+        //     window.systemStatus.refreshSystemStatus();
+        // }
     }
-    
-    console.log(`内容区域切换完成: ${sectionId}`);
+    // console.log('内容区域切换完成:', sectionId);
+}
+
+/**
+ * 根据URL hash显示对应的区域
+ */
+function showSectionFromHash() {
+    const hash = window.location.hash.substring(1); // 移除 '#' 号
+    if (hash) {
+        // console.log('从URL Hash加载区域:', hash);
+        showSection(hash);
+    } else {
+        // console.log('URL Hash为空，默认显示dashboard区域');
+        showSection('dashboard'); // 默认显示仪表盘
+    }
+}
+
+/**
+ * 切换加载状态
+ * @param {boolean} isLoading - 是否正在加载
+ * @param {string} elementId - 目标元素ID
+ * @param {string} originalText - 原始文本（可选）
+ */
+function toggleLoadingState(isLoading, elementId, originalText = null) {
+    const element = document.getElementById(elementId);
+    if (!element) {
+        // console.warn(`未找到元素 ${elementId} 来切换加载状态`);
+        return;
+    }
+
+    if (isLoading) {
+        element.disabled = true;
+        // 可以考虑保存原始文本，如果按钮文本被修改了
+        if (originalText && !element.dataset.originalText) {
+            element.dataset.originalText = element.innerHTML;
+        }
+        element.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 加载中...';
+    } else {
+        element.disabled = false;
+        if (element.dataset.originalText) {
+            element.innerHTML = element.dataset.originalText;
+        } else if (originalText) { // 如果没有保存的原始文本，但传入了，也使用
+            element.innerHTML = originalText;
+        }
+        // 如果按钮文本没有被修改为 "加载中..."，则不需要恢复
+    }
 }
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM已加载，正在初始化应用...');
+    // console.log('DOM已加载，正在初始化应用...');
     initApp();
     
     // 检查URL参数，处理消息提示等
@@ -475,25 +499,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// 导出核心对象
-const core = {
-    isLoggedIn,
+// 导出核心函数和变量 (如果需要在其他模块直接使用)
+window.core = {
     initApp,
     checkSession,
     loadSystemConfig,
-    applySystemConfig,
-    showLoading,
-    hideLoading,
+    showAdminInterface,
     hideLoadingIndicator,
     showLoginModal,
     showAlert,
     showConfirm,
+    showLoading,
+    hideLoading,
+    showSection,
+    showSectionFromHash,
     formatDateTime,
     debounce,
     throttle,
-    initEventListeners,
-    showSection
+    toggleLoadingState
 };
-
-// 全局公开核心模块
-window.core = core;

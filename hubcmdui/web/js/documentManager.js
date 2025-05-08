@@ -13,12 +13,12 @@ let editorMd = null;
 const documentManager = {
     // 初始化文档管理
     init: function() {
-        console.log('初始化文档管理模块...');
+        // console.log('初始化文档管理模块...');
         // 渲染表头
         this.renderDocumentTableHeader();
         // 加载文档列表
         return this.loadDocuments().catch(err => {
-            console.error('加载文档列表失败:', err);
+            // console.error('加载文档列表失败:', err);
             return Promise.resolve(); // 即使失败也继续初始化过程
         });
     },
@@ -28,7 +28,7 @@ const documentManager = {
         try {
             const documentTable = document.getElementById('documentTable');
             if (!documentTable) {
-                console.warn('文档管理表格元素 (id=\"documentTable\") 未找到，无法渲染表头。');
+                // console.warn('文档管理表格元素 (id=\"documentTable\") 未找到，无法渲染表头。');
                 return;
             }
             
@@ -37,7 +37,7 @@ const documentManager = {
             if (!thead) {
                 thead = document.createElement('thead');
                 documentTable.insertBefore(thead, documentTable.firstChild); // 确保 thead 在 tbody 之前
-                console.log('创建了文档表格的 thead 元素。');
+                // console.log('创建了文档表格的 thead 元素。');
             }
             
             // 设置表头内容 (包含 ID 列)
@@ -51,9 +51,9 @@ const documentManager = {
                     <th style="width: 20%">操作</th>
                 </tr>
             `;
-            console.log('文档表格表头已渲染。');
+            // console.log('文档表格表头已渲染。');
         } catch (error) {
-            console.error('渲染文档表格表头时出错:', error);
+            // console.error('渲染文档表格表头时出错:', error);
         }
     },
 
@@ -78,11 +78,11 @@ const documentManager = {
                 });
                 
                 if (sessionResponse.status === 401) {
-                    console.warn('会话已过期，无法加载文档');
+                    // console.warn('会话已过期，无法加载文档');
                     sessionValid = false;
                 }
             } catch (sessionError) {
-                console.warn('检查会话状态发生网络错误:', sessionError);
+                // console.warn('检查会话状态发生网络错误:', sessionError);
                 // 发生网络错误时继续尝试加载文档
             }
             
@@ -98,7 +98,7 @@ const documentManager = {
             
             for (const path of possiblePaths) {
                 try {
-                    console.log(`尝试从 ${path} 获取文档列表`);
+                    // console.log(`尝试从 ${path} 获取文档列表`);
                     const response = await fetch(path, {
                         credentials: 'same-origin',
                         headers: {
@@ -108,7 +108,7 @@ const documentManager = {
                     });
                     
                     if (response.status === 401) {
-                        console.warn(`API路径 ${path} 返回未授权状态`);
+                        // console.warn(`API路径 ${path} 返回未授权状态`);
                         authError = true;
                         continue;
                     }
@@ -138,18 +138,18 @@ const documentManager = {
                         // 先渲染表头，再渲染文档列表
                         this.renderDocumentTableHeader();
                         this.renderDocumentList();
-                        console.log(`成功从API路径 ${path} 加载文档列表`, documents);
+                        // console.log(`成功从API路径 ${path} 加载文档列表`, documents);
                         success = true;
                         break;
                     }
                 } catch (e) {
-                    console.warn(`从 ${path} 加载文档失败:`, e);
+                    // console.warn(`从 ${path} 加载文档失败:`, e);
                 }
             }
             
             // 处理认证错误 - 只有当会话检查和API请求都明确失败时才强制登出
             if ((authError || !sessionValid) && !success && localStorage.getItem('isLoggedIn') === 'true') {
-                console.warn('会话检查和API请求均指示会话已过期');
+                // console.warn('会话检查和API请求均指示会话已过期');
                 core.showAlert('会话已过期，请重新登录', 'warning');
                 setTimeout(() => {
                     localStorage.removeItem('isLoggedIn');
@@ -160,14 +160,14 @@ const documentManager = {
             
             // 如果API请求失败但不是认证错误，显示空文档列表
             if (!success) {
-                console.log('API请求失败，显示空文档列表');
+                // console.log('API请求失败，显示空文档列表');
                 documents = [];
                 // 仍然需要渲染表头
                 this.renderDocumentTableHeader();
                 this.renderDocumentList();
             }
         } catch (error) {
-            console.error('加载文档失败:', error);
+            // console.error('加载文档失败:', error);
             // 在UI上显示错误
             const documentTableBody = document.getElementById('documentTableBody');
             if (documentTableBody) {
@@ -184,16 +184,16 @@ const documentManager = {
         try {
             const editorContainer = document.getElementById('editor');
             if (!editorContainer) {
-                console.error('找不到编辑器容器元素');
+                // console.error('找不到编辑器容器元素');
                 return;
             }
             
             // 检查 toastui 是否已加载
-            console.log('检查编辑器依赖项:', typeof toastui);
+            // console.log('检查编辑器依赖项:', typeof toastui);
             
             // 确保 toastui 对象存在
             if (typeof toastui === 'undefined') {
-                console.error('Toast UI Editor 未加载');
+                // console.error('Toast UI Editor 未加载');
                 return;
             }
             
@@ -213,9 +213,9 @@ const documentManager = {
                 ]
             });
 
-            console.log('编辑器初始化完成', editorMd);
+            // console.log('编辑器初始化完成', editorMd);
         } catch (error) {
-            console.error('初始化编辑器出错:', error);
+            // console.error('初始化编辑器出错:', error);
             core.showAlert('初始化编辑器失败: ' + error.message, 'error');
         }
     },
@@ -292,11 +292,11 @@ const documentManager = {
                 });
                 
                 if (sessionResponse.status === 401) {
-                    console.warn('会话已过期，无法保存文档');
+                    // console.warn('会话已过期，无法保存文档');
                     sessionValid = false;
                 }
             } catch (sessionError) {
-                console.warn('检查会话状态发生网络错误:', sessionError);
+                // console.warn('检查会话状态发生网络错误:', sessionError);
                 // 发生网络错误时继续尝试保存操作
             }
             
@@ -326,7 +326,7 @@ const documentManager = {
             
             const method = currentDocument && currentDocument.id ? 'PUT' : 'POST';
             
-            console.log(`尝试${method === 'PUT' ? '更新' : '创建'}文档，标题: ${title}`);
+            // console.log(`尝试${method === 'PUT' ? '更新' : '创建'}文档，标题: ${title}`);
             
             const response = await fetch(apiUrl, {
                 method: method,
@@ -345,7 +345,7 @@ const documentManager = {
             // 处理响应
             if (response.status === 401) {
                 // 明确的未授权响应
-                console.warn('保存文档返回401未授权');
+                // console.warn('保存文档返回401未授权');
                 core.showAlert('未登录或会话已过期，请重新登录', 'warning');
                 setTimeout(() => {
                     localStorage.removeItem('isLoggedIn');
@@ -367,7 +367,7 @@ const documentManager = {
             }
             
             const savedDoc = await response.json();
-            console.log('保存的文档:', savedDoc);
+            // console.log('保存的文档:', savedDoc);
 
             // 确保savedDoc包含必要的时间字段
             if (savedDoc) {
@@ -387,11 +387,11 @@ const documentManager = {
                                     createdAt: fullDoc.createdAt,
                                     updatedAt: fullDoc.updatedAt
                                 });
-                                console.log('获取到完整的文档时间信息:', fullDoc);
+                                // console.log('获取到完整的文档时间信息:', fullDoc);
                             }
                         }
                     } catch (timeError) {
-                        console.warn('获取文档完整时间信息失败:', timeError);
+                        // console.warn('获取文档完整时间信息失败:', timeError);
                     }
                 }
                 
@@ -408,7 +408,7 @@ const documentManager = {
             this.hideEditor();
             await this.loadDocuments(); // 重新加载文档列表
         } catch (error) {
-            console.error('保存文档失败:', error);
+            // console.error('保存文档失败:', error);
             core.showAlert('保存文档失败: ' + error.message, 'error');
         } finally {
             core.hideLoading();
@@ -470,7 +470,7 @@ const documentManager = {
                     updatedAt = '未更新';
                 }
             } catch (error) {
-                console.warn(`解析文档时间失败:`, error, doc);
+                // console.warn(`解析文档时间失败:`, error, doc);
             }
             
             const statusClasses = doc.published ? 'status-badge status-running' : 'status-badge status-stopped';
@@ -505,10 +505,10 @@ const documentManager = {
     // 编辑文档
     editDocument: async function(id) {
         try {
-            console.log(`准备编辑文档，ID: ${id}`);
-            core.showLoading();
+            // console.log(`准备编辑文档，ID: ${id}`);
+            core.showLoading('加载文档中...'); // 更明确的加载提示
             
-            // 检查会话状态，优化会话检查逻辑
+            // 会话检查逻辑保持不变
             let sessionValid = true;
             try {
                 const sessionResponse = await fetch('/api/check-session', {
@@ -518,183 +518,67 @@ const documentManager = {
                     },
                     credentials: 'same-origin'
                 });
-                
-                if (sessionResponse.status === 401) {
-                    console.warn('会话已过期，无法编辑文档');
-                    sessionValid = false;
-                }
-            } catch (sessionError) {
-                console.warn('检查会话状态发生网络错误:', sessionError);
-                // 发生网络错误时不立即判定会话失效，继续尝试编辑操作
+                if (sessionResponse.status === 401) sessionValid = false;
+            } catch (sessionError) { 
+                // console.warn('检查会话状态发生网络错误:', sessionError);
+                // 继续尝试，API调用时会再次处理401
             }
             
-            // 只有在明确会话无效时才提示重新登录
             if (!sessionValid) {
                 core.showAlert('您的会话已过期，请重新登录', 'warning');
-                setTimeout(() => {
-                    localStorage.removeItem('isLoggedIn');
-                    window.location.reload();
-                }, 1500);
+                auth.showLoginModal(); // 使用 auth 模块显示登录
+                core.hideLoading();
                 return;
             }
             
-            // 在本地查找文档
-            currentDocument = documents.find(doc => doc.id === id);
+            // 不再依赖本地缓存的列表项获取content，始终从API获取完整文档
+            // console.log('始终从API获取完整文档详情进行编辑，ID:', id);
             
-            // 如果本地未找到，从API获取
-            if (!currentDocument && id) {
-                try {
-                    console.log('从API获取文档详情');
-                    
-                    // 尝试多个可能的API路径
-                    const apiPaths = [
-                        `/api/documents/${id}`,
-                        `/api/documentation/${id}`
-                    ];
-                    
-                    let docResponse = null;
-                    let authError = false;
-                    
-                    for (const apiPath of apiPaths) {
-                        try {
-                            console.log(`尝试从 ${apiPath} 获取文档`);
-                            const response = await fetch(apiPath, {
-                                credentials: 'same-origin',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            });
-                            
-                            // 只有明确401错误才认定为会话过期
-                            if (response.status === 401) {
-                                console.warn(`API ${apiPath} 返回401未授权`);
-                                authError = true;
-                                continue;
-                            }
-                            
-                            if (response.ok) {
-                                docResponse = response;
-                                console.log(`成功从 ${apiPath} 获取文档`);
-                                break;
-                            }
-                        } catch (pathError) {
-                            console.warn(`从 ${apiPath} 获取文档失败:`, pathError);
-                        }
-                    }
-                    
-                    // 处理认证错误
-                    if (authError && !docResponse) {
-                        core.showAlert('未登录或会话已过期，请重新登录', 'warning');
-                        setTimeout(() => {
-                            localStorage.removeItem('isLoggedIn');
-                            window.location.reload();
-                        }, 1500);
-                        return;
-                    }
-                    
-                    if (docResponse && docResponse.ok) {
-                        currentDocument = await docResponse.json();
-                        console.log('获取到文档详情:', currentDocument);
-                        
-                        // 确保文档包含必要的时间字段
-                        if (!currentDocument.createdAt && currentDocument.updatedAt) {
-                            // 如果没有创建时间但有更新时间，使用更新时间
-                            currentDocument.createdAt = currentDocument.updatedAt;
-                        } else if (!currentDocument.createdAt) {
-                            // 如果都没有，使用当前时间
-                            currentDocument.createdAt = new Date().toISOString();
-                        }
-                        
-                        if (!currentDocument.updatedAt) {
-                            // 如果没有更新时间，使用创建时间
-                            currentDocument.updatedAt = currentDocument.createdAt;
-                        }
-                        
-                        // 将获取到的文档添加到文档列表中
-                        const existingIndex = documents.findIndex(d => d.id === id);
-                        if (existingIndex >= 0) {
-                            documents[existingIndex] = currentDocument;
-                        } else {
-                            documents.push(currentDocument);
-                        }
-                    } else {
-                        throw new Error('所有API路径都无法获取文档');
-                    }
-                } catch (apiError) {
-                    console.error('从API获取文档详情失败:', apiError);
-                    core.showAlert('获取文档详情失败: ' + apiError.message, 'error');
-                }
-            }
-            
-            // 如果仍然没有找到文档，显示错误
-            if (!currentDocument) {
-                core.showAlert('未找到指定的文档', 'error');
+            const response = await fetch(`/api/documents/${id}`, {
+                headers: { 
+                    'Cache-Control': 'no-cache', // 确保获取最新数据
+                    'X-Requested-With': 'XMLHttpRequest' 
+                },
+                credentials: 'same-origin'
+            });
+
+            if (response.status === 401) {
+                core.showAlert('您的会话已过期或无权限访问此文档，请重新登录', 'warning');
+                auth.showLoginModal();
+                core.hideLoading();
                 return;
             }
-            
-            // 显示编辑器界面并设置内容
-            this.showEditor();
-            
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                // console.error(`获取文档失败 (${response.status}):`, errorText);
+                throw new Error(`获取文档内容失败: ${errorText || response.status}`);
+            }
+
+            const docToEdit = await response.json();
+            currentDocument = docToEdit; // 更新当前编辑的文档对象
+
             // 确保编辑器已初始化
             if (!editorMd) {
-                await new Promise(resolve => setTimeout(resolve, 100));
                 this.initEditor();
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // 等待编辑器初始化完成后再继续
+                // 使用短延时确保编辑器DOM完全准备好
+                await new Promise(resolve => setTimeout(resolve, 100)); 
             }
             
-            // 设置文档内容
-            if (editorMd) {
-                document.getElementById('documentTitle').value = currentDocument.title || '';
-                
-                if (currentDocument.content) {
-                    console.log(`设置文档内容，长度: ${currentDocument.content.length}`);
-                    editorMd.setMarkdown(currentDocument.content);
-                } else {
-                    console.log('文档内容为空，尝试额外获取内容');
-                    
-                    // 如果文档内容为空，尝试额外获取内容
-                    try {
-                        const contentResponse = await fetch(`/api/documents/${id}/content`, {
-                            credentials: 'same-origin',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        });
-                        
-                        // 只有明确401错误才提示重新登录
-                        if (contentResponse.status === 401) {
-                            core.showAlert('会话已过期，请重新登录', 'warning');
-                            setTimeout(() => {
-                                localStorage.removeItem('isLoggedIn');
-                                window.location.reload();
-                            }, 1500);
-                            return;
-                        }
-                        
-                        if (contentResponse.ok) {
-                            const contentData = await contentResponse.json();
-                            if (contentData.content) {
-                                currentDocument.content = contentData.content;
-                                editorMd.setMarkdown(contentData.content);
-                                console.log('成功获取额外内容');
-                            }
-                        }
-                    } catch (contentError) {
-                        console.warn('获取额外内容失败:', contentError);
-                    }
-                    
-                    // 如果仍然没有内容，设置为空
-                    if (!currentDocument.content) {
-                        editorMd.setMarkdown('');
-                    }
-                }
-            } else {
-                console.error('编辑器初始化失败，无法设置内容');
-                core.showAlert('编辑器初始化失败，请刷新页面重试', 'error');
+            if (!editorMd) {
+                core.showAlert('编辑器初始化失败，无法编辑文档。', 'error');
+                core.hideLoading();
+                return;
             }
+            
+            document.getElementById('documentTitle').value = docToEdit.title || '';
+            editorMd.setMarkdown(docToEdit.content || '');
+            this.showEditor();
+
         } catch (error) {
-            console.error('编辑文档时出错:', error);
-            core.showAlert('编辑文档失败: ' + error.message, 'error');
+            // console.error('编辑文档时出错:', error);
+            core.showAlert(`加载文档进行编辑失败: ${error.message}`, 'error');
         } finally {
             core.hideLoading();
         }
@@ -736,7 +620,7 @@ const documentManager = {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    console.log(`尝试删除文档: ${id}`);
+                    // console.log(`尝试删除文档: ${id}`);
                     
                     // 检查会话状态
                     const sessionResponse = await fetch('/api/check-session', {
@@ -778,11 +662,11 @@ const documentManager = {
                         throw new Error(errorData.error || '删除文档失败');
                     }
                     
-                    console.log('文档删除成功响应:', await response.json());
+                    // console.log('文档删除成功响应:', await response.json());
                     core.showAlert('文档已成功删除', 'success');
                     await this.loadDocuments(); // 重新加载文档列表
                 } catch (error) {
-                    console.error('删除文档失败:', error);
+                    // console.error('删除文档失败:', error);
                     core.showAlert('删除文档失败: ' + error.message, 'error');
                 }
             }
@@ -815,7 +699,7 @@ const documentManager = {
                 return;
             }
             
-            console.log(`尝试切换文档 ${id} 的发布状态，当前状态:`, doc.published);
+            // console.log(`尝试切换文档 ${id} 的发布状态，当前状态:`, doc.published);
             
             // 构建更新请求数据
             const updateData = {
@@ -852,7 +736,7 @@ const documentManager = {
             
             // 更新成功
             const updatedDoc = await response.json();
-            console.log('文档状态更新响应:', updatedDoc);
+            // console.log('文档状态更新响应:', updatedDoc);
             
             // 更新本地文档列表
             const docIndex = documents.findIndex(d => d.id === id);
@@ -863,7 +747,7 @@ const documentManager = {
             
             core.showAlert('文档状态已更新', 'success');
         } catch (error) {
-            console.error('更改发布状态失败:', error);
+            // console.error('更改发布状态失败:', error);
             core.showAlert('更改发布状态失败: ' + error.message, 'error');
         } finally {
             core.hideLoading();
@@ -880,7 +764,7 @@ window.documentManager = documentManager;
  */
 async function showDocument(docId) {
     try {
-        console.log('正在获取文档内容，ID:', docId);
+        // console.log('正在获取文档内容，ID:', docId);
         
         // 显示加载状态
         const documentContent = document.getElementById('documentContent');
@@ -895,7 +779,7 @@ async function showDocument(docId) {
         }
         
         const doc = await response.json();
-        console.log('获取到文档:', doc);
+        // console.log('获取到文档:', doc);
         
         // 更新文档内容区域
         if (documentContent) {
@@ -916,13 +800,13 @@ async function showDocument(docId) {
                 `;
             }
         } else {
-            console.error('找不到文档内容容器，ID: documentContent');
+            // console.error('找不到文档内容容器，ID: documentContent');
         }
         
         // 高亮当前选中的文档
         highlightSelectedDocument(docId);
     } catch (error) {
-        console.error('获取文档内容失败:', error);
+        // console.error('获取文档内容失败:', error);
         
         // 显示错误信息
         const documentContent = document.getElementById('documentContent');

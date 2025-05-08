@@ -46,7 +46,7 @@ async function login() {
 
 // 注销函数
 async function logout() {
-    console.log("注销操作被触发");
+    // console.log("注销操作被触发");
     try {
         core.showLoading();
         const response = await fetch('/api/logout', { method: 'POST' });
@@ -62,7 +62,7 @@ async function logout() {
             throw new Error('退出登录失败');
         }
     } catch (error) {
-        console.error('退出登录失败:', error);
+        // console.error('退出登录失败:', error);
         core.showAlert('退出登录失败: ' + error.message, 'error');
         // 即使API失败也清除本地状态
         localStorage.removeItem('isLoggedIn');
@@ -84,7 +84,7 @@ async function refreshCaptcha() {
         const data = await response.json();
         document.getElementById('captchaText').textContent = data.captcha;
     } catch (error) {
-        console.error('刷新验证码失败:', error);
+        // console.error('刷新验证码失败:', error);
         document.getElementById('captchaText').textContent = '验证码加载失败，点击重试';
     }
 }
@@ -110,7 +110,7 @@ function showLoginModal() {
 // 导出模块
 const auth = {
     init: function() {
-        console.log('初始化认证模块...');
+        // console.log('初始化认证模块...');
         // 在这里可以添加认证模块初始化的相关代码
         return Promise.resolve(); // 返回一个已解决的 Promise，保持与其他模块一致
     },
