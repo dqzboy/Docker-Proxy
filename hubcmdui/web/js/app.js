@@ -94,6 +94,9 @@ async function initializeModules() {
         // 加载监控配置
         await loadMonitoringConfig();
         
+        // 加载已停止的容器列表
+        refreshStoppedContainers();
+        
         // 显示默认页面 - 使用core中的showSection函数
         core.showSection('dashboard');
         
@@ -140,6 +143,10 @@ function loadMonitoringConfig() {
             
             document.getElementById('toggleMonitoringBtn').textContent = 
                 config.isEnabled ? '禁用监控' : '启用监控';
+            
+            // 添加通知类型选择变化的监听器
+            const notificationTypeSelect = document.getElementById('notificationType');
+            notificationTypeSelect.addEventListener('change', toggleNotificationFields);
             
             // console.log('监控配置加载完成');
         })
@@ -391,22 +398,55 @@ function refreshStoppedContainers() {
     fetch('/api/stopped-containers')
         .then(response => {
             if (!response.ok) throw new Error('获取已停止容器列表失败');
-            return response.json();
+            // 保存原始响应文本用于调试
+            return response.text().then(text => {
+                try {
+                    // 尝试解析为JSON
+                    const data = JSON.parse(text);
+                    
+                    // 打印原始响应
+                    console.log('原始响应:', text);
+                    console.log('解析后对象:', data);
+                    
+                    // 打印镜像字段
+                    if (Array.isArray(data)) {
+                        data.forEach(container => {
+                            console.log('容器镜像字段:', container.image, 
+                                       '类型:', typeof container.image,
+                                       'JSON字符串:', JSON.stringify(container));
+                        });
+                    }
+                    
+                    return data;
+                } catch (e) {
+                    console.error('解析JSON失败:', e, '原始文本:', text);
+                    throw new Error('解析响应失败');
+                }
+            });
         })
         .then(containers => {
+            // 添加调试信息
+            console.log('已停止的容器数据:', JSON.stringify(containers, null, 2));
+            
             const tbody = document.getElementById('stoppedContainersBody');
             tbody.innerHTML = '';
             
             if (containers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">没有已停止的容器</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">没有已停止的容器</td></tr>';
                 return;
             }
             
             containers.forEach(container => {
+                // 调试单个容器数据
+                console.log('容器数据:', container.id, container.name, 
+                           '镜像:', container.image, 
+                           '状态:', container.status);
+                
                 const row = `
                     <tr>
                         <td>${container.id}</td>
                         <td>${container.name}</td>
+                        <td>${container.image ? container.image : '未知'}</td>
                         <td>${container.status}</td>
                     </tr>
                 `;
@@ -416,7 +456,7 @@ function refreshStoppedContainers() {
         .catch(error => {
             console.error('获取已停止容器列表失败:', error);
             document.getElementById('stoppedContainersBody').innerHTML = 
-                '<tr><td colspan="3" style="text-align: center; color: red;">获取已停止容器列表失败</td></tr>';
+                '<tr><td colspan="4" style="text-align: center; color: red;">获取已停止容器列表失败</td></tr>';
         });
 }
 
@@ -457,6 +497,35 @@ function saveConfig(configData) {
     });
 }
 
+// 验证输入并保存配置
+function validateAndSaveConfig(type) {
+    if (type === 'logo') {
+        const logoUrl = document.getElementById('logoUrl').value.trim();
+        if (!logoUrl) {
+            Swal.fire({
+                icon: 'error',
+                title: '输入错误',
+                text: 'Logo URL不能为空！',
+                confirmButtonText: '确定'
+            });
+            return;
+        }
+        saveConfig({logo: logoUrl});
+    } else if (type === 'proxy') {
+        const proxyDomain = document.getElementById('proxyDomain').value.trim();
+        if (!proxyDomain) {
+            Swal.fire({
+                icon: 'error',
+                title: '输入错误',
+                text: 'Docker镜像代理地址不能为空，这是必填项！',
+                confirmButtonText: '确定'
+            });
+            return;
+        }
+        saveConfig({proxyDomain: proxyDomain});
+    }
+}
+
 // 加载基本配置
 function loadBasicConfig() {
     fetch('/api/config')
@@ -482,14 +551,14 @@ function loadBasicConfig() {
         });
 }
 
-// 暴露给全局作用域的函数
+// 导出需要的函数到window.app对象
 window.app = {
-    loadMonitoringConfig,
-    loadBasicConfig,
-    toggleNotificationFields,
     saveMonitoringConfig,
     testNotification,
     toggleMonitoring,
+    toggleNotificationFields,
     refreshStoppedContainers,
-    saveConfig
+    saveConfig,
+    loadBasicConfig,
+    validateAndSaveConfig
 };

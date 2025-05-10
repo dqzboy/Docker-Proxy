@@ -516,5 +516,6 @@ window.core = {
     formatDateTime,
     debounce,
     throttle,
-    toggleLoadingState
+    toggleLoadingState,
+    initEventListeners
 };

@@ -18,7 +18,7 @@ const compatibilityLayer = require('./compatibility-layer');
 const initSystem = require('./scripts/init-system');
 
 // 设置日志级别 (默认INFO, 可通过环境变量设置)
-const logLevel = process.env.LOG_LEVEL || 'INFO';
+const logLevel = process.env.LOG_LEVEL || 'WARN';
 logger.setLogLevel(logLevel);
 logger.info(`日志级别已设置为: ${logLevel}`);
 

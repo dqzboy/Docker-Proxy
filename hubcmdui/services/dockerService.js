@@ -213,6 +213,33 @@ async function stopContainer(id) {
   }
 }
 
+// 启动容器
+async function startContainer(id) {
+  logger.info(`Attempting to start container ${id}`);
+  const docker = await getDockerConnection();
+  if (!docker) {
+    logger.error(`[startContainer ${id}] Cannot connect to Docker daemon.`);
+    throw new Error('无法连接到 Docker 守护进程');
+  }
+  
+  try {
+    const container = docker.getContainer(id);
+    await container.start();
+    logger.success(`Container ${id} started successfully.`);
+    return { success: true };
+  } catch (error) {
+    logger.error(`[startContainer ${id}] Error starting container:`, error.message || error);
+    // 检查是否是容器不存在的错误
+    if (error.statusCode === 404) {
+      throw new Error(`容器 ${id} 不存在`);
+    } else if (error.statusCode === 304) {
+      logger.warn(`[startContainer ${id}] Container already started.`);
+      return { success: true, message: '容器已启动' }; // 认为已启动也是成功
+    }
+    throw new Error(`启动容器失败: ${error.message}`);
+  }
+}
+
 // 删除容器
 async function deleteContainer(id) {
   const docker = await getDockerConnection();
@@ -387,16 +414,33 @@ async function getStoppedContainers() {
     throw new Error('无法连接到 Docker 守护进程');
   }
   
-  const containers = await docker.listContainers({ 
-    all: true,
-    filters: { status: ['exited', 'dead', 'created'] }
-  });
-  
-  return containers.map(container => ({
-    id: container.Id.slice(0, 12),
-    name: container.Names[0].replace(/^\//, ''),
-    status: container.State
-  }));
+  try {
+    logger.info('正在获取已停止的容器...');
+    const containers = await docker.listContainers({ 
+      all: true,
+      filters: { status: ['exited', 'dead', 'created'] }
+    });
+    
+    logger.info(`找到 ${containers.length} 个已停止的容器`);
+    
+    // 记录每个容器的信息
+    containers.forEach(container => {
+      logger.info(`容器 ID: ${container.Id}, 名称: ${container.Names}, 镜像: ${container.Image}, 状态: ${container.State}`);
+    });
+    
+    const result = containers.map(container => ({
+      id: container.Id.slice(0, 12),
+      name: container.Names[0].replace(/^\//, ''),
+      image: container.Image,
+      status: container.State
+    }));
+    
+    logger.info('已转换容器信息: ' + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    logger.error('获取已停止容器失败:', error);
+    throw error;
+  }
 }
 
 // 获取最近的Docker事件
@@ -468,6 +512,7 @@ module.exports = {
   getContainerStatus,
   restartContainer,
   stopContainer,
+  startContainer,
   deleteContainer,
   updateContainer,
   getContainerLogs,

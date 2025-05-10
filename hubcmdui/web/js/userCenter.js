@@ -167,14 +167,18 @@ function isPasswordComplex(password) {
 function checkUcPasswordStrength() {
     const password = document.getElementById('ucNewPassword').value;
     const strengthSpan = document.getElementById('ucPasswordStrength');
+    const strengthBar = document.getElementById('strengthBar');
     
     if (!password) {
         strengthSpan.textContent = '';
+        if (strengthBar) strengthBar.style.width = '0%';
         return;
     }
     
     let strength = 0;
     let strengthText = '';
+    let strengthColor = '';
+    let strengthWidth = '0%';
     
     // 长度检查
     if (password.length >= 8) strength++;
@@ -194,27 +198,93 @@ function checkUcPasswordStrength() {
         case 0:
         case 1:
             strengthText = '密码强度：非常弱';
-            strengthSpan.style.color = '#FF4136';
+            strengthColor = '#FF4136';
+            strengthWidth = '20%';
             break;
         case 2:
             strengthText = '密码强度：弱';
-            strengthSpan.style.color = '#FF851B';
+            strengthColor = '#FF851B';
+            strengthWidth = '40%';
             break;
         case 3:
             strengthText = '密码强度：中';
-            strengthSpan.style.color = '#FFDC00';
+            strengthColor = '#FFDC00';
+            strengthWidth = '60%';
             break;
         case 4:
             strengthText = '密码强度：强';
-            strengthSpan.style.color = '#2ECC40';
+            strengthColor = '#2ECC40';
+            strengthWidth = '80%';
             break;
         case 5:
             strengthText = '密码强度：非常强';
-            strengthSpan.style.color = '#3D9970';
+            strengthColor = '#3D9970';
+            strengthWidth = '100%';
             break;
     }
     
-    strengthSpan.textContent = strengthText;
+    // 用span元素包裹文本，并设置为不换行
+    strengthSpan.innerHTML = `<span style="white-space: nowrap;">${strengthText}</span>`;
+    strengthSpan.style.color = strengthColor;
+    
+    if (strengthBar) {
+        strengthBar.style.width = strengthWidth;
+        strengthBar.style.backgroundColor = strengthColor;
+    }
+}
+
+// 切换密码可见性
+function togglePasswordVisibility(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleBtn = passwordInput.nextElementSibling.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.classList.remove('fa-eye');
+        toggleBtn.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleBtn.classList.remove('fa-eye-slash');
+        toggleBtn.classList.add('fa-eye');
+    }
+}
+
+// 刷新用户信息
+function refreshUserInfo() {
+    // 显示刷新动画
+    Swal.fire({
+        title: '刷新中...',
+        html: '<i class="fas fa-sync-alt fa-spin"></i> 正在刷新用户信息',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        timer: 1500
+    });
+    
+    // 调用获取用户信息
+    getUserInfo().then(() => {
+        // 更新页面上的用户名称
+        const usernameElement = document.getElementById('profileUsername');
+        const currentUsername = document.getElementById('currentUsername');
+        if (usernameElement && currentUsername) {
+            usernameElement.textContent = currentUsername.textContent || '管理员';
+        }
+        
+        // 显示成功消息
+        Swal.fire({
+            title: '刷新成功',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }).catch(error => {
+        Swal.fire({
+            title: '刷新失败',
+            text: error.message || '无法获取最新用户信息',
+            icon: 'error',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
 }
 
 // 初始化用户中心
@@ -250,7 +320,9 @@ const userCenter = {
     checkUcPasswordStrength,
     initUserCenter,
     loadUserStats,
-    isPasswordComplex
+    isPasswordComplex,
+    togglePasswordVisibility,
+    refreshUserInfo
 };
 
 // 页面加载完成后初始化

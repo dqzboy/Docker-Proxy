@@ -320,10 +320,16 @@
             box-shadow: var(--shadow-md);
             padding: 2rem;
             margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .user-center-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
         }
 
         .user-center-section {
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .user-center-section-title {
@@ -350,7 +356,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .stat-card {
@@ -360,6 +366,19 @@
             padding: 1.5rem;
             border: 1px solid var(--border-light);
             text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
         }
 
         .stat-value {
@@ -372,6 +391,307 @@
         .stat-label {
             color: var(--text-secondary);
             font-size: 0.9rem;
+        }
+
+        /* 新增用户个人资料卡片样式 */
+        .user-profile-card {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-profile-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .user-profile-card::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            left: 30%;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .user-profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            font-size: 2.5rem;
+            margin-right: 1.5rem;
+            z-index: 1;
+        }
+
+        .user-profile-info {
+            flex: 1;
+            z-index: 1;
+        }
+
+        .user-profile-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0 0 0.3rem 0;
+        }
+
+        .user-profile-role {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin: 0 0 1rem 0;
+        }
+
+        .user-profile-badges {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .user-badge {
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .user-badge.admin {
+            background-color: rgba(255, 193, 7, 0.3);
+        }
+
+        .user-badge.active {
+            background-color: rgba(40, 167, 69, 0.3);
+        }
+
+        .user-profile-actions {
+            z-index: 1;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 用户信息网格布局 */
+        .user-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 450px), 1fr));
+            gap: 2rem;
+        }
+
+        /* 系统使用情况样式 */
+        .system-usage-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .usage-stat {
+            width: 100%;
+        }
+
+        .usage-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .usage-label i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .usage-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-radius: 4px;
+        }
+
+        /* 密码表单样式 */
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .password-input-group {
+            display: flex;
+            position: relative;
+        }
+
+        .password-input {
+            flex: 1;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            background-color: var(--container-bg);
+            padding-right: 40px;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .password-toggle-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .password-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+        .password-strength-meter {
+            margin-top: 0.75rem;
+        }
+
+        .strength-bar {
+            height: 6px;
+            background-color: #f0f0f0;
+            border-radius: 3px;
+            margin-bottom: 0.4rem;
+            position: relative;
+        }
+
+        .strength-bar::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-radius: 3px;
+            width: 0;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .strength-text {
+            font-size: 0.8rem;
+        }
+
+        .password-submit-btn {
+            align-self: flex-start;
+            margin-top: 0.5rem;
+        }
+
+        /* 活动列表样式 */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .activity-icon.login {
+            background-color: #4361ee;
+        }
+
+        .activity-icon.container {
+            background-color: #3a86ff;
+        }
+
+        .activity-icon.password {
+            background-color: #f72585;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
         }
 
         .sidebar h2 {
@@ -1784,6 +2104,294 @@
         .swal2-html-container div {
             text-align: center !important;
         }
+
+        /* 下拉菜单样式修复 */
+        .btn-group {
+            position: relative;
+            display: inline-flex;
+            vertical-align: middle;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            z-index: 1050;
+            display: none;
+            min-width: 180px;
+            width: auto;
+            padding: 0;
+            margin: 0.325rem 0 0;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            text-align: left;
+            list-style: none;
+            background-color: #ffffff;
+            background-clip: padding-box;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px) scale(0.98);
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* 当下拉菜单在按钮右侧显示时 */
+        .dropdown-menu.dropdown-menu-right {
+            transform: translateX(10px) scale(0.98);
+        }
+        
+        /* 当下拉菜单在按钮上方显示时 */
+        .dropdown-menu.dropdown-menu-top {
+            transform: translateY(-10px) scale(0.98);
+        }
+        
+        /* 当下拉菜单在按钮右侧且显示时 */
+        .dropdown-menu.dropdown-menu-right.show {
+            transform: translateX(0) scale(1);
+        }
+        
+        /* 当下拉菜单在按钮上方且显示时 */
+        .dropdown-menu.dropdown-menu-top.show {
+            transform: translateY(0) scale(1);
+        }
+        
+        /* 右对齐的下拉菜单 */
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+        
+        .dropdown-header {
+            display: block;
+            padding: 0.5rem 1rem;
+            margin-bottom: 0;
+            font-size: 0.8rem;
+            color: #6c757d;
+            white-space: nowrap;
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+        
+        .dropdown-menu .dropdown-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.7rem 1.25rem;
+            clear: both;
+            font-weight: 400;
+            color: #495057;
+            text-align: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-menu .dropdown-item i {
+            margin-right: 10px;
+            width: 18px;
+            text-align: center;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+        
+        .dropdown-menu .dropdown-item:hover, 
+        .dropdown-menu .dropdown-item:focus {
+            color: #1e70eb;
+            background-color: #f1f7ff;
+            text-decoration: none;
+        }
+        
+        .dropdown-menu .dropdown-item.active,
+        .dropdown-menu .dropdown-item:active {
+            background-color: #e8f1ff;
+            color: #1e70eb;
+        }
+        
+        .dropdown-menu .dropdown-item:hover i, 
+        .dropdown-menu .dropdown-item:focus i {
+            opacity: 1;
+        }
+        
+        .dropdown-divider {
+            height: 0;
+            margin: 0;
+            overflow: hidden;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* 美化操作按钮 */
+        .action-cell .btn-group .btn-primary {
+            background: linear-gradient(to bottom, #4a7bff, #3d66e3);
+            border: none;
+            box-shadow: 0 2px 5px rgba(61, 124, 244, 0.2);
+            padding: 0.45rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: 6px;
+        }
+        
+        .action-cell .btn-group .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(61, 124, 244, 0.3);
+            background: linear-gradient(to bottom, #5a88ff, #4a7bff);
+        }
+        
+        .action-cell .btn-group .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        /* 右对齐的下拉菜单 */
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+        
+        /* 美化表格中的操作列，确保有足够空间显示弹出菜单 */
+        .action-cell {
+            min-width: 120px;
+            position: relative;
+        }
+        
+        /* 确保菜单项样式美观 */
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.7rem 1.25rem;
+            clear: both;
+            font-weight: 400;
+            color: #495057;
+            text-align: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item i {
+            margin-right: 10px;
+            width: 18px;
+            text-align: center;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+        
+        .dropdown-item:hover, .dropdown-item:focus {
+            color: #1e70eb;
+            background-color: rgba(30, 112, 235, 0.08);
+            text-decoration: none;
+        }
+        
+        .dropdown-item:hover i, .dropdown-item:focus i {
+            opacity: 1;
+        }
+        
+        .dropdown-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* 菜单项图标美化 */
+        .dropdown-item .fa-file-alt {
+            color: #17a2b8;
+        }
+        
+        .dropdown-item .fa-info-circle {
+            color: #6c757d;
+        }
+        
+        .dropdown-item .fa-stop {
+            color: #dc3545;
+        }
+        
+        .dropdown-item .fa-play {
+            color: #28a745;
+        }
+        
+        .dropdown-item .fa-sync-alt {
+            color: #ffc107;
+        }
+        
+        .dropdown-item .fa-trash-alt {
+            color: #dc3545;
+        }
+        
+        .dropdown-item .fa-cloud-download-alt {
+            color: #17a2b8;
+        }
+
+        /* 原生select下拉框样式美化 */
+        .simple-dropdown {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 12px;
+            width: 100%;
+            padding: 0.45rem 2rem 0.45rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: #495057;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .simple-dropdown:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        }
+
+        .simple-dropdown:hover {
+            border-color: #adb5bd;
+        }
+
+        .simple-dropdown optgroup {
+            font-weight: 600;
+            color: #343a40;
+            background-color: #f8f9fa;
+            padding: 5px;
+        }
+
+        .simple-dropdown option {
+            font-weight: normal;
+            padding: 8px;
+            background-color: #fff;
+            color: #495057;
+        }
+
+        .simple-dropdown option:hover,
+        .simple-dropdown option:focus {
+            background-color: #f1f7ff;
+            color: #1e70eb;
+        }
+
+        /* Action按钮样式保留，以便保持兼容 */
+        .action-cell .btn-group {
+            display: inline-block;
+            width: 100%;
+        }
+
+        .action-cell .btn-group .btn-primary {
+            display: none; /* 隐藏原始按钮，由select替代 */
+        }
     </style>
 </head>
 <body>
@@ -1856,13 +2464,6 @@
                     <div class="dashboard-grid">
                         <!-- 仪表板卡片将由 systemStatus.initDashboard() 动态生成 -->
                     </div>
-
-                    <div class="dashboard-card">
-                        <h3 class="card-title">最近容器操作</h3>
-                        <table id="recentActivitiesTable">
-                            <!-- 活动表内容将由 systemStatus.refreshSystemStatus() 动态更新 -->
-                        </table>
-                    </div>
                 </div>
 
                 <!-- 基本配置 -->
@@ -1873,13 +2474,13 @@
                             <label for="logoUrl">Logo URL: (可选)</label>
                             <input type="url" id="logoUrl" name="logoUrl" class="form-control">
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="saveConfig({logo: document.getElementById('logoUrl').value})">保存 Logo</button>
+                        <button type="button" class="btn btn-primary" onclick="validateAndSaveConfig('logo')">保存 Logo</button>
                     
                         <div class="form-group" style="margin-top: 2rem;">
                             <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
                             <input type="text" id="proxyDomain" name="proxyDomain" class="form-control" required>
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="saveConfig({proxyDomain: document.getElementById('proxyDomain').value})">保存代理地址</button>
+                        <button type="button" class="btn btn-primary" onclick="validateAndSaveConfig('proxy')">保存代理地址</button>
                     </div>
                 </div>
                 
@@ -2046,9 +2647,10 @@
                         <table id="stoppedContainersTable" class="container-table">
                             <thead>
                                 <tr>
-                                    <th>容器 ID</th>
-                                    <th>名称</th>
-                                    <th>状态</th>
+                                    <th>容器ID</th>
+                                    <th>容器名称</th>
+                                    <th>镜像名称</th>
+                                    <th>运行状态</th>
                                 </tr>
                             </thead>
                             <tbody id="stoppedContainersBody"></tbody>
@@ -2066,40 +2668,67 @@
                         <button class="btn btn-primary" id="ucLogoutBtn" style="display: inline-block;">退出登录</button>
                     </div>
                     
-                    <div class="user-center-card">
-                        <div class="user-center-section">
-                            <h2 class="user-center-section-title">账户信息</h2>
-                            <div class="user-stats">
-                                <div class="stat-card">
-                                    <div class="stat-value" id="loginCount">--</div>
-                                    <div class="stat-label">登录次数</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-value" id="lastLogin">--</div>
-                                    <div class="stat-label">上次登录</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-value" id="accountAge">--</div>
-                                    <div class="stat-label">账户天数</div>
+                    <!-- 个人资料卡片 -->
+                    <div class="user-profile-card">
+                        <div class="user-profile-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="user-profile-info">
+                            <h2 class="user-profile-name" id="profileUsername">管理员</h2>
+                            <p class="user-profile-role">系统管理员</p>
+                            <div class="user-profile-badges">
+                                <span class="user-badge admin"><i class="fas fa-shield-alt"></i> 管理员</span>
+                                <span class="user-badge active"><i class="fas fa-check-circle"></i> 活跃</span>
+                            </div>
+                        </div>
+                        <div class="user-profile-actions">
+                            <button class="btn btn-outline" onclick="userCenter.refreshUserInfo()"><i class="fas fa-sync-alt"></i> 刷新</button>
+                        </div>
+                    </div>
+                    
+                    <div class="user-dashboard-grid">
+                        <!-- 账户信息卡片 -->
+                        <div class="user-center-card">
+                            <div class="user-center-section">
+                                <h2 class="user-center-section-title">账户信息</h2>
+                                <div class="user-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-icon"><i class="fas fa-sign-in-alt"></i></div>
+                                        <div class="stat-value" id="loginCount">--</div>
+                                        <div class="stat-label">登录次数</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                                        <div class="stat-value" id="lastLogin">--</div>
+                                        <div class="stat-label">上次登录</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                                        <div class="stat-value" id="accountAge">--</div>
+                                        <div class="stat-label">账户天数</div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- 移除用户详细信息部分 -->
                         </div>
                         
-                        <div class="user-center-section">
-                            <h2 class="user-center-section-title">修改密码</h2>
-                            <form id="changePasswordForm">
-                                <label for="ucCurrentPassword">当前密码</label>
-                                <input type="password" id="ucCurrentPassword" name="currentPassword">
-                                <label for="ucNewPassword">新密码</label>
-                                <span class="password-hint" id="ucPasswordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
-                                <input type="password" id="ucNewPassword" name="newPassword" oninput="userCenter.checkUcPasswordStrength()">
-                                <label for="ucConfirmPassword">确认新密码</label>
-                                <input type="password" id="ucConfirmPassword" name="confirmPassword">
-                                <span id="ucPasswordStrength" style="color: red;"></span>
-                                <button type="submit" class="btn btn-primary">修改密码</button>
-                            </form>
+                        <!-- 密码修改卡片 -->
+                        <div class="user-center-card">
+                            <div class="user-center-section">
+                                <h2 class="user-center-section-title">修改密码</h2>
+                                <form id="changePasswordForm">
+                                    <label for="ucCurrentPassword">当前密码</label>
+                                    <input type="password" id="ucCurrentPassword" name="currentPassword">
+                                    <label for="ucNewPassword">新密码</label>
+                                    <span class="password-hint" id="ucPasswordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
+                                    <input type="password" id="ucNewPassword" name="newPassword" oninput="userCenter.checkUcPasswordStrength()">
+                                    <label for="ucConfirmPassword">确认新密码</label>
+                                    <input type="password" id="ucConfirmPassword" name="confirmPassword">
+                                    <div style="display: flex; align-items: center; margin-top: 10px;">
+                                        <button type="submit" class="btn btn-primary">修改密码</button>
+                                        <span id="ucPasswordStrength" style="color: red; white-space: nowrap; display: inline-block; margin-left: 15px;"></span>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2189,6 +2818,11 @@
             // 确保saveConfig可用
             window.saveConfig = window.app ? window.app.saveConfig : function(data) {
                 console.error('saveConfig未定义');
+            };
+            
+            // 确保validateAndSaveConfig可用
+            window.validateAndSaveConfig = window.app ? window.app.validateAndSaveConfig : function(type) {
+                console.error('validateAndSaveConfig未定义');
             };
         });
     </script>

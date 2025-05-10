@@ -29,35 +29,167 @@ const dockerManager = {
 
     // 初始化Bootstrap下拉菜单组件
     initDropdowns: function() {
-        // 减少日志输出
-        // console.log('[dockerManager] Initializing Bootstrap dropdowns...');
-        
-        // 直接初始化，不使用setTimeout避免延迟导致的问题
         try {
-            // 动态初始化所有下拉菜单
+            console.log('[dockerManager] 初始化下拉菜单...');
+            
+            // 动态初始化所有下拉菜单按钮
             const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+            console.log(`[dockerManager] 找到 ${dropdownElements.length} 个下拉元素`);
+            
             if (dropdownElements.length === 0) {
                 return; // 如果没有找到下拉元素，直接返回
             }
             
-            if (window.bootstrap && window.bootstrap.Dropdown) {
+            // 尝试使用所有可能的Bootstrap初始化方法
+            if (window.bootstrap && typeof window.bootstrap.Dropdown !== 'undefined') {
+                console.log('[dockerManager] 使用 Bootstrap 5 初始化下拉菜单');
                 dropdownElements.forEach(el => {
                     try {
                         new window.bootstrap.Dropdown(el);
                     } catch (e) {
-                        // 静默处理错误，不要输出到控制台
+                        console.error('Bootstrap 5 下拉菜单初始化错误:', e);
                     }
                 });
+            } else if (typeof $ !== 'undefined' && typeof $.fn.dropdown !== 'undefined') {
+                console.log('[dockerManager] 使用 jQuery Bootstrap 初始化下拉菜单');
+                $(dropdownElements).dropdown();
             } else {
-                console.warn('Bootstrap Dropdown 组件未找到，将尝试使用jQuery初始化');
-                // 尝试使用jQuery初始化（如果存在）
-                if (window.jQuery) {
-                    window.jQuery('[data-bs-toggle="dropdown"]').dropdown();
-                }
+                console.warn('[dockerManager] 未找到Bootstrap下拉菜单组件，将使用手动下拉实现');
+                this.setupManualDropdowns();
             }
         } catch (error) {
-            // 静默处理错误
+            console.error('[dockerManager] 初始化下拉菜单错误:', error);
+            // 失败时使用备用方案
+            this.setupManualDropdowns();
         }
+    },
+
+    // 手动实现下拉菜单功能（备用方案）
+    setupManualDropdowns: function() {
+        console.log('[dockerManager] 设置手动下拉菜单...');
+        
+        // 为所有下拉菜单按钮添加点击事件
+        document.querySelectorAll('.btn-group .dropdown-toggle').forEach(button => {
+            // 移除旧事件监听器
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // 添加新事件监听器
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // 查找关联的下拉菜单
+                const dropdownMenu = this.nextElementSibling;
+                if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) {
+                    return;
+                }
+                
+                // 切换显示/隐藏
+                const isVisible = dropdownMenu.classList.contains('show');
+                
+                // 先隐藏所有其他打开的下拉菜单
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+                
+                // 切换当前菜单
+                if (!isVisible) {
+                    dropdownMenu.classList.add('show');
+                    
+                    // 计算位置 - 精确计算确保菜单位置更美观
+                    const buttonRect = newButton.getBoundingClientRect();
+                    const tableCell = newButton.closest('td');
+                    const tableCellRect = tableCell ? tableCell.getBoundingClientRect() : buttonRect;
+                    
+                    // 设置最小宽度，确保下拉菜单够宽
+                    const minWidth = Math.max(180, buttonRect.width * 1.5);
+                    dropdownMenu.style.minWidth = `${minWidth}px`;
+                    
+                    // 设置绝对定位
+                    dropdownMenu.style.position = 'absolute';
+                    
+                    // 根据屏幕空间计算最佳位置
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    const spaceRight = viewportWidth - buttonRect.right;
+                    const spaceBottom = viewportHeight - buttonRect.bottom;
+                    const spaceAbove = buttonRect.top;
+                    
+                    // 先移除所有位置相关的类
+                    dropdownMenu.classList.remove('dropdown-menu-top', 'dropdown-menu-right');
+                    
+                    // 设置为右对齐，且显示在按钮上方
+                    dropdownMenu.style.right = '0';
+                    dropdownMenu.style.left = 'auto';
+                    
+                    // 计算菜单高度 (假设每个菜单项高度为40px，分隔线10px)
+                    const menuItemCount = dropdownMenu.querySelectorAll('.dropdown-item').length;
+                    const dividerCount = dropdownMenu.querySelectorAll('.dropdown-divider').length;
+                    const estimatedMenuHeight = (menuItemCount * 40) + (dividerCount * 10) + 20; // 加上padding
+                    
+                    // 优先显示在按钮上方，如果空间不足则显示在下方
+                    if (spaceAbove >= estimatedMenuHeight && spaceAbove > spaceBottom) {
+                        // 显示在按钮上方
+                        dropdownMenu.style.bottom = `${buttonRect.height + 5}px`; // 5px间距
+                        dropdownMenu.style.top = 'auto';
+                        // 设置动画原点为底部
+                        dropdownMenu.style.transformOrigin = 'bottom right';
+                        // 添加上方显示的类
+                        dropdownMenu.classList.add('dropdown-menu-top');
+                    } else {
+                        // 显示在右侧而不是正下方
+                        if (spaceRight >= minWidth && tableCellRect.width > buttonRect.width + 20) {
+                            // 有足够的右侧空间，显示在按钮右侧
+                            dropdownMenu.style.top = '0';
+                            dropdownMenu.style.left = `${buttonRect.width + 5}px`; // 5px间距
+                            dropdownMenu.style.right = 'auto';
+                            dropdownMenu.style.bottom = 'auto';
+                            dropdownMenu.style.transformOrigin = 'left top';
+                            // 添加右侧显示的类
+                            dropdownMenu.classList.add('dropdown-menu-right');
+                        } else {
+                            // 显示在按钮下方，但尝试右对齐
+                            dropdownMenu.style.top = `${buttonRect.height + 5}px`; // 5px间距
+                            dropdownMenu.style.bottom = 'auto';
+                            
+                            // 如果下拉菜单宽度超过右侧可用空间，则左对齐显示
+                            if (minWidth > spaceRight) {
+                                dropdownMenu.style.right = 'auto';
+                                dropdownMenu.style.left = '0';
+                            } else {
+                                // 继续使用右对齐
+                                dropdownMenu.classList.add('dropdown-menu-end');
+                            }
+                            
+                            dropdownMenu.style.transformOrigin = 'top right';
+                        }
+                    }
+                    
+                    // 清除其他可能影响布局的样式
+                    dropdownMenu.style.margin = '0';
+                    dropdownMenu.style.maxHeight = '85vh';
+                    dropdownMenu.style.overflowY = 'auto';
+                    dropdownMenu.style.zIndex = '1050'; // 确保在表格上方
+                }
+                
+                // 点击其他区域关闭下拉菜单
+                const closeHandler = function(event) {
+                    if (!dropdownMenu.contains(event.target) && !newButton.contains(event.target)) {
+                        dropdownMenu.classList.remove('show');
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                
+                // 只在打开菜单时添加全局点击监听
+                if (!isVisible) {
+                    // 延迟一点添加事件，避免立即触发
+                    setTimeout(() => {
+                        document.addEventListener('click', closeHandler);
+                    }, 10);
+                }
+            });
+        });
     },
 
     // 显示表格加载状态 - 保持，用于初始渲染和刷新
@@ -89,6 +221,9 @@ const dockerManager = {
                     const refreshBtn = document.getElementById('refreshDockerBtn');
                     if (refreshBtn) {
                         refreshBtn.addEventListener('click', () => {
+                            // 显示加载状态，提高用户体验
+                            this.showRefreshingState(refreshBtn);
+                            
                             if (window.systemStatus && typeof window.systemStatus.refreshSystemStatus === 'function') {
                                 window.systemStatus.refreshSystemStatus();
                             }
@@ -107,11 +242,11 @@ const dockerManager = {
             if (thead) {
                 thead.innerHTML = ` 
                     <tr>
-                        <th style="width: 120px;">容器ID</th>
-                        <th style="width: 25%;">容器名称</th>
-                        <th style="width: 35%;">镜像名称</th>
-                        <th style="width: 100px;">运行状态</th>
-                        <th style="width: 150px;">操作</th>
+                        <th style="width: 12%;">容器ID</th>
+                        <th style="width: 18%;">容器名称</th>
+                        <th style="width: 30%;">镜像名称</th>
+                        <th style="width: 15%;">运行状态</th>
+                        <th style="width: 15%;">操作</th>
                     </tr>
                 `;
             }
@@ -127,13 +262,150 @@ const dockerManager = {
                     </td>
                 </tr>
             `;
+            
+            // 添加表格样式
+            this.applyTableStyles(table);
         }
+    },
+
+    // 新增：显示刷新中状态
+    showRefreshingState(refreshBtn) {
+        if (!refreshBtn) return;
+        
+        // 保存原始按钮内容
+        const originalContent = refreshBtn.innerHTML;
+        
+        // 更改为加载状态
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> 刷新中...';
+        refreshBtn.disabled = true;
+        refreshBtn.classList.add('refreshing');
+        
+        // 添加样式使按钮看起来正在加载
+        const style = document.createElement('style');
+        style.textContent = `
+            .btn.refreshing {
+                opacity: 0.8;
+                cursor: not-allowed;
+            }
+            @keyframes pulse {
+                0% { opacity: 0.6; }
+                50% { opacity: 1; }
+                100% { opacity: 0.6; }
+            }
+            .btn.refreshing i {
+                animation: pulse 1.5s infinite;
+            }
+            .table-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(255, 255, 255, 0.7);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 10;
+                border-radius: 0.25rem;
+            }
+            .table-overlay .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 10px;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        
+        // 检查是否已经添加了样式
+        const existingStyle = document.querySelector('style[data-for="refresh-button"]');
+        if (!existingStyle) {
+            style.setAttribute('data-for', 'refresh-button');
+            document.head.appendChild(style);
+        }
+        
+        // 获取表格和容器
+        const table = document.getElementById('dockerStatusTable');
+        const tableContainer = document.getElementById('dockerTableContainer');
+        
+        // 移除任何现有的覆盖层
+        const existingOverlay = document.querySelector('.table-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        // 创建一个覆盖层而不是替换表格内容
+        if (table) {
+            // 设置表格容器为相对定位，以便正确放置覆盖层
+            if (tableContainer) {
+                tableContainer.style.position = 'relative';
+            } else {
+                table.parentNode.style.position = 'relative';
+            }
+            
+            // 创建覆盖层
+            const overlay = document.createElement('div');
+            overlay.className = 'table-overlay';
+            overlay.innerHTML = `
+                <div class="spinner"></div>
+                <p>正在更新容器列表...</p>
+            `;
+            
+            // 获取表格的位置并设置覆盖层
+            const tableRect = table.getBoundingClientRect();
+            overlay.style.width = `${table.offsetWidth}px`;
+            overlay.style.height = `${table.offsetHeight}px`;
+            
+            // 将覆盖层添加到表格容器
+            if (tableContainer) {
+                tableContainer.appendChild(overlay);
+            } else {
+                table.parentNode.appendChild(overlay);
+            }
+        }
+        
+        // 设置超时，防止永久加载状态
+        setTimeout(() => {
+            // 如果按钮仍处于加载状态，恢复为原始状态
+            if (refreshBtn.classList.contains('refreshing')) {
+                refreshBtn.innerHTML = originalContent;
+                refreshBtn.disabled = false;
+                refreshBtn.classList.remove('refreshing');
+                
+                // 移除覆盖层
+                const overlay = document.querySelector('.table-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+            }
+        }, 10000); // 10秒超时
     },
 
     // 渲染容器表格 - 核心渲染函数，由 systemStatus 调用
     renderContainersTable(containers, dockerStatus) {
         // 减少详细日志输出
         // console.log(`[dockerManager] Rendering containers table. Containers count: ${containers ? containers.length : 0}`);
+        
+        // 重置刷新按钮状态
+        const refreshBtn = document.getElementById('refreshDockerBtn');
+        if (refreshBtn && refreshBtn.classList.contains('refreshing')) {
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> 刷新列表';
+            refreshBtn.disabled = false;
+            refreshBtn.classList.remove('refreshing');
+            
+            // 移除覆盖层
+            const overlay = document.querySelector('.table-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
         
         const tbody = document.getElementById('dockerStatusTableBody');
         if (!tbody) {
@@ -149,11 +421,11 @@ const dockerManager = {
                 const newThead = thead || document.createElement('thead');
                 newThead.innerHTML = ` 
                     <tr>
-                        <th style="width: 120px;">容器ID</th>
-                        <th style="width: 25%;">容器名称</th>
-                        <th style="width: 35%;">镜像名称</th>
-                        <th style="width: 100px;">运行状态</th>
-                        <th style="width: 150px;">操作</th>
+                        <th style="width: 12%;">容器ID</th>
+                        <th style="width: 18%;">容器名称</th>
+                        <th style="width: 30%;">镜像名称</th>
+                        <th style="width: 15%;">运行状态</th>
+                        <th style="width: 15%;">操作</th>
                     </tr>
                 `;
                 
@@ -161,6 +433,9 @@ const dockerManager = {
                     table.insertBefore(newThead, tbody);
                 }
             }
+            
+            // 应用表格样式
+            this.applyTableStyles(table);
         }
 
         // 1. 检查 Docker 服务状态
@@ -198,61 +473,50 @@ const dockerManager = {
             
             // 添加lowerStatus变量定义，修复错误
             const lowerStatus = status.toLowerCase();
-
-            // 替换下拉菜单实现为直接的操作按钮
-            let actionButtons = '';
             
-            // 基本操作：查看日志和详情
-            actionButtons += `
-                <button class="btn btn-sm btn-outline-info mb-1 mr-1 action-logs" data-id="${containerId}" data-name="${containerName}">
-                    <i class="fas fa-file-alt"></i> 日志
-                </button>
-                <button class="btn btn-sm btn-outline-secondary mb-1 mr-1 action-details" data-id="${containerId}">
-                    <i class="fas fa-info-circle"></i> 详情
-                </button>
+            // 创建按钮组，使用标准Bootstrap 5下拉菜单语法
+            let actionButtons = `
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle simple-dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        操作
+                    </button>
+                    <select class="simple-dropdown">
+                        <option value="" selected disabled>选择操作</option>
+                        <option class="dropdown-item action-logs" data-id="${containerId}" data-name="${containerName}">查看日志</option>
             `;
             
-            // 根据状态显示不同操作
+            // 根据状态添加不同的操作选项
             if (lowerStatus.includes('running')) {
                 actionButtons += `
-                    <button class="btn btn-sm btn-outline-warning mb-1 mr-1 action-stop" data-id="${containerId}">
-                        <i class="fas fa-stop"></i> 停止
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary mb-1 mr-1 action-restart" data-id="${containerId}">
-                        <i class="fas fa-sync-alt"></i> 重启
-                    </button>
+                        <option class="dropdown-item action-stop" data-id="${containerId}">停止容器</option>
                 `;
             } else if (lowerStatus.includes('exited') || lowerStatus.includes('stopped') || lowerStatus.includes('created')) {
                 actionButtons += `
-                    <button class="btn btn-sm btn-outline-success mb-1 mr-1 action-start" data-id="${containerId}">
-                        <i class="fas fa-play"></i> 启动
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger mb-1 mr-1 action-remove" data-id="${containerId}">
-                        <i class="fas fa-trash-alt"></i> 删除
-                    </button>
+                        <option class="dropdown-item action-start" data-id="${containerId}">启动容器</option>
                 `;
             } else if (lowerStatus.includes('paused')) {
                 actionButtons += `
-                    <button class="btn btn-sm btn-outline-success mb-1 mr-1 action-unpause" data-id="${containerId}">
-                        <i class="fas fa-play"></i> 恢复
-                    </button>
+                        <option class="dropdown-item action-unpause" data-id="${containerId}">恢复容器</option>
                 `;
             }
             
-            // 更新容器按钮（总是显示）
+            // 重启和删除操作对所有状态都可用
             actionButtons += `
-                <button class="btn btn-sm btn-outline-primary mb-1 mr-1 action-update" data-id="${containerId}" data-image="${containerImage || ''}">
-                    <i class="fas fa-cloud-download-alt"></i> 更新
-                </button>
+                        <option class="dropdown-item action-restart" data-id="${containerId}">重启容器</option>
+                        <option class="dropdown-item action-stop" data-id="${containerId}">停止容器</option>
+                        <option class="dropdown-item action-remove" data-id="${containerId}">删除容器</option>
+                        <option class="dropdown-item action-update" data-id="${containerId}" data-image="${containerImage || ''}">更新容器</option>
+                    </select>
+                </div>
             `;
 
             html += `
                 <tr>
-                    <td data-label="ID" title="${containerId}">${containerId.substring(0, 12)}</td>
-                    <td data-label="名称" title="${containerName}">${containerName}</td>
-                    <td data-label="镜像" title="${containerImage}">${containerImage}</td>
-                    <td data-label="状态"><span class="badge ${statusClass}">${status}</span></td>
-                    <td data-label="操作" class="action-cell">
+                    <td data-label="ID" title="${containerId}" class="text-center">${containerId.substring(0, 12)}</td>
+                    <td data-label="名称" title="${containerName}" class="text-center">${containerName}</td>
+                    <td data-label="镜像" title="${containerImage}" class="text-center">${containerImage}</td>
+                    <td data-label="状态" class="text-center"><span class="badge ${statusClass}">${status}</span></td>
+                    <td data-label="操作" class="action-cell text-center">
                         <div class="action-buttons">
                             ${actionButtons}
                         </div>
@@ -265,54 +529,90 @@ const dockerManager = {
         
         // 为所有操作按钮绑定事件
         this.setupButtonListeners();
+        
+        // 确保在内容渲染后立即初始化下拉菜单
+        setTimeout(() => {
+            this.initDropdowns();
+            // 备用方法：直接为下拉菜单按钮添加点击事件
+            this.setupManualDropdowns();
+        }, 100); // 增加延迟确保DOM完全渲染
     },
     
-    // 为所有操作按钮绑定事件
+    // 为所有操作按钮绑定事件 - 简化此方法，专注于直接点击处理
     setupButtonListeners() {
-        // 查找所有操作按钮并绑定点击事件
-        document.querySelectorAll('.action-cell button').forEach(button => {
-            const action = Array.from(button.classList).find(cls => cls.startsWith('action-'));
-            if (!action) return;
-            
-            const containerId = button.dataset.id;
-            if (!containerId) return;
-            
-            button.addEventListener('click', (event) => {
+        // 为下拉框选择事件添加处理逻辑
+        document.querySelectorAll('.action-cell .simple-dropdown').forEach(select => {
+            select.addEventListener('change', (event) => {
                 event.preventDefault();
-                const containerName = button.dataset.name;
-                const containerImage = button.dataset.image;
                 
-                switch (action) {
-                    case 'action-logs':
-                        this.showContainerLogs(containerId, containerName);
-                        break;
-                    case 'action-details':
-                        this.showContainerDetails(containerId);
-                        break;
-                    case 'action-stop':
-                        this.stopContainer(containerId);
-                        break;
-                    case 'action-start':
-                        this.startContainer(containerId);
-                        break;
-                    case 'action-restart':
-                        this.restartContainer(containerId);
-                        break;
-                    case 'action-remove':
-                        this.removeContainer(containerId);
-                        break;
-                    case 'action-unpause':
-                        // this.unpauseContainer(containerId); // 假设有这个函数
-                        console.warn('Unpause action not implemented yet.');
-                        break;
-                    case 'action-update':
-                        this.updateContainer(containerId, containerImage);
-                        break;
-                    default:
-                        console.warn('Unknown action:', action);
-                }
+                const selectedOption = select.options[select.selectedIndex];
+                if (!selectedOption || selectedOption.disabled) return;
+                
+                const action = Array.from(selectedOption.classList).find(cls => cls.startsWith('action-'));
+                if (!action) return;
+                
+                const containerId = selectedOption.getAttribute('data-id');
+                if (!containerId) return;
+                
+                const containerName = selectedOption.getAttribute('data-name');
+                const containerImage = selectedOption.getAttribute('data-image');
+                
+                console.log('处理容器操作:', action, '容器ID:', containerId);
+                
+                // 执行对应的容器操作
+                this.handleContainerAction(action, containerId, containerName, containerImage);
+                
+                // 重置选择，以便下次可以再次选择相同选项
+                select.selectedIndex = 0;
             });
         });
+        
+        // 让下拉框按钮隐藏，只显示select元素
+        document.querySelectorAll('.simple-dropdown-toggle').forEach(button => {
+            button.style.display = 'none';
+        });
+        
+        // 样式化select元素
+        document.querySelectorAll('.simple-dropdown').forEach(select => {
+            select.style.display = 'block';
+            select.style.width = '100%';
+            select.style.padding = '0.375rem 0.75rem';
+            select.style.fontSize = '0.875rem';
+            select.style.borderRadius = '0.25rem';
+            select.style.border = '1px solid #ced4da';
+            select.style.backgroundColor = '#fff';
+        });
+    },
+    
+    // 处理容器操作的统一方法
+    handleContainerAction(action, containerId, containerName, containerImage) {
+        console.log('Handling container action:', action, 'for container:', containerId);
+        
+        switch (action) {
+            case 'action-logs':
+                this.showContainerLogs(containerId, containerName);
+                break;
+            case 'action-stop':
+                this.stopContainer(containerId);
+                break;
+            case 'action-start':
+                this.startContainer(containerId);
+                break;
+            case 'action-restart':
+                this.restartContainer(containerId);
+                break;
+            case 'action-remove':
+                this.removeContainer(containerId);
+                break;
+            case 'action-unpause':
+                console.warn('Unpause action not implemented yet.');
+                break;
+            case 'action-update':
+                this.updateContainer(containerId, containerImage);
+                break;
+            default:
+                console.warn('Unknown action:', action);
+        }
     },
     
     // 获取容器状态对应的 CSS 类 - 保持
@@ -326,13 +626,14 @@ const dockerManager = {
         return 'status-unknown';
     },
     
-    // 设置下拉菜单动作的事件监听 (委托方法 - 现在直接使用按钮，不再需要)
+    // 设置下拉菜单动作的事件监听 - 简化为空方法，因为使用原生select不需要
     setupActionDropdownListener() {
-        // 这个方法留作兼容性，但实际上我们现在直接使用按钮而非下拉菜单
+        // 不需要特殊处理，使用原生select元素的change事件
     },
 
-    // 查看日志 (示例：用 SweetAlert 显示)
+    // 查看日志
     async showContainerLogs(containerId, containerName) {
+        console.log('正在获取日志，容器ID:', containerId, '容器名称:', containerName);
         core.showLoading('正在加载日志...');
         try {
             // 注意: 后端 /api/docker/containers/:id/logs 需要存在并返回日志文本
@@ -357,7 +658,7 @@ const dockerManager = {
         } catch (error) {
             core.hideLoading();
             core.showAlert(`查看日志失败: ${error.message}`, 'error');
-            logger.error(`[dockerManager] Error fetching logs for ${containerId}:`, error);
+            console.error(`[dockerManager] Error fetching logs for ${containerId}:`, error);
         }
     },
     
@@ -423,6 +724,11 @@ const dockerManager = {
             }
             core.showAlert(data.message || '容器停止成功', 'success');
             systemStatus.refreshSystemStatus(); // 刷新整体状态
+            
+            // 刷新已停止容器列表
+            if (window.app && typeof window.app.refreshStoppedContainers === 'function') {
+                window.app.refreshStoppedContainers();
+            }
         } catch (error) {
             core.hideLoading();
             core.showAlert(`停止容器失败: ${error.message}`, 'error');
@@ -491,6 +797,7 @@ const dockerManager = {
             cancelButtonText: '取消',
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
+            width: '36em', // 增加弹窗宽度
             inputValidator: (value) => {
                 if (!value || value.trim() === '') {
                     return '镜像标签不能为空!';
@@ -511,6 +818,37 @@ const dockerManager = {
                 confirmButton: 'update-confirm',
                 cancelButton: 'update-cancel',
                 footer: 'update-footer'
+            },
+            // 添加自定义CSS
+            didOpen: () => {
+                // 修复输入框宽度
+                const inputElement = Swal.getInput();
+                if (inputElement) {
+                    inputElement.style.maxWidth = '100%';
+                    inputElement.style.width = '100%';
+                    inputElement.style.boxSizing = 'border-box';
+                    inputElement.style.margin = '0';
+                    inputElement.style.padding = '0.5rem';
+                }
+                
+                // 修复输入标签宽度
+                const inputLabel = Swal.getPopup().querySelector('.swal2-input-label');
+                if (inputLabel) {
+                    inputLabel.style.whiteSpace = 'normal';
+                    inputLabel.style.textAlign = 'left';
+                    inputLabel.style.width = '100%';
+                    inputLabel.style.padding = '0 10px';
+                    inputLabel.style.boxSizing = 'border-box';
+                    inputLabel.style.marginBottom = '0.5rem';
+                }
+                
+                // 调整弹窗内容区域
+                const content = Swal.getPopup().querySelector('.swal2-content');
+                if (content) {
+                    content.style.padding = '0 1.5rem';
+                    content.style.boxSizing = 'border-box';
+                    content.style.width = '100%';
+                }
             }
         });
 
@@ -670,6 +1008,58 @@ const dockerManager = {
                 console.warn('[dockerManager] Troubleshoot button not found for binding.');
             }
         }, 0); // 延迟 0ms 执行，让浏览器有机会渲染
+    },
+
+    // 新增方法: 应用表格样式
+    applyTableStyles(table) {
+        if (!table) return;
+        
+        // 添加基本样式
+        table.style.width = "100%";
+        table.style.tableLayout = "auto";
+        table.style.borderCollapse = "collapse";
+        
+        // 设置表头样式
+        const thead = table.querySelector('thead');
+        if (thead) {
+            thead.style.backgroundColor = "#f8f9fa";
+            thead.style.fontWeight = "bold";
+            const thCells = thead.querySelectorAll('th');
+            thCells.forEach(th => {
+                th.style.textAlign = "center";
+                th.style.padding = "10px 8px";
+                th.style.verticalAlign = "middle";
+            });
+        }
+        
+        // 添加响应式样式
+        const style = document.createElement('style');
+        style.textContent = `
+            #dockerStatusTable {
+                width: 100%;
+                table-layout: auto;
+            }
+            #dockerStatusTable th, #dockerStatusTable td {
+                text-align: center;
+                vertical-align: middle;
+                padding: 8px;
+            }
+            #dockerStatusTable td.action-cell {
+                padding: 4px;
+            }
+            @media (max-width: 768px) {
+                #dockerStatusTable {
+                    table-layout: fixed;
+                }
+            }
+        `;
+        
+        // 检查是否已经添加了样式
+        const existingStyle = document.querySelector('style[data-for="dockerStatusTable"]');
+        if (!existingStyle) {
+            style.setAttribute('data-for', 'dockerStatusTable');
+            document.head.appendChild(style);
+        }
     }
 };
 

@@ -47,15 +47,32 @@ module.exports = function(app) {
     }
   });
   
-  // 停止容器列表接口
-  app.get('/api/stopped-containers', requireLogin, async (req, res) => {
+  // 获取已停止的容器接口
+  app.get('/api/stopped-containers', async (req, res) => {
     try {
-      const monitoringService = require('./services/monitoringService');
-      const stoppedContainers = await monitoringService.getStoppedContainers();
-      res.json(stoppedContainers);
-    } catch (error) {
-      logger.error('获取已停止容器列表失败:', error);
-      res.status(500).json({ error: '获取已停止容器列表失败', details: error.message });
+      logger.info('兼容层处理获取已停止容器请求');
+      const { exec } = require('child_process');
+      const util = require('util');
+      const execPromise = util.promisify(exec);
+      
+      const { stdout } = await execPromise('docker ps -f "status=exited" --format "{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}"');
+      
+      const containers = stdout.trim().split('\n')
+        .filter(line => line.trim())
+        .map(line => {
+          const [id, name, image, ...statusParts] = line.split('\t');
+          return {
+            id: id.substring(0, 12),
+            name,
+            image,
+            status: statusParts.join(' ')
+          };
+        });
+      
+      res.json(containers);
+    } catch (err) {
+      logger.error('获取已停止容器失败:', err);
+      res.status(500).json({ error: '获取已停止容器失败', details: err.message });
     }
   });
   
@@ -442,34 +459,6 @@ module.exports = function(app) {
     } catch (err) {
       logger.error('发送测试通知失败:', err);
       res.status(500).json({ error: '发送测试通知失败: ' + err.message });
-    }
-  });
-  
-  // 获取已停止的容器接口
-  app.get('/api/stopped-containers', requireLogin, async (req, res) => {
-    try {
-      logger.info('兼容层处理获取已停止容器请求');
-      const { exec } = require('child_process');
-      const util = require('util');
-      const execPromise = util.promisify(exec);
-      
-      const { stdout } = await execPromise('docker ps -f "status=exited" --format "{{.ID}}\\t{{.Names}}\\t{{.Status}}"');
-      
-      const containers = stdout.trim().split('\n')
-        .filter(line => line.trim())
-        .map(line => {
-          const [id, name, ...statusParts] = line.split('\t');
-          return {
-            id: id.substring(0, 12),
-            name,
-            status: statusParts.join(' ')
-          };
-        });
-      
-      res.json(containers);
-    } catch (err) {
-      logger.error('获取已停止容器失败:', err);
-      res.status(500).json({ error: '获取已停止容器失败', details: err.message });
     }
   });
   

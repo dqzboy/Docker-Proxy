@@ -143,6 +143,11 @@ async function refreshSystemStatus() {
                 timer: 3000
             });
         }
+
+        // 刷新已停止容器列表
+        if (window.app && typeof window.app.refreshStoppedContainers === 'function') {
+            window.app.refreshStoppedContainers();
+        }
     } catch (error) {
         // logger.error('刷新系统状态出错:', error);
         showSystemStatusError(error.message);
