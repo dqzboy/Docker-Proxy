@@ -51,23 +51,9 @@ module.exports = function(app) {
   app.get('/api/stopped-containers', async (req, res) => {
     try {
       logger.info('兼容层处理获取已停止容器请求');
-      const { exec } = require('child_process');
-      const util = require('util');
-      const execPromise = util.promisify(exec);
+      const dockerService = require('./services/dockerService');
       
-      const { stdout } = await execPromise('docker ps -f "status=exited" --format "{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}"');
-      
-      const containers = stdout.trim().split('\n')
-        .filter(line => line.trim())
-        .map(line => {
-          const [id, name, image, ...statusParts] = line.split('\t');
-          return {
-            id: id.substring(0, 12),
-            name,
-            image,
-            status: statusParts.join(' ')
-          };
-        });
+      const containers = await dockerService.getStoppedContainers();
       
       res.json(containers);
     } catch (err) {

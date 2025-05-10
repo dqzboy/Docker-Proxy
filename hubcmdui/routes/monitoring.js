@@ -163,23 +163,8 @@ router.post('/test-notification', requireLogin, async (req, res) => {
 // 获取已停止的容器
 router.get('/stopped-containers', async (req, res) => {
     try {
-        const { exec } = require('child_process');
-        const util = require('util');
-        const execPromise = util.promisify(exec);
-        
-        const { stdout } = await execPromise('docker ps -f "status=exited" --format "{{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}"');
-        
-        const containers = stdout.trim().split('\n')
-            .filter(line => line.trim())
-            .map(line => {
-                const [id, name, image, ...statusParts] = line.split('\t');
-                return {
-                    id: id.substring(0, 12),
-                    name,
-                    image,
-                    status: statusParts.join(' ')
-                };
-            });
+        const dockerService = require('../services/dockerService');
+        const containers = await dockerService.getStoppedContainers();
         
         res.json(containers);
     } catch (err) {
