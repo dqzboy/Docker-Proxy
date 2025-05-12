@@ -33,7 +33,7 @@
 
   - - 要是调度程序正常清理旧数据，需要配置中将 `delete` 开启（本项目默认已开启）
 
-#### 4、使用镜像加速拉取`hub`公共空间下的镜像时如何不添加`library`
+#### 4、使用镜像加速拉取`hub`公共空间下的镜像时兼容不添加`library`的情况
 
 - 此方案来自交流群里大佬提供，通过nginx实现并实测
 ```shell
@@ -50,12 +50,20 @@ http {
         server_name hub.your_domain.com;
 
         # 在docker hub的配置中添加下面的location规则
-        location ^~ / {
-            if ($request_uri ~  ^/v2/([^/]+)/(manifests|blobs)/(.*)$) {
-                    # 重写路径并添加 library/
-                    rewrite ^/v2/(.*)$ /v2/library/$1 break;
-            }
+        location ~ ^/v2/([^/]+)/(manifests|blobs)/(.*)$ {
+            rewrite ^/v2/(.*)$ /v2/library/$1 break;
+            proxy_pass http://127.0.0.1:51000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header REMOTE-HOST $remote_addr;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_http_version 1.1;
+            add_header X-Cache $upstream_cache_status;
+        }
 
+        location  / {
             proxy_pass http://127.0.0.1:51000;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
