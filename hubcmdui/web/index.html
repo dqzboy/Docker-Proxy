@@ -539,7 +539,7 @@
             let originalImage = `${imageName}:${tag}`;
             let proxyImage = '';
             if (!imageName.includes('/')) {
-                proxyImage = `${proxyDomain}/${imageName}:${tag}`;
+                proxyImage = `${proxyDomain}/library/${imageName}:${tag}`;
             } else {
                 proxyImage = `${proxyDomain}/${imageName}:${tag}`;
             }
