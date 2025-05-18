@@ -774,11 +774,10 @@
                 </div>
                 <p class="result-description">${description}</p>
                 <div class="result-actions">
-                    <button class="action-btn primary" onclick="useImage('${(result.name || result.repo_name).replace(/'/g, "\\'")}')">
+		    <button class="action-btn primary" onclick="useImage('${(result.name || result.repo_name).replace(/'/g, "\\'")}')">
                         <i class="fas fa-rocket"></i> 使用此镜像
                     </button>
-                    <button class="action-btn secondary" onclick="viewImageDetails('${(result.name || result.repo_name).replace(/'/g, "\\'")}', ${isOfficial}, '${encodeURIComponent(description).replace(/'/g, "%2
-7")}', ${result.star_count || 0}, ${result.pull_count || 0})">
+		    <button class="action-btn secondary" onclick="viewImageDetails('${(result.name || result.repo_name).replace(/'/g, "\\'")}', ${isOfficial}, '${encodeURIComponent(description).replace(/'/g, "%27")}', ${result.star_count || 0}, ${result.pull_count || 0})">
                         <i class="fas fa-tags"></i> 查看标签
                     </button>
                 </div>
@@ -885,8 +884,8 @@
                         <div class="error-message">
                             <i class="fas fa-exclamation-circle"></i>
                             <p>加载镜像详情失败: ${error.message}</p>
-                            <button onclick="viewImageDetails('${currentImageData.name.replace(/'/g, "\\'")}', ${currentImageData.isOfficial}, '${encodeURIComponent(currentImageData.description).replace(/'/g, "%
-27")}', ${currentImageData.stars}, ${currentImageData.pulls})" class="retry-btn">
+			    <button onclick="viewImageDetails('${currentImageData.name.replace(/'/g, "\\'")}', ${currentImageData.isOfficial}, '${encodeURIComponent(currentImageData.description).replace(/'/g, "%27")}', ${currentImageData.stars}, ${currentImageData.pulls})" class="retry-btn">
+                            <button  class="retry-btn">
                                 <i class="fas fa-redo"></i> 重试
                             </button>
                         </div>
