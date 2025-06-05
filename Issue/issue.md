@@ -148,3 +148,135 @@ proxy:
   password:
   ttl: 168h 
   ```
+
+
+#### 13、解决国内服务器上hubcmdui无法使用http代理请求
+简单的讲,需要解决两个问题:
+1. dns污染,请自行搭建smartdns服务
+2. 修改axios.get相关代码
+
+亦可使用socket5方式,为了代理方案一致性,仅在pr中介绍  
+  
+```bash
+# 拉取代码
+git clone https://github.com/dqzboy/Docker-Proxy.git
+# 前往文件夹,根据自己使用的代理情况,修改相应的代码
+cd Docker-Proxy/hubcmdui/
+```
+
+关键生效的代码:
+```js
+const { HttpsProxyAgent } = require('https-proxy-agent');
+// 如果环境变量设置https_proxy则使用该代理
+const proxyUrl = process.env.https_proxy || process.env.HTTPS_PROXY;
+const agent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
+
+... ...
+        const response = await axios.get(`${DOCKER_HUB_API}/search/repositories`, {
+            params: {
+                query: term,
+                page,
+                page_size: limit
+            },
+            httpsAgent: agent, // 使用 HttpsProxyAgent 作为http proxy
+            proxy: false, // 不使用 axios 自身代理
+            timeout: 10000
+        });
+... ...
+
+```
+
+需要修改使用了`axios.get`的三个文件:
+```bash
+vim routes/dockerhub.js
+vim compatibility-layer.js
+# 下面这个文件好像没调用,可以不修改
+vim services/dockerHubService.js
+```
+
+解决误删的文件,当前仓库并不存在所需的`const { executeOnce } = require('../lib/initScheduler');`文件,而作者制作的镜像中存在,可能是误删了
+```bash
+$ mkdir Docker-Proxy/lib
+# 将所需文件放入该lib文件夹,从dockerhub中的镜像获取
+initScheduler.js
+logFilter.js
+logger.js
+systemInit.js
+utils.js
+```
+
+还需要修改`Dockerfile`,补充需要的库
+```bash
+vim Docker-Proxy/Dockerfile
+```
+内容如下:
+```dockerfile
+FROM node:lts-alpine
+# 设置工作目录
+WORKDIR /app
+# 复制项目文件到工作目录
+COPY hubcmdui/ .
+# 安装项目依赖
+RUN npm install
+# 推荐更新到最新版本axios,不更新好像也行,推荐更新
+RUN npm install axios@latest
+# 安装所需库
+RUN npm install https-proxy-agent
+# 暴露应用程序的端口
+EXPOSE 3000
+# 运行应用程序
+CMD ["node", "server.js"]
+```
+制作镜像并尝试启动
+```bash
+$ cd Docker-Proxy
+$ docker build --no-cache -f Dockerfile -t dqzboy/hubcmd-ui:test .
+```
+
+接下来编辑`docker-compose.yaml`,设置dns,添加域名解析的ip,使用的http代理
+```bash
+$ cd Docker-Proxy/hubcmdui
+
+$ vim docker-compose.yaml
+
+services:
+  ## HubCMD UI
+  hubcmd-ui:
+    container_name: hubcmd-ui
+    image: dqzboy/hubcmd-ui:test
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/registry-proxy/hubcmdui/data:/app/data
+    ports:
+      - 30080:3000
+    dns:
+      # 如果使用http代理,必须要处理dns解析过慢的情况
+      # 可以尝试自建dns服务器/smartdns
+      # 推荐参考上面的研究使用socket5代理
+      - smartdns_server_ip
+    environment:
+      - http_proxy=http://http_proxy_url:http_proxy_port
+      - https_proxy=http://http_proxy_url:http_proxy_port
+      # 日志配置
+      - LOG_LEVEL=DEBUG # 可选: TRACE, DEBUG, INFO, SUCCESS, WARN, ERROR, FATAL
+      - SIMPLE_LOGS=true # 启用简化日志输出，减少冗余信息
+      # - DETAILED_LOGS=false # 默认关闭详细日志记录（请求体、查询参数等）
+      # - SHOW_STACK=false # 默认关闭错误堆栈跟踪
+      # - LOG_FILE_ENABLED=true # 是否启用文件日志，默认启用
+      # - LOG_CONSOLE_ENABLED=true # 是否启用控制台日志，默认启用
+      # - LOG_MAX_SIZE=10 # 单个日志文件最大大小(MB)，默认10MB
+      # - LOG_MAX_FILES=14 # 保留的日志文件数量，默认14个
+```
+重新启动容器,尝试解析能正常访问输出
+```bash
+$ docker-compose -f docker-compose.yaml up -d  --force-recreate 
+# 查看日志
+$ docker logs hubcmd-ui -f
+# 本地测试
+$ curl "http://localhost:30080/api/dockerhub/search?term=redis&page=1"
+# 删除容器
+$ docker-compose -f docker-compose.yaml down
+# 配置文件在本地的位置
+$ ls /data/registry-proxy/hubcmdui/data
+```
