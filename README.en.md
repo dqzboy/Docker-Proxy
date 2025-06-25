@@ -60,6 +60,28 @@
 
 ---
 
+<table style="width: 100%; table-layout: fixed;">
+    <tr>
+      <td width="50%" align="center"><b>海外服务器</b></td>
+      <td width="50%" align="center"><b>海外服务器</b></td>
+    </tr>
+    <tr>
+        <td width="50%" align="center">
+            <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">
+                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/1.png?raw=true" 
+                     alt="RackNerd" 
+                     style="width: 100%; height: auto; max-width: 400px; object-fit: contain;">
+            </a>
+        </td>
+        <td width="50%" align="center">
+            <a href="https://app.cloudcone.com/?ref=12690" target="_blank">
+                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/2.png?raw=true" 
+                     alt="CloudCone" 
+                     style="width: 100%; height: auto; max-width: 400px; object-fit: contain;">
+            </a>
+        </td>
+    </tr>
+</table>
 
 ## 📦 Deploy
 ### Deploy through project script
