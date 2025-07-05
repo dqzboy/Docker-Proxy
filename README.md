@@ -74,7 +74,7 @@
             </a>
         </td>
         <td width="50%" align="center">
-            <a href="https://app.cloudcone.com/?ref=12690" target="_blank">
+            <a href="https://dqzboy.github.io/proxyui/CloudCone" target="_blank">
                 <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/2.png?raw=true" 
                      alt="CloudCone" 
                      style="width: 100%; height: auto; max-width: 400px; object-fit: contain;">
