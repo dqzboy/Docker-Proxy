@@ -6,7 +6,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const logger = require('../logger');
 
-const USERS_FILE = path.join(__dirname, '..', 'users.json');
+const USERS_FILE = path.join(__dirname, '../config', 'users.json');
 
 // 获取所有用户
 async function getUsers() {

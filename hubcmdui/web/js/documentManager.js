@@ -557,6 +557,7 @@ const documentManager = {
 
             const docToEdit = await response.json();
             currentDocument = docToEdit; // 更新当前编辑的文档对象
+            currentDocument['id'] = id;  // 确保ID正确
 
             // 确保编辑器已初始化
             if (!editorMd) {
