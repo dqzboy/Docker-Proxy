@@ -3,18 +3,14 @@ services:
   hubcmd-ui:
     container_name: hubcmd-ui
     image: dqzboy/hubcmd-ui:latest
-    build:
-      context: ..
-      dockerfile: ./Dockerfile
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      # 配置目录(menu.json 和 monitor.json)
-      - ./data/config:/app/config
-      # 文档目录(Markdown 文档)
+      # 配置目录
+      - ./data/config:/app/data
+      # 文档目录
       - ./data/docs:/app/documentation
-      # menu.json 和 monitor.json 的目录
-      - ./data/data/:/app/data
-      
+      # 用户数据,需提前在宿主机上创建并把项目users.json内容放入
+      - ./data/user/users.json:/app/users.json
     ports:
       - 30080:3000

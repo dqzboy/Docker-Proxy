@@ -11,7 +11,7 @@ const { downloadImages } = require('../download-images');
 const configService = require('../services/configService');
 
 // 用户文件路径
-const USERS_FILE = path.join(__dirname, '../config', 'users.json');
+const USERS_FILE = path.join(__dirname, '..', 'users.json');
 
 /**
  * 创建管理员用户

@@ -8,4 +8,4 @@ RUN npm install
 # 暴露应用程序的端口
 EXPOSE 3000
 # 运行应用程序
-CMD ["sh", "-c", "cd /app && ./docker-entrypoint.sh"]
+CMD ["node", "server.js"]
