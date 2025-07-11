@@ -3,7 +3,7 @@
  */
 const axios = require('axios');
 const logger = require('../logger');
-const configService = require('./configService');
+const configServiceDB = require('./configServiceDB');
 const dockerService = require('./dockerService');
 
 // 监控相关状态映射
@@ -15,13 +15,13 @@ let monitoringInterval = null;
 // 更新监控配置
 async function updateMonitoringConfig(config) {
   try {
-    const currentConfig = await configService.getConfig();
+    const currentConfig = await configServiceDB.getConfig();
     currentConfig.monitoringConfig = {
       ...currentConfig.monitoringConfig,
       ...config
     };
     
-    await configService.saveConfig(currentConfig);
+    await configServiceDB.saveConfig(currentConfig);
     
     // 重新启动监控
     await startMonitoring();
@@ -36,7 +36,7 @@ async function updateMonitoringConfig(config) {
 // 启动监控
 async function startMonitoring() {
   try {
-    const config = await configService.getConfig();
+    const config = await configServiceDB.getConfig();
     const { isEnabled, monitorInterval } = config.monitoringConfig || {};
     
     // 如果监控已启用
@@ -308,9 +308,9 @@ async function testNotification(config) {
 
 // 切换监控状态
 async function toggleMonitoring(isEnabled) {
-  const config = await configService.getConfig();
+  const config = await configServiceDB.getConfig();
   config.monitoringConfig.isEnabled = isEnabled;
-  await configService.saveConfig(config);
+  await configServiceDB.saveConfig(config);
   
   return startMonitoring();
 }

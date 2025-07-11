@@ -1,51 +1,48 @@
 /**
- * 认证相关路由
+ * 认证相关路由 - 使用SQLite数据库
  */
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const userService = require('../services/userService');
+const userServiceDB = require('../services/userServiceDB');
 const logger = require('../logger');
 const { requireLogin } = require('../middleware/auth');
 
 // 登录验证
 router.post('/login', async (req, res) => {
   const { username, password, captcha } = req.body;
+  
+  // 验证码检查
   if (req.session.captcha !== parseInt(captcha)) {
     logger.warn(`Captcha verification failed for user: ${username}`);
     return res.status(401).json({ error: '验证码错误' });
   }
 
   try {
-    const users = await userService.getUsers();
-    const user = users.users.find(u => u.username === username);
+    // 使用数据库认证
+    const user = await userServiceDB.validateUser(username, password);
     
     if (!user) {
-      logger.warn(`User ${username} not found`);
+      logger.warn(`Login failed for user: ${username}`);
       return res.status(401).json({ error: '用户名或密码错误' });
     }
 
-    if (bcrypt.compareSync(req.body.password, user.password)) {
-      req.session.user = { username: user.username };
-      
-      // 更新用户登录信息
-      await userService.updateUserLoginInfo(username);
-      
-      // 确保服务器启动时间已设置
-      if (!global.serverStartTime) {
-        global.serverStartTime = Date.now();
-        logger.warn(`登录时设置服务器启动时间: ${global.serverStartTime}`);
-      }
-      
-      logger.info(`User ${username} logged in successfully`);
-      res.json({ 
-        success: true,
-        serverStartTime: global.serverStartTime
-      });
-    } else {
-      logger.warn(`Login failed for user: ${username}`);
-      res.status(401).json({ error: '用户名或密码错误' });
+    // 更新登录信息
+    await userServiceDB.updateUserLoginInfo(username);
+    logger.info(`用户 ${username} 登录成功`);
+
+    // 设置会话
+    req.session.user = { username: user.username };
+    
+    // 确保服务器启动时间已设置
+    if (!global.serverStartTime) {
+      global.serverStartTime = Date.now();
+      logger.warn(`登录时设置服务器启动时间: ${global.serverStartTime}`);
     }
+    
+    res.json({ 
+      success: true,
+      serverStartTime: global.serverStartTime
+    });
   } catch (error) {
     logger.error('登录失败:', error);
     res.status(500).json({ error: '登录处理失败', details: error.message });
@@ -76,16 +73,9 @@ router.post('/change-password', requireLogin, async (req, res) => {
   }
   
   try {
-    const { users } = await userService.getUsers();
-    const user = users.find(u => u.username === req.session.user.username);
-    
-    if (user && bcrypt.compareSync(currentPassword, user.password)) {
-      user.password = bcrypt.hashSync(newPassword, 10);
-      await userService.saveUsers(users);
-      res.json({ success: true });
-    } else {
-      res.status(401).json({ error: 'Invalid current password' });
-    }
+    // 使用SQLite数据库服务修改密码
+    await userServiceDB.changePassword(req.session.user.username, currentPassword, newPassword);
+    res.json({ success: true });
   } catch (error) {
     logger.error('修改密码失败:', error);
     res.status(500).json({ error: '修改密码失败', details: error.message });
@@ -95,8 +85,7 @@ router.post('/change-password', requireLogin, async (req, res) => {
 // 获取用户信息
 router.get('/user-info', requireLogin, async (req, res) => {
   try {
-    const userService = require('../services/userService');
-    const userStats = await userService.getUserStats(req.session.user.username);
+    const userStats = await userServiceDB.getUserStats(req.session.user.username);
     
     res.json(userStats);
   } catch (error) {

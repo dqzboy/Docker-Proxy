@@ -12,11 +12,23 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 引入 jQuery (Editor.md 需要) -->
+    <script src="https://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    
     <!-- 引入 Markdown 编辑器 -->
-    <link rel="stylesheet" href="https://uicdn.toast.com/editor/3.0.0/toastui-editor.min.css" />
-    <script src="https://uicdn.toast.com/editor/3.0.0/toastui-editor.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- 引入 Editor.md -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/css/editormd.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/mode/overlay.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/gfm/gfm.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/editormd.min.js"></script>
     
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="css/admin.css">
@@ -35,6 +47,11 @@
             padding: 1.5rem 0;
             z-index: 10;
             transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 1rem;
         }
 
         /* 文档管理新建文档徽章 */
@@ -1481,7 +1498,7 @@
         }
 
         /* 文档编辑器部分 */
-        #editorContainer {
+        #editor #editorContainer {
             margin-top: 2rem;
             border-radius: var(--radius-md);
             background-color: var(--container-bg);
@@ -1493,12 +1510,261 @@
         #documentTitle {
             width: 100%;
             padding: 1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0;
             border: 1px solid var(--border-color);
-            border-radius: var (--radius-md);;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
             font-size: 1.1rem;
             font-weight: 500;
-            box-shadow: var(--shadow-sm);
+            box-shadow: none;
+            background-color: var(--container-bg);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        #documentTitle:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(61, 124, 244, 0.2);
+            outline: none;
+        }
+
+        /* Editor.md 样式覆盖 */
+        #editor #editorContainer .editormd {
+            border: 1px solid var(--border-light) !important;
+            border-top: none !important;
+            border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+            box-shadow: none !important;
+            margin-top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        #editor #editorContainer .editormd-toolbar {
+            background-color: var(--container-bg) !important;
+            border-bottom: 1px solid var(--border-light) !important;
+            padding: 0.5rem !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        #editor #editorContainer .editormd-toolbar button {
+            background-color: transparent !important;
+            border: 1px solid var(--border-light) !important;
+            color: var(--text-primary) !important;
+            border-radius: var(--radius-sm) !important;
+            margin: 0 2px !important;
+            padding: 0.4rem 0.6rem !important;
+            transition: all 0.2s ease !important;
+        }
+
+        #editor #editorContainer .editormd-toolbar button:hover {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        #editor #editorContainer .editormd-toolbar button.active {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        /* 编辑区域和预览区域等宽等高 */
+        #editor #editorContainer .editormd > .editormd-editor {
+            width: 50% !important;
+            float: left !important;
+            box-sizing: border-box !important;
+        }
+
+        #editor #editorContainer .editormd > .editormd-preview {
+            width: 50% !important;
+            float: right !important;
+            box-sizing: border-box !important;
+        }
+
+        #editor #editorContainer .CodeMirror {
+            background-color: var(--container-bg) !important;
+            color: var(--text-primary) !important;
+            border: none !important;
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace !important;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            height: 500px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        #editor #editorContainer .CodeMirror .CodeMirror-cursor {
+            border-left: 1px solid var(--text-primary) !important;
+        }
+
+        #editor #editorContainer .CodeMirror .CodeMirror-selected {
+            background-color: rgba(61, 124, 244, 0.2) !important;
+        }
+
+        #editor #editorContainer .editormd-preview {
+            background-color: var(--container-bg) !important;
+            color: var(--text-primary) !important;
+            border-left: 1px solid var(--border-light) !important;
+            padding: 1rem !important;
+            height: 500px !important;
+            overflow-y: auto !important;
+            box-sizing: border-box !important;
+        }
+
+        /* 确保容器清除浮动 */
+        #editor #editorContainer .editormd::after {
+            content: "" !important;
+            display: table !important;
+            clear: both !important;
+        }
+
+        #editor #editorContainer .editormd-preview h1,
+        #editor #editorContainer .editormd-preview h2,
+        #editor #editorContainer .editormd-preview h3,
+        #editor #editorContainer .editormd-preview h4,
+        #editor #editorContainer .editormd-preview h5,
+        #editor #editorContainer .editormd-preview h6 {
+            color: var(--text-primary) !important;
+            border-bottom: 1px solid var(--border-light) !important;
+            padding-bottom: 0.5rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        #editor #editorContainer .editormd-preview pre {
+            background-color: rgba(0, 0, 0, 0.05) !important;
+            border: 1px solid var(--border-light) !important;
+            border-radius: var(--radius-sm) !important;
+            padding: 1rem !important;
+            overflow-x: auto !important;
+        }
+
+        #editor #editorContainer .editormd-preview blockquote {
+            border-left: 4px solid var(--primary-color) !important;
+            background-color: rgba(61, 124, 244, 0.05) !important;
+            margin: 1rem 0 !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        #editor #editorContainer .editormd-preview table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            margin: 1rem 0 !important;
+        }
+
+        #editor #editorContainer .editormd-preview table th,
+        #editor #editorContainer .editormd-preview table td {
+            border: 1px solid var(--border-light) !important;
+            padding: 0.5rem 1rem !important;
+            text-align: left !important;
+        }
+
+        #editor #editorContainer .editormd-preview table th {
+            background-color: rgba(61, 124, 244, 0.1) !important;
+            font-weight: 600 !important;
+        }
+
+        /* 编辑器操作按钮样式 */
+        .editor-actions {
+            padding: 1rem !important;
+            background-color: var(--container-bg) !important;
+            border-top: 1px solid var(--border-light) !important;
+            display: flex !important;
+            gap: 0.75rem !important;
+            justify-content: flex-end !important;
+        }
+
+        .editor-actions .btn {
+            padding: 0.75rem 1.5rem !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: 500 !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .editor-actions .btn-primary {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border: 1px solid var(--primary-color) !important;
+        }
+
+        .editor-actions .btn-primary:hover {
+            background-color: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: var(--shadow-md) !important;
+        }
+
+        .editor-actions .btn-secondary {
+            background-color: transparent !important;
+            color: var(--text-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .editor-actions .btn-secondary:hover {
+            background-color: var(--text-secondary) !important;
+            color: white !important;
+            transform: translateY(-2px) !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        /* 响应式 Editor.md 样式 */
+        @media (max-width: 768px) {
+            #editor #editorContainer .editormd {
+                height: auto !important;
+            }
+            
+            /* 移动端编辑区域和预览区域上下布局 */
+            #editor #editorContainer .editormd > .editormd-editor {
+                width: 100% !important;
+                float: none !important;
+                margin-bottom: 1px !important;
+            }
+            
+            #editor #editorContainer .editormd > .editormd-preview {
+                width: 100% !important;
+                float: none !important;
+                border-left: none !important;
+                border-top: 1px solid var(--border-light) !important;
+            }
+            
+            #editor #editorContainer .CodeMirror {
+                height: 300px !important;
+            }
+            
+            #editor #editorContainer .editormd-preview {
+                height: 300px !important;
+            }
+            
+            #editor #editorContainer .editormd-toolbar {
+                padding: 0.3rem !important;
+                flex-wrap: wrap !important;
+            }
+            
+            #editor #editorContainer .editormd-toolbar button {
+                margin: 1px !important;
+                padding: 0.3rem 0.4rem !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .editor-actions {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+            
+            .editor-actions .btn {
+                width: 100% !important;
+                text-align: center !important;
+            }
+        }
+
+        /* 中等屏幕适配 */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            #editor #editorContainer .CodeMirror {
+                height: 450px !important;
+            }
+            
+            #editor #editorContainer .editormd-preview {
+                height: 450px !important;
+            }
         }
 
         .password-hint {
@@ -1872,11 +2138,6 @@
         /* 使新行单元格垂直居中 */
         #new-menu-item-row td {
             vertical-align: middle;
-        }
-
-        /* 网络测试页面美化 */
-        #network-test {
-            /* 可以考虑将整个 #network-test 作为一个卡片，如果它还没有被 .content-section 样式化为卡片的话 */
         }
 
         /* 直接覆盖#testResults.loading的样式，防止旋转 */
@@ -2401,6 +2662,9 @@
     </div>
     <div class="admin-container" id="adminContainer" style="display: none;">
         <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-cogs"></i>管理面板</h2>
+            </div>
             <div class="user-profile">
                 <div class="user-avatar">
                     <i class="fas fa-user"></i>
@@ -2414,7 +2678,6 @@
                     <div class="user-action-btn logout" id="logoutBtn">退出登录</div>
                 </div>
             </div>
-            <h2><i class="fas fa-cogs"></i>管理面板</h2>
             <ul class="sidebar-nav">
                 <li data-section="dashboard" class="active">
                     <i class="fas fa-tachometer-alt"></i>控制面板
@@ -2517,17 +2780,6 @@
                         <button type="button" class="btn btn-primary add-btn" onclick="documentManager.newDocument()">
                             <i class="fas fa-plus"></i> 新建文档
                         </button>
-                    </div>
-                    
-                    <div id="editorContainer" style="display: none;">
-                        <input type="text" id="documentTitle" placeholder="请输入文档标题" autocomplete="off">
-                        <div id="editor">
-                            <!-- 编辑器将在这里初始化 -->
-                        </div>
-                        <div class="editor-actions">
-                            <button type="button" class="btn btn-secondary" onclick="documentManager.cancelEdit()">取消</button>
-                            <button type="button" class="btn btn-primary" onclick="documentManager.saveDocument()">保存文档</button>
-                        </div>
                     </div>
                 </div>  
 

@@ -150,6 +150,11 @@ function applySystemConfig(config) {
         document.getElementById('proxyDomain').value = config.proxyDomain;
     }
     
+    // 更新logo配置输入框（管理页面不显示logo图片，只显示配置）
+    if (document.getElementById('logoUrl')) {
+        document.getElementById('logoUrl').value = config.logo || '';
+    }
+    
     // 应用其他配置...
 }
 
@@ -477,7 +482,6 @@ function toggleLoadingState(isLoading, elementId, originalText = null) {
         // 如果按钮文本没有被修改为 "加载中..."，则不需要恢复
     }
 }
-
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
     // console.log('DOM已加载，正在初始化应用...');

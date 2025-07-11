@@ -1,5 +1,5 @@
 /**
- * 系统相关路由
+ * 系统相关路由 - 使用SQLite数据库
  */
 const express = require('express');
 const router = express.Router();
@@ -9,7 +9,7 @@ const { exec } = require('child_process');
 const execPromise = util.promisify(exec); // 只在这里定义一次
 const logger = require('../logger');
 const { requireLogin } = require('../middleware/auth');
-const configService = require('../services/configService');
+const configServiceDB = require('../services/configServiceDB');
 const { execCommand, getSystemInfo } = require('../server-utils');
 const dockerService = require('../services/dockerService');
 const path = require('path');
@@ -115,7 +115,7 @@ async function getSystemStats(req, res) {
 // 获取系统配置 - 修改版本，避免与其他路由冲突
 router.get('/system-config', async (req, res) => {
   try {
-    const config = await configService.getConfig();
+    const config = await configServiceDB.getConfig();
     res.json(config);
   } catch (error) {
     logger.error('读取配置失败:', error);
@@ -129,9 +129,9 @@ router.get('/system-config', async (req, res) => {
 // 保存系统配置 - 修改版本，避免与其他路由冲突
 router.post('/system-config', requireLogin, async (req, res) => {
   try {
-    const currentConfig = await configService.getConfig();
+    const currentConfig = await configServiceDB.getConfig();
     const newConfig = { ...currentConfig, ...req.body };
-    await configService.saveConfig(newConfig);
+    await configServiceDB.saveConfigs(newConfig);
     logger.info('系统配置已更新');
     res.json({ success: true });
   } catch (error) {

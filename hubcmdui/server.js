@@ -15,7 +15,9 @@ const { gracefulShutdown } = require('./cleanup');
 const os = require('os');
 const { requireLogin } = require('./middleware/auth');
 const compatibilityLayer = require('./compatibility-layer');
-const initSystem = require('./scripts/init-system');
+const { initializeDatabase } = require('./scripts/init-database');
+const database = require('./database/database');
+const httpProxyService = require('./services/httpProxyService');
 
 // 设置日志级别 (默认INFO, 可通过环境变量设置)
 const logLevel = process.env.LOG_LEVEL || 'WARN';
@@ -146,6 +148,15 @@ async function startServer() {
     logger.info(`服务器已启动并监听端口 ${PORT}`);
     
     try {
+      // 初始化数据库
+      try {
+        await initializeDatabase();
+        logger.success('数据库初始化完成');
+      } catch (dbError) {
+        logger.error('数据库初始化失败:', dbError);
+        logger.warn('将使用文件存储作为备用方案');
+      }
+      
       // 确保目录存在
       await ensureDirectoriesExist();
       logger.success('系统目录初始化完成');
@@ -153,15 +164,42 @@ async function startServer() {
       // 下载必要资源
       await downloadImages();
       logger.success('资源下载完成');
-      
-      // 初始化系统
+
+      // 默认使用SQLite数据库模式
       try {
-        const { initialize } = require('./scripts/init-system');
-        await initialize();
-        logger.success('系统初始化完成');
+        logger.info('正在检查SQLite数据库...');
+        const { isDatabaseReady } = require('./utils/database-checker');
+        const dbReady = await isDatabaseReady();
+        
+        if (!dbReady) {
+          logger.warn('数据库未完全初始化，正在初始化...');
+          await initializeDatabase();
+        } else {
+          logger.info('SQLite数据库已就绪');
+        }
+        
+        logger.success('SQLite数据库初始化完成');
+      } catch (dbError) {
+        logger.error('SQLite数据库初始化失败:', dbError.message);
+        throw dbError; // 数据库初始化失败时直接退出
+      }
+      
+      // 初始化系统配置
+      try {
+        // 系统配置已在数据库初始化时完成
+        logger.info('系统配置初始化完成');
       } catch (initError) {
-        logger.warn('系统初始化遇到问题:', initError.message);
-        logger.warn('某些功能可能无法正常工作');
+        logger.warn('系统配置初始化遇到问题:', initError.message);
+      }
+      
+      // 初始化HTTP代理服务
+      try {
+        await httpProxyService.loadConfig();
+        // 检查环境变量并自动启动代理
+        await httpProxyService.checkEnvironmentAndAutoStart();
+        logger.success('HTTP代理服务配置已加载');
+      } catch (proxyError) {
+        logger.warn('HTTP代理服务初始化失败:', proxyError.message);
       }
       
       // 尝试启动监控

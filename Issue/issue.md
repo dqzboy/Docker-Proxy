@@ -150,7 +150,7 @@ proxy:
   ```
 
 
-#### 13、解决国内服务器上hubcmdui无法使用http代理请求
+#### 13、[项目已实现]解决国内服务器上hubcmdui无法使用http代理请求
 简单的讲,需要解决两个问题:
 1. dns污染,请自行搭建smartdns服务
 2. 修改axios.get相关代码

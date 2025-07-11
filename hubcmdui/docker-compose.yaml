@@ -4,13 +4,15 @@ services:
     container_name: hubcmd-ui
     image: dqzboy/hubcmd-ui:latest
     restart: always
+    environment:
+      # HTTP代理配置（可选）
+      #- HTTP_PROXY=http://proxy.example.com:8080
+      #- HTTPS_PROXY=https://proxy.example.com:8080
+      #- NO_PROXY=localhost,127.0.0.1,.local
+      
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      # 配置目录
-      - ./data/config:/app/data
-      # 文档目录
-      - ./data/docs:/app/documentation
-      # 用户数据,需提前在宿主机上创建并把项目users.json内容放入
-      - ./data/user/users.json:/app/users.json
+      # SQLite数据库文件
+      - ./data:/app/data
     ports:
       - 30080:3000

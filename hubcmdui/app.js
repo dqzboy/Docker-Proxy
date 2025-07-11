@@ -20,8 +20,8 @@ const { requireLogin, sessionActivity, sanitizeRequestBody, securityHeaders } = 
 console.log(`服务器启动，时间戳: ${global.serverStartTime}`);
 logger.warn(`服务器启动，时间戳: ${global.serverStartTime}`);
 
-// 添加 session 文件存储模块 - 先导入session-file-store并创建对象
-const FileStore = require('session-file-store')(session);
+// 使用 SQLite 存储 session - 替代文件存储
+const SQLiteStore = require('connect-sqlite3')(session);
 
 // 确保目录结构存在
 ensureDirectoriesExist().catch(err => {
@@ -43,7 +43,7 @@ app.use(sessionActivity);
 app.use(sanitizeRequestBody);
 app.use(securityHeaders);
 
-// 会话配置
+// 会话配置 - 使用SQLite存储
 app.use(session({
   secret: process.env.SESSION_SECRET || 'hubcmdui-secret-key',
   resave: false,
@@ -52,9 +52,10 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000 // 24小时
   },
-  store: new FileStore({
-    path: path.join(__dirname, 'data', 'sessions'),
-    ttl: 86400
+  store: new SQLiteStore({
+    db: 'app.db',
+    dir: path.join(__dirname, 'data'),
+    table: 'sessions'
   })
 }));
 
@@ -118,23 +119,67 @@ server.listen(PORT, async () => {
   try {
     // 确保目录存在
     await ensureDirectoriesExist();
+    
+    // 启动Session清理任务
+    await startSessionCleanupTask();
+    
     logger.success('系统初始化完成');
   } catch (error) {
     logger.error('系统初始化失败:', error);
   }
 });
 
-// 注册进程事件处理
-process.on('SIGINT', () => {
+// 启动定期清理过期会话的任务
+async function startSessionCleanupTask() {
+  const database = require('./database/database');
+  
+  // 立即清理一次
+  try {
+    await database.cleanExpiredSessions();
+  } catch (error) {
+    logger.error('清理过期会话失败:', error);
+  }
+  
+  // 每小时清理一次过期会话
+  setInterval(async () => {
+    try {
+      await database.cleanExpiredSessions();
+    } catch (error) {
+      logger.error('定期清理过期会话失败:', error);
+    }
+  }, 60 * 60 * 1000); // 1小时
+}
+
+// 监听进程退出事件，确保数据库连接正确关闭
+process.on('SIGINT', async () => {
+  logger.info('收到SIGINT信号，正在关闭服务器...');
+  const database = require('./database/database');
+  await database.close();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  logger.info('收到SIGTERM信号，正在关闭服务器...');
+  const database = require('./database/database');
+  await database.close();
+  process.exit(0);
+});
+
+// 注册进程事件处理 - 优雅关闭
+process.on('SIGINT', async () => {
   logger.info('接收到中断信号，正在关闭服务...');
+  const database = require('./database/database');
+  await database.close();
   server.close(() => {
     logger.info('服务器已关闭');
     process.exit(0);
   });
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   logger.info('接收到终止信号，正在关闭服务...');
+  const database = require('./database/database');
+  await database.close();
   server.close(() => {
     logger.info('服务器已关闭');
     process.exit(0);
@@ -169,14 +214,14 @@ function registerRoutes(app) {
     app.use('/api', authRouter);
     logger.info('认证路由已注册');
     
-    // 配置路由 - 函数式注册
+    // 配置路由 - 使用 Express Router
     const configRouter = require('./routes/config');
-    if (typeof configRouter === 'function') {
-      logger.info('配置路由是一个函数，正在注册...');
-      configRouter(app);
+    if (configRouter && typeof configRouter === 'object') {
+      logger.info('配置路由是一个 Router 对象，正在注册...');
+      app.use('/api/config', configRouter);
       logger.info('配置路由已注册');
     } else {
-      logger.error('配置路由不是一个函数，无法注册', typeof configRouter);
+      logger.error('配置路由不是一个有效的 Router 对象，无法注册', typeof configRouter);
     }
     
     logger.success('✓ 所有路由已注册');

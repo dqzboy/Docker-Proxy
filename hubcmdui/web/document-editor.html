@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档编辑器 - HubCmdUI</title>
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" type="image/png">
+    
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 引入 jQuery -->
+    <script src="https://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    
+    <!-- 引入 Editor.md -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/css/editormd.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/editor.md@1.5.0/editormd.min.js"></script>
+    
+    <!-- 引入 SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    
+    <style>
+        body {
+            background-color: var(--background-color, #f8f9fa);
+            font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .editor-container {
+            background-color: var(--container-bg, #ffffff);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid var(--border-light, #e9ecef);
+            background-color: var(--container-bg, #ffffff);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        
+        .editor-title {
+            color: var(--text-primary, #2c3e50);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .editor-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .document-title-input {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border: none;
+            border-bottom: 2px solid var(--border-light, #e9ecef);
+            background-color: var(--container-bg, #ffffff);
+            color: var(--text-primary, #2c3e50);
+            transition: border-color 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .document-title-input:focus {
+            outline: none;
+            border-bottom-color: var(--primary-color, #3d7cfa);
+        }
+        
+        .document-title-input::placeholder {
+            color: var(--text-secondary, #6c757d);
+        }
+        
+        /* Editor.md 样式定制 - 铺满全屏 */
+        .editormd {
+            border: none !important;
+            border-radius: 0 !important;
+            flex: 1;
+            height: auto !important;
+        }
+        
+        /* 编辑器容器铺满剩余空间 */
+        #editor-md {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* 确保 CodeMirror 和预览区域铺满高度 */
+        .editormd .editormd-editor,
+        .editormd .editormd-preview {
+            height: 100% !important;
+        }
+        
+        .CodeMirror {
+            height: 100% !important;
+        }
+        
+        .btn-custom {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            border-radius: var(--radius-md, 8px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary-custom {
+            background-color: var(--primary-color, #3d7cfa);
+            color: white;
+            border: 2px solid var(--primary-color, #3d7cfa);
+        }
+        
+        .btn-primary-custom:hover {
+            background-color: var(--primary-dark, #2c5aa0);
+            border-color: var(--primary-dark, #2c5aa0);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(61, 124, 244, 0.3);
+        }
+        
+        .btn-secondary-custom {
+            background-color: transparent;
+            color: var(--text-secondary, #6c757d);
+            border: 2px solid var(--border-light, #e9ecef);
+        }
+        
+        .btn-secondary-custom:hover {
+            background-color: var(--text-secondary, #6c757d);
+            color: white;
+            border-color: var(--text-secondary, #6c757d);
+        }
+        
+        .btn-success-custom {
+            background-color: var(--success-color, #28a745);
+            color: white;
+            border: 2px solid var(--success-color, #28a745);
+        }
+        
+        .btn-success-custom:hover {
+            background-color: #218838;
+            border-color: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .editor-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: stretch;
+                padding: 1rem;
+            }
+            
+            .editor-title {
+                font-size: 1.3rem;
+                text-align: center;
+            }
+            
+            .editor-actions {
+                flex-direction: row;
+                gap: 0.5rem;
+                justify-content: center;
+            }
+            
+            .btn-custom {
+                flex: 1;
+                justify-content: center;
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .document-title-input {
+                padding: 0.6rem 1rem;
+                font-size: 1rem;
+            }
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-spinner {
+            background-color: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg, 12px);
+            text-align: center;
+            box-shadow: var(--shadow-lg, 0 8px 16px rgba(0, 0, 0, 0.15));
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color, #3d7cfa);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="editor-header">
+            <h1 class="editor-title">
+                <i class="fas fa-edit"></i>
+                <span id="pageTitle">新建文档</span>
+            </h1>
+            <div class="editor-actions">
+                <a href="/admin" class="btn-custom btn-secondary-custom">
+                    <i class="fas fa-arrow-left"></i> 返回管理面板
+                </a>
+                <button type="button" class="btn-custom btn-success-custom" id="saveBtn">
+                    <i class="fas fa-save"></i> 保存文档
+                </button>
+            </div>
+        </div>
+        
+        <input 
+            type="text" 
+            id="documentTitle" 
+            class="document-title-input" 
+            placeholder="请输入文档标题..." 
+            autocomplete="off"
+        >
+        
+        <div id="editor-md">
+            <textarea style="display:none;" id="editorContent"></textarea>
+        </div>
+    </div>
+    
+    <!-- 加载覆盖层 -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>正在保存文档...</p>
+        </div>
+    </div>
+
+    <script>
+        let editor;
+        let currentDocId = null;
+        
+        // 从 URL 参数获取文档 ID（如果是编辑模式）
+        const urlParams = new URLSearchParams(window.location.search);
+        const docId = urlParams.get('id');
+        
+        $(document).ready(function() {
+            // 初始化 Editor.md
+            initEditor();
+            
+            // 如果有文档 ID，则加载文档
+            if (docId) {
+                loadDocument(docId);
+                document.getElementById('pageTitle').textContent = '编辑文档';
+            }
+            
+            // 绑定保存按钮事件
+            document.getElementById('saveBtn').addEventListener('click', saveDocument);
+            
+            // 绑定键盘快捷键 Ctrl+S
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    saveDocument();
+                }
+            });
+        });
+        
+        function initEditor() {
+            editor = editormd("editor-md", {
+                width: "100%",
+                height: "100%", // 使用 CSS 的 flex 布局控制高度
+                syncScrolling: "single",
+                placeholder: "在这里编写您的 Markdown 内容...",
+                path: "https://cdn.jsdelivr.net/npm/editor.md@1.5.0/lib/",
+                // 使用官方默认主题
+                theme: "default",
+                previewTheme: "default", 
+                editorTheme: "default",
+                markdown: "",
+                codeFold: true,
+                saveHTMLToTextarea: true,
+                searchReplace: true,
+                htmlDecode: "style,script,iframe",
+                emoji: true,
+                taskList: true,
+                tocm: true,
+                tex: false,
+                flowChart: false,
+                sequenceDiagram: false,
+                dialogLockScreen: false,
+                dialogShowMask: false,
+                previewCodeHighlight: true,
+                toolbar: true,
+                watch: true,
+                lineNumbers: true,
+                lineWrapping: false,
+                autoCloseTags: true,
+                autoFocus: true,
+                indentUnit: 4,
+                // 使用官方默认工具栏配置
+                onload: function() {
+                    console.log('Editor.md 初始化完成');
+                },
+                onchange: function() {
+                    // 标记内容已修改
+                    markAsModified();
+                }
+            });
+        }
+        
+        function markAsModified() {
+            const saveBtn = document.getElementById('saveBtn');
+            if (!saveBtn.classList.contains('modified')) {
+                saveBtn.classList.add('modified');
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> 保存文档 *';
+            }
+        }
+        
+        function markAsSaved() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.classList.remove('modified');
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> 保存文档';
+        }
+        
+        async function loadDocument(id) {
+            try {
+                const response = await fetch(`/api/documents/${id}`, {
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`加载文档失败: ${response.status}`);
+                }
+                
+                const doc = await response.json();
+                currentDocId = id;
+                
+                // 设置文档标题
+                document.getElementById('documentTitle').value = doc.title || '';
+                
+                // 设置文档内容
+                if (editor && editor.setMarkdown) {
+                    editor.setMarkdown(doc.content || '');
+                }
+                
+                // 更新页面标题
+                document.title = `编辑文档: ${doc.title} - HubCmdUI`;
+                
+            } catch (error) {
+                console.error('加载文档失败:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '加载失败',
+                    text: '无法加载文档内容，请检查网络连接或文档是否存在。',
+                    confirmButtonColor: '#3d7cfa'
+                });
+            }
+        }
+        
+        async function saveDocument() {
+            const title = document.getElementById('documentTitle').value.trim();
+            const content = editor ? editor.getMarkdown() : '';
+            
+            if (!title) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '请输入标题',
+                    text: '文档标题不能为空',
+                    confirmButtonColor: '#3d7cfa'
+                });
+                return;
+            }
+            
+            if (!content.trim()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '请输入内容',
+                    text: '文档内容不能为空',
+                    confirmButtonColor: '#3d7cfa'
+                });
+                return;
+            }
+            
+            // 显示加载动画
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            try {
+                const url = currentDocId ? `/api/documents/${currentDocId}` : '/api/documents';
+                const method = currentDocId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        title: title,
+                        content: content
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`保存失败: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // 如果是新建文档，更新当前文档 ID
+                if (!currentDocId && result.id) {
+                    currentDocId = result.id;
+                    // 更新 URL
+                    window.history.replaceState({}, '', `?id=${result.id}`);
+                    document.getElementById('pageTitle').textContent = '编辑文档';
+                }
+                
+                // 标记为已保存
+                markAsSaved();
+                
+                // 更新页面标题
+                document.title = `编辑文档: ${title} - HubCmdUI`;
+                
+                // 显示成功消息
+                Swal.fire({
+                    icon: 'success',
+                    title: '保存成功',
+                    text: currentDocId ? '文档已更新' : '文档已创建',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                
+            } catch (error) {
+                console.error('保存文档失败:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '保存失败',
+                    text: '无法保存文档，请检查网络连接或稍后重试。',
+                    confirmButtonColor: '#3d7cfa'
+                });
+            } finally {
+                // 隐藏加载动画
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+        
+        // 页面卸载前提醒保存
+        window.addEventListener('beforeunload', function(e) {
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn && saveBtn.classList.contains('modified')) {
+                e.preventDefault();
+                e.returnValue = '您有未保存的更改，确定要离开吗？';
+                return e.returnValue;
+            }
+        });
+    </script>
+</body>
+</html>

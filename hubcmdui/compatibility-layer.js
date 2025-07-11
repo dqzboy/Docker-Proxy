@@ -202,7 +202,7 @@ module.exports = function(app) {
   // 文档接口
   app.get('/api/documentation', async (req, res) => {
     try {
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       const documents = await docService.getPublishedDocuments();
       res.json(documents);
     } catch (error) {
@@ -324,7 +324,7 @@ module.exports = function(app) {
   // 获取单个文档接口
   app.get('/api/documentation/:id', async (req, res) => {
     try {
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       const document = await docService.getDocument(req.params.id);
       
       // 如果文档不是发布状态，只有已登录用户才能访问
@@ -345,7 +345,7 @@ module.exports = function(app) {
   // 文档列表接口
   app.get('/api/documentation-list', requireLogin, async (req, res) => {
     try {
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       const documents = await docService.getDocumentationList();
       res.json(documents);
     } catch (error) {
@@ -586,28 +586,21 @@ module.exports = function(app) {
         return res.status(401).json({ error: '验证码错误' });
       }
 
-      const userService = require('./services/userService');
-      const users = await userService.getUsers();
-      const user = users.users.find(u => u.username === username);
+      const userServiceDB = require('./services/userServiceDB');
+      const user = await userServiceDB.validateUser(username, password);
       
       if (!user) {
         logger.warn(`User ${username} not found`);
         return res.status(401).json({ error: '用户名或密码错误' });
       }
 
-      const bcrypt = require('bcrypt');
-      if (bcrypt.compareSync(password, user.password)) {
-        req.session.user = { username: user.username };
-        
-        // 更新用户登录信息
-        await userService.updateUserLoginInfo(username);
-        
-        logger.info(`User ${username} logged in successfully`);
-        res.json({ success: true });
-      } else {
-        logger.warn(`Login failed for user: ${username}`);
-        res.status(401).json({ error: '用户名或密码错误' });
-      }
+      req.session.user = { username: user.username };
+      
+      // 更新用户登录信息
+      await userServiceDB.updateUserLoginInfo(username);
+      
+      logger.info(`User ${username} logged in successfully`);
+      res.json({ success: true });
     } catch (error) {
       logger.error('登录失败:', error);
       res.status(500).json({ error: '登录处理失败', details: error.message });
@@ -781,7 +774,7 @@ module.exports = function(app) {
   app.get('/api/documents', requireLogin, async (req, res) => {
     try {
       logger.info('兼容层处理获取文档列表请求');
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       const documents = await docService.getDocumentationList();
       res.json(documents);
     } catch (err) {
@@ -794,7 +787,7 @@ module.exports = function(app) {
   app.get('/api/documents/:id', async (req, res) => {
     try {
       logger.info(`兼容层处理获取文档请求: ${req.params.id}`);
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       const document = await docService.getDocument(req.params.id);
       
       // 如果文档不是发布状态，只有已登录用户才能访问
@@ -817,7 +810,7 @@ module.exports = function(app) {
     try {
       logger.info(`兼容层处理更新文档请求: ${req.params.id}`);
       const { title, content, published } = req.body;
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       
       // 检查必需参数
       if (!title) {
@@ -839,7 +832,7 @@ module.exports = function(app) {
     try {
       logger.info('兼容层处理创建文档请求');
       const { title, content, published } = req.body;
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       
       // 检查必需参数
       if (!title) {
@@ -861,7 +854,7 @@ module.exports = function(app) {
   app.delete('/api/documents/:id', requireLogin, async (req, res) => {
     try {
       logger.info(`兼容层处理删除文档请求: ${req.params.id}`);
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       
       await docService.deleteDocument(req.params.id);
       res.json({ success: true, message: '文档已删除' });
@@ -875,7 +868,7 @@ module.exports = function(app) {
   app.put('/api/documentation/toggle-publish/:id', requireLogin, async (req, res) => {
     try {
       logger.info(`兼容层处理切换文档发布状态请求: ${req.params.id}`);
-      const docService = require('./services/documentationService');
+      const docService = require('./services/documentationServiceDB');
       
       const result = await docService.toggleDocumentPublish(req.params.id);
       res.json({ 
@@ -924,8 +917,8 @@ module.exports = function(app) {
   // 用户信息接口
   app.get('/api/user-info', requireLogin, async (req, res) => {
     try {
-      const userService = require('./services/userService');
-      const userStats = await userService.getUserStats(req.session.user.username);
+      const userServiceDB = require('./services/userServiceDB');
+      const userStats = await userServiceDB.getUserStats(req.session.user.username);
       
       res.json(userStats);
     } catch (error) {
@@ -944,8 +937,8 @@ module.exports = function(app) {
       }
       
       try {
-          const userService = require('./services/userService');
-          await userService.changePassword(username, currentPassword, newPassword);
+          const userServiceDB = require('./services/userServiceDB');
+          await userServiceDB.changePassword(username, currentPassword, newPassword);
           res.json({ success: true, message: '密码修改成功' });
       } catch (error) {
           logger.error(`用户 ${username} 修改密码失败:`, error);

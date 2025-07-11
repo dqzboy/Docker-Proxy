@@ -25,11 +25,33 @@ process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
 // 优雅退出函数
-function gracefulShutdown() {
+async function gracefulShutdown() {
   logger.info('接收到退出信号，正在关闭...');
   
   // 这里可以添加清理代码，如关闭数据库连接等
   try {
+    // 关闭HTTP代理服务
+    try {
+      const httpProxyService = require('./services/httpProxyService');
+      if (httpProxyService && httpProxyService.isRunning) {
+        logger.info('正在关闭HTTP代理服务...');
+        await httpProxyService.stop();
+      }
+    } catch (err) {
+      logger.debug('HTTP代理服务未运行，跳过清理');
+    }
+
+    // 关闭数据库连接
+    try {
+      const database = require('./database/database');
+      if (database) {
+        logger.info('正在关闭数据库连接...');
+        await database.close();
+      }
+    } catch (err) {
+      logger.debug('数据库未连接，跳过清理');
+    }
+    
     // 关闭任何可能的资源
     try {
       const docker = require('./services/dockerService').getDockerConnection();

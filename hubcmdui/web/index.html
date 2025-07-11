@@ -13,7 +13,7 @@
     <header class="header">
         <div class="header-content">
             <a href="/" class="logo-link">
-                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" alt="Logo" class="logo">
+                <img id="mainLogo" src="https://cdn.jsdelivr.net/gh/dqzboy/Blog-Image/BlogCourse/docker-proxy.png" alt="Logo" class="logo" style="opacity: 0; transition: opacity 0.3s ease;">
             </a>
             <nav class="nav-menu" id="navMenu">
                 <!-- 菜单项通过 JavaScript 动态加载 -->
@@ -1530,7 +1530,11 @@
 
         // 显示指定的文档
         function showDocument(index) {
-            // console.log('显示文档索引:', index);
+            // 清理之前的返回顶部按钮
+            const existingBackToTopBtn = document.querySelector('.back-to-top-btn');
+            if (existingBackToTopBtn) {
+                existingBackToTopBtn.remove();
+            }
             
             if (!window.documentationData || !Array.isArray(window.documentationData)) {
                 console.error('文档数据不可用');
@@ -1673,74 +1677,192 @@
         function renderMarkdownContent(container, doc) {
             if (!container) return;
             
-            // console.log('渲染Markdown内容:', doc.title, '内容长度:', doc.content ? doc.content.length : 0);
-            
             if (doc.content) {
                 // 使用marked渲染Markdown内容
                 if (window.marked) {
                     try {
+                        // 配置marked选项以获得更好的渲染效果
+                        marked.setOptions({
+                            highlight: function(code, lang) {
+                                // 如果有语法高亮库，可以在这里使用
+                                return code;
+                            },
+                            langPrefix: 'language-',
+                            breaks: true,
+                            gfm: true
+                        });
+
                         const rawHtml = marked.parse(doc.content);
 
                         // 创建一个临时的根元素来容纳和处理已解析的Markdown内容
                         const docFragmentRoot = document.createElement('div');
                         docFragmentRoot.innerHTML = rawHtml;
 
-                        // 在这个临时根元素中查找所有的 <pre> 元素
+                        // 为代码块添加语言标识和复制按钮
                         const preElements = docFragmentRoot.querySelectorAll('pre');
-                        preElements.forEach(preElement => {
+                        preElements.forEach((preElement, index) => {
                             const codeElement = preElement.querySelector('code');
                             let codeToCopy = '';
+                            let language = 'Code';
+                            
                             if (codeElement) {
                                 codeToCopy = codeElement.textContent;
+                                // 尝试从className获取语言信息
+                                const className = codeElement.className;
+                                const langMatch = className.match(/language-(\w+)/);
+                                if (langMatch) {
+                                    language = langMatch[1].toUpperCase();
+                                }
                             } else {
                                 codeToCopy = preElement.textContent;
                             }
 
+                            // 设置语言属性用于CSS显示
+                            preElement.setAttribute('data-language', language);
+
                             if (codeToCopy.trim() !== '') {
                                 const copyButton = document.createElement('button');
-                                copyButton.className = 'copy-btn'; // 应用现有样式
-                                copyButton.textContent = '复制';
-                                copyButton.onclick = function() { // 事件监听器在此处附加到按钮对象
-                                    // console.log('[Tutorial Copy Button] Attempting to copy:', codeToCopy); // 保留此调试日志
+                                copyButton.className = 'copy-btn';
+                                copyButton.innerHTML = '<i class="fas fa-copy"></i> 复制';
+                                copyButton.onclick = function() {
                                     copyToClipboard(codeToCopy, this);
                                 };
-                                preElement.style.position = 'relative';
-                                preElement.appendChild(copyButton); // 按钮被追加到 docFragmentRoot 内的 preElement
+                                preElement.appendChild(copyButton);
                             }
+                        });
+
+                        // 为链接添加外部链接图标
+                        const links = docFragmentRoot.querySelectorAll('a');
+                        links.forEach(link => {
+                            const href = link.getAttribute('href');
+                            if (href && (href.startsWith('http') || href.startsWith('https'))) {
+                                link.innerHTML += ' <i class="fas fa-external-link-alt" style="font-size: 0.8em; margin-left: 0.25rem;"></i>';
+                                link.setAttribute('target', '_blank');
+                                link.setAttribute('rel', 'noopener noreferrer');
+                            }
+                        });
+
+                        // 为表格添加响应式包装
+                        const tables = docFragmentRoot.querySelectorAll('table');
+                        tables.forEach(table => {
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'table-wrapper';
+                            wrapper.style.overflowX = 'auto';
+                            wrapper.style.marginBottom = '1.5rem';
+                            table.parentNode.insertBefore(wrapper, table);
+                            wrapper.appendChild(table);
                         });
 
                         // 清空页面上的主容器
                         container.innerHTML = '';
 
+                        // 创建文档头部
+                        const docHeader = document.createElement('div');
+                        docHeader.className = 'doc-header';
+                        docHeader.innerHTML = `
+                            <h1>${doc.title || '文档标题'}</h1>
+                            ${doc.description ? `<p class="doc-description">${doc.description}</p>` : ''}
+                        `;
+                        container.appendChild(docHeader);
+
                         // 创建 .doc-content div 并将处理过的文档片段追加进去
                         const docContentDiv = document.createElement('div');
                         docContentDiv.className = 'doc-content';
-                        // 将 docFragmentRoot 的所有子节点移动到 docContentDiv，以避免多余的包裹 div
+                        // 将 docFragmentRoot 的所有子节点移动到 docContentDiv
                         while (docFragmentRoot.firstChild) {
                             docContentDiv.appendChild(docFragmentRoot.firstChild);
                         }
-                        container.appendChild(docContentDiv); // docContentDiv 现在包含带有活动按钮的 PRE 元素
+                        container.appendChild(docContentDiv);
 
                         // 创建并追加 .doc-meta div
                         const docMetaDiv = document.createElement('div');
                         docMetaDiv.className = 'doc-meta';
-                        docMetaDiv.innerHTML = `${doc.lastUpdated || doc.updatedAt ? `<span>最后更新: ${new Date(doc.lastUpdated || doc.updatedAt).toLocaleDateString('zh-CN')}</span>` : ''}`;
+                        const updateTime = doc.lastUpdated || doc.updatedAt || doc.updated_at;
+                        if (updateTime) {
+                            const formattedDate = new Date(updateTime).toLocaleDateString('zh-CN', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            docMetaDiv.innerHTML = `
+                                <i class="fas fa-clock"></i>
+                                <span>最后更新: ${formattedDate}</span>
+                            `;
+                        }
                         container.appendChild(docMetaDiv);
+
+                        // 添加返回顶部按钮（如果内容很长）
+                        if (docContentDiv.scrollHeight > 1000) {
+                            const backToTopBtn = document.createElement('button');
+                            backToTopBtn.className = 'back-to-top-btn';
+                            backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                            backToTopBtn.style.cssText = `
+                                position: fixed;
+                                bottom: 2rem;
+                                right: 2rem;
+                                width: 3rem;
+                                height: 3rem;
+                                border-radius: 50%;
+                                background: var(--primary-color);
+                                color: white;
+                                border: none;
+                                cursor: pointer;
+                                box-shadow: 0 4px 12px rgba(61, 124, 244, 0.3);
+                                z-index: 1000;
+                                opacity: 0.8;
+                                transition: all 0.3s ease;
+                            `;
+                            backToTopBtn.onclick = () => {
+                                container.scrollIntoView({ behavior: 'smooth' });
+                            };
+                            backToTopBtn.onmouseenter = () => {
+                                backToTopBtn.style.opacity = '1';
+                                backToTopBtn.style.transform = 'scale(1.1)';
+                            };
+                            backToTopBtn.onmouseleave = () => {
+                                backToTopBtn.style.opacity = '0.8';
+                                backToTopBtn.style.transform = 'scale(1)';
+                            };
+                            document.body.appendChild(backToTopBtn);
+                            
+                            // 当切换文档时清理按钮
+                            container.setAttribute('data-back-to-top', 'true');
+                        }
 
                     } catch (error) {
                         console.error('Markdown解析失败:', error);
-                        // 发生错误时，仍然显示原始Markdown内容 + Meta
-                        container.innerHTML = ` 
-                            <div class="doc-content">${doc.content}</div>
+                        // 发生错误时的降级处理
+                        container.innerHTML = `
+                            <div class="doc-header">
+                                <h1>${doc.title || '文档标题'}</h1>
+                            </div>
+                            <div class="doc-content">
+                                <div class="error-container">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <h3>内容解析失败</h3>
+                                    <p>无法正确解析文档内容，显示原始内容：</p>
+                                    <pre><code>${doc.content}</code></pre>
+                                </div>
+                            </div>
                             <div class="doc-meta">
                                 ${doc.lastUpdated || doc.updatedAt ? `<span>最后更新: ${new Date(doc.lastUpdated || doc.updatedAt).toLocaleDateString('zh-CN')}</span>` : ''}
                             </div>
                         `;
                     }
                 } else {
-                    // marked 不可用时，直接显示内容 + Meta
-                    container.innerHTML = ` 
-                        <div class="doc-content">${doc.content}</div>
+                    // marked 不可用时的降级处理
+                    container.innerHTML = `
+                        <div class="doc-header">
+                            <h1>${doc.title || '文档标题'}</h1>
+                        </div>
+                        <div class="doc-content">
+                            <div class="markdown-fallback">
+                                <p><em>Markdown 解析器未加载，显示原始内容：</em></p>
+                                <pre><code>${doc.content}</code></pre>
+                            </div>
+                        </div>
                         <div class="doc-meta">
                             ${doc.lastUpdated || doc.updatedAt ? `<span>最后更新: ${new Date(doc.lastUpdated || doc.updatedAt).toLocaleDateString('zh-CN')}</span>` : ''}
                         </div>
@@ -1767,6 +1889,9 @@
         
         // DOMContentLoaded 事件监听器
         document.addEventListener('DOMContentLoaded', function() {
+            // 加载系统配置（包括 logo）
+            loadSystemConfig();
+            
             // 初始化代理域名
             initProxyDomain();
             
@@ -1786,6 +1911,38 @@
             // 统一调用文档加载函数
             loadAndDisplayDocumentation();
         });
+        
+        // 加载系统配置
+        function loadSystemConfig() {
+            fetch('/api/config')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    // 如果配置加载失败，使用默认配置
+                    return {};
+                })
+                .then(config => {
+                    const logoElement = document.getElementById('mainLogo');
+                    if (logoElement) {
+                        // 如果有自定义logo配置且不为空，则使用自定义logo
+                        if (config.logo && config.logo.trim() !== '') {
+                            logoElement.src = config.logo;
+                        }
+                        // 如果没有配置或为空，保持默认logo不变
+                        // 显示logo（无论是默认还是自定义）
+                        logoElement.style.opacity = '1';
+                    }
+                })
+                .catch(error => {
+                    // 如果出错，也要显示默认logo
+                    console.warn('加载配置失败:', error);
+                    const logoElement = document.getElementById('mainLogo');
+                    if (logoElement) {
+                        logoElement.style.opacity = '1';
+                    }
+                });
+        }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
 </body>

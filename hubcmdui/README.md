@@ -26,22 +26,27 @@
 
 ---
 
-## 📝 源码构建运行
-#### 1. 克隆项目
-```bash
-git clone git@github.com:dqzboy/Docker-Proxy.git
-```
+## 📝 源码运行
 
-#### 2. 安装依赖
 ```bash
+# 克隆项目并启动
+git clone git@github.com:dqzboy/Docker-Proxy.git
 cd Docker-Proxy/hubcmdui
 npm install
+npm start
 ```
 
-#### 3. 启动服务
-```bash
-node server.js
-```
+系统会自动检测并完成：
+- ✅ 依赖包安装（如果需要）
+- ✅ SQLite数据库初始化（如果需要）
+- ✅ 启动服务
+
+
+### 访问系统
+
+- **主页**: http://localhost:3000
+- **管理面板**: http://localhost:3000/admin  
+- **默认账户**: root / admin@123
 
 ## 📦 Docker 方式运行
 
@@ -52,7 +57,7 @@ docker pull dqzboy/hubcmd-ui:latest
 
 #### 2. 运行 hubcmd-ui 容器
 ```bash
-docker run -d -v /var/run/docker.sock:/var/run/docker.sock -v ./data/config:/app/data -v ./data/docs:/app/documentation -v ./data/user/users.json:/app/users.json -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock -v ./data:/app/data -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
 ```
 - `-v` 参数解释：左边是宿主机上的 Docker socket 文件路径，右边是容器内的映射路径
 
@@ -67,6 +72,56 @@ docker compose up -d
 
 # 查看容器日志
 docker logs -f [容器ID或名称]
+```
+
+---
+
+## 🌐 代理配置
+
+支持通过环境变量配置 HTTP 代理，用于所有出站网络请求。
+
+### 环境变量配置
+
+```bash
+# HTTP 代理配置
+export HTTP_PROXY=http://proxy.example.com:8080
+export HTTPS_PROXY=https://proxy.example.com:8080
+export NO_PROXY=localhost,127.0.0.1,.local
+
+# 启动应用
+npm start
+```
+
+### Docker 部署代理配置
+
+```bash
+docker run -d \
+  -e HTTP_PROXY=http://proxy.example.com:8080 \
+  -e HTTPS_PROXY=https://proxy.example.com:8080 \
+  -e NO_PROXY=localhost,127.0.0.1,.local \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ./data:/app/data \
+  -p 30080:3000 \
+  dqzboy/hubcmd-ui
+```
+
+### Docker Compose 代理配置
+
+```yaml
+version: '3.8'
+services:
+  hubcmdui:
+    image: dqzboy/hubcmd-ui
+    environment:
+      - HTTP_PROXY=http://proxy.example.com:8080
+      - HTTPS_PROXY=https://proxy.example.com:8080
+      - NO_PROXY=localhost,127.0.0.1,.local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # SQLite数据库文件
+      - ./data:/app/data
+    ports:
+      - "30080:3000"
 ```
 
 ---
@@ -138,6 +193,41 @@ docker logs -f [容器ID或名称]
         <td width="50%" align="center"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/hubcmd-ui_10.png?raw=true"></td>
     </tr>
 </table>
+
+---
+
+## 🚀 系统特性
+
+### 数据存储优化
+- **SQLite数据库**: 所有数据统一存储在SQLite数据库中
+- **Session管理**: 使用数据库存储用户会话，自动清理过期会话
+- **配置管理**: 系统配置、用户数据、文档内容统一存储
+- **零文件依赖**: 不再依赖JSON文件存储，简化部署和维护
+
+### 功能特性
+- 🔐 **用户认证**: 基于数据库的用户管理系统
+- ⚙️ **配置管理**: 灵活的系统配置和菜单管理
+- 📚 **文档系统**: 内置Markdown文档管理
+- 🔍 **镜像搜索**: Docker Hub镜像搜索和代理
+- 📊 **系统监控**: 实时系统状态监控
+- 🎨 **响应式界面**: 现代化的Web管理界面
+
+## 📁 项目结构
+
+```
+hubcmdui/
+├── database/           # SQLite数据库相关
+│   └── database.js    # 数据库管理模块
+├── services/          # 业务服务层
+│   ├── configServiceDB.js    # 配置服务
+│   ├── userServiceDB.js      # 用户服务
+│   └── documentationServiceDB.js # 文档服务
+├── routes/            # API路由
+├── web/              # 前端静态文件
+├── middleware/       # 中间件
+└── data/             # 数据目录（SQLite文件）
+    └── app.db        # SQLite数据库文件
+```
 
 ---
 

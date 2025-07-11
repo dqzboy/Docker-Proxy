@@ -19,14 +19,12 @@ async function ensureDirectoriesExist() {
     path.join(__dirname, 'logs'),
     // 图片目录
     path.join(__dirname, 'web', 'images'),
-    // 数据目录
+    // 数据目录（SQLite数据库文件）
     path.join(__dirname, 'data'),
     // 配置目录
     path.join(__dirname, 'config'),
     // 临时文件目录
     path.join(__dirname, 'temp'),
-    // session 目录
-    path.join(__dirname, 'data', 'sessions'),
     // 文档数据目录
     path.join(__dirname, 'web', 'data', 'documentation')
   ];
