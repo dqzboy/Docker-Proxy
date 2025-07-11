@@ -28,9 +28,6 @@ const config = require('./config');
 // 导入中间件
 const { sessionActivity, sanitizeRequestBody, securityHeaders } = require('./middleware/auth');
 
-// 导入初始化调度器
-const { executeOnce } = require('./lib/initScheduler');
-
 // 初始化Express应用
 const app = express();
 const server = http.createServer(app);

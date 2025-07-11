@@ -52,9 +52,29 @@ docker pull dqzboy/hubcmd-ui:latest
 
 #### 2. 运行 hubcmd-ui 容器
 ```bash
-docker run -d -v /var/run/docker.sock:/var/run/docker.sock -v ./data/config:/app/data -v ./data/docs:/app/documentation -v ./data/user/users.json:/app/users.json -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock -v ./data/config:/app/config -v ./data/docs:/app/documentation -v ./data/data/:/app/data -p 30080:3000 --name hubcmdui-server dqzboy/hubcmd-ui
 ```
 - `-v` 参数解释：左边是宿主机上的 Docker socket 文件路径，右边是容器内的映射路径
+
+如果你已经有容器的数据之前挂载出来了，请注意重新组织目录，挂载文件夹里面的内容：
+```bash
+$ tree ./data  # data 为挂载到容器里面的目录
+.
+├── config                # 菜单、监控配置、用户数据
+│   ├── menu.json
+│   ├── monitoring.json
+│   └── users.json        # 用户名密码存储
+├── data                  # 合并后的config信息
+│   ├── config.json
+│   └── sessions 
+└── docs                  # Markdown 文档
+    ├── 1743542841590.json
+    ├── 1743543376091.json
+    ├── 1743543400369.json
+    └── meta
+
+6 directories, 7 files
+```
 
 ## Docker Compose 部署
 
