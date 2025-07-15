@@ -9,8 +9,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-hub.yml:/etc/distribution/config.yml
+      - ./registry/dockerhub/data:/var/lib/registry
+      - ./config/registry-hub.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 51000:5000
@@ -27,8 +27,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-ghcr.yml:/etc/distribution/config.yml
+      - ./registry/ghcr/data:/var/lib/registry
+      - ./config/registry-ghcr.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 52000:5000
@@ -45,8 +45,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-gcr.yml:/etc/distribution/config.yml
+      - ./registry/gcr/data:/var/lib/registry
+      - ./config/registry-gcr.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 53000:5000
@@ -63,8 +63,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-k8sgcr.yml:/etc/distribution/config.yml
+      - ./registry/k8sgcr/data:/var/lib/registry
+      - ./config/registry-k8sgcr.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 54000:5000
@@ -81,8 +81,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-k8s.yml:/etc/distribution/config.yml
+      - ./registry/k8s/data:/var/lib/registry
+      - ./config/registry-k8s.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 55000:5000
@@ -99,8 +99,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-quay.yml:/etc/distribution/config.yml
+      - ./registry/quay/data:/var/lib/registry
+      - ./config/registry-quay.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 56000:5000
@@ -117,8 +117,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-mcr.yml:/etc/distribution/config.yml
+      - ./registry/mcr/data:/var/lib/registry
+      - ./config/registry-mcr.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 57000:5000
@@ -135,8 +135,8 @@ services:
       #- http=http://host:port
       #- https=http://host:port
     volumes:
-      - ./registry/data:/var/lib/registry
-      - ./registry-elastic.yml:/etc/distribution/config.yml
+      - ./registry/elastic/data:/var/lib/registry
+      - ./config/registry-elastic.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 58000:5000
@@ -154,7 +154,7 @@ services:
       #- https=http://host:port
     volumes:
       - ./registry/data:/var/lib/registry
-      - ./registry-nvcr.yml:/etc/distribution/config.yml
+      - ./config/registry-nvcr.yml:/etc/distribution/config.yml
       #- ./htpasswd:/auth/htpasswd
     ports:
       - 59000:5000
