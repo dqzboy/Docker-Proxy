@@ -239,23 +239,6 @@ docker logs -f [容器ID或名称]
 
 ---
 
-
-## 🫶 赞助
-如果你觉得这个项目对你有帮助，请给我点个Star。并且情况允许的话，可以给我一点点支持，总之非常感谢支持😊
-
-<table>
-    <tr>
-      <td width="50%" align="center"><b> Alipay </b></td>
-      <td width="50%" align="center"><b> WeChat Pay </b></td>
-    </tr>
-    <tr>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/223fd099-9433-468b-b490-f9807bdd2035?raw=true"></td>
-        <td width="50%" align="center"><img src="https://github.com/dqzboy/Deploy_K8sCluster/assets/42825450/9404460f-ea1b-446c-a0ae-6da96eb459e3?raw=true"></td>
-    </tr>
-</table>
-
----
-
 ## 😺 其他
 
 开源不易,若你参考此项目或基于此项目修改可否麻烦在你的项目文档中标识此项目？谢谢你！
@@ -278,6 +261,7 @@ docker logs -f [容器ID或名称]
 
 
 > 说明：提交PR请有实际的代码修改或有意义的提交，不要改一个字符、标点符号等信息就申请PR，这类PR会直接拒绝！
+
 
 ## 💌 赞助
 [NodeSupport](https://github.com/NodeSeekDev/NodeSupport)赞助了本项目
