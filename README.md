@@ -277,6 +277,8 @@ docker logs -f [容器ID或名称]
 </a>
 
 
+> 说明：提交PR请有实际的代码修改或有意义的提交，不要改一个字符、标点符号等信息就申请PR，这类PR会直接拒绝！
+
 ## 💌 赞助
 [NodeSupport](https://github.com/NodeSeekDev/NodeSupport)赞助了本项目
 
