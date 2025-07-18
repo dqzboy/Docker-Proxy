@@ -60,29 +60,6 @@
 
 > **部署过程中出现的问题或者疑问，请点击这里 [问题总结](Issue/issue.md)，查看是否有你遇到的情况！尝试先自己解决。**
 
-<table style="width: 100%; table-layout: fixed;">
-    <tr>
-      <td width="50%" align="center"><b>海外服务器</b></td>
-      <td width="50%" align="center"><b>海外服务器</b></td>
-    </tr>
-    <tr>
-        <td width="50%" align="center">
-            <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">
-                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Image_2025-07-07_16-14-49.png?raw=true" 
-                     alt="RackNerd" 
-                     style="width: 100%; height: auto; max-width: 200px; object-fit: contain;">
-            </a>
-        </td>
-        <td width="50%" align="center">
-            <a href="https://dqzboy.github.io/proxyui/CloudCone" target="_blank">
-                <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" 
-                     alt="CloudCone" 
-                     style="width: 100%; height: auto; max-width: 200px; object-fit: contain;">
-            </a>
-        </td>
-    </tr>
-</table>
-
 
 ---
 
@@ -239,17 +216,44 @@ docker logs -f [容器ID或名称]
 
 ---
 
-## 😺 其他
+## 💌 推广
 
-开源不易,若你参考此项目或基于此项目修改可否麻烦在你的项目文档中标识此项目？谢谢你！
+<table>
+  <thead>
+    <tr>
+      <th width="50%" align="center">描述信息</th>
+      <th width="50%" align="center">图文介绍</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- 第一个广告：RackNerd -->
+    <tr>
+      <td width="50%" align="left">
+        <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">提供高性价比的海外VPS，支持多种操作系统，适合搭建Docker代理服务。</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Image_2025-07-07_16-14-49.png?raw=true" alt="RackNerd" width="200" height="120">
+        </a>
+      </td>
+    </tr>
+    <!-- 第二个广告：CloudCone -->
+    <tr>
+      <td width="50%" align="left">
+        <a href="https://dqzboy.github.io/proxyui/CloudCone" target="_blank">CloudCone 提供灵活的云服务器方案，支持按需付费，适合个人和企业用户。</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://dqzboy.github.io/proxyui/CloudCone" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" alt="CloudCone" width="200" height="120">
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
+##### *Telegram Bot: [点击联系](https://t.me/WiseAidBot)*
+**仅接受长期稳定运营，信誉良好的商家*
 
-## ❤ 鸣谢
-感谢以下项目的开源的付出：
-
-[CNCF Distribution](https://distribution.github.io/distribution/) 
-
-[docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
 
 ## 🤝 参与贡献
 
@@ -259,9 +263,12 @@ docker logs -f [容器ID或名称]
   <img src="https://contrib.rocks/image?repo=dqzboy/Docker-Proxy" />
 </a>
 
+## ❤ 鸣谢
+感谢以下项目的开源的付出：
 
-> 说明：提交PR请有实际的代码修改或有意义的提交，不要改一个字符、标点符号等信息就申请PR，这类PR会直接拒绝！
+[CNCF Distribution](https://distribution.github.io/distribution/) 
 
+[docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
 
 ## License
 Docker-Proxy is available under the [Apache 2 license](./LICENSE)
