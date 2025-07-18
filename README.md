@@ -64,17 +64,15 @@
 ---
 
 ## 🔨 功能
-- [x] 一键部署Docker镜像代理服务的功能，支持基于官方Docker Registry的镜像代理. 
-- [x] 支持多个镜像仓库的代理，包括Docker Hub、GitHub Container Registry(ghcr.io)、Quay Container Registry(quay.io)、Kubernetes Container Registry(k8s.gcr.io)、Microsoft Container(mcr.microsoft.com)、Elastic Stack(docker.elastic.co)
-- [x] 自动检查并安装所需的依赖软件，如Docker\Compose、Nginx\Caddy等，并确保系统环境满足运行要求
-- [x] 根据你所选择部署的WEB反代服务，自动渲染对应的Nginx或Caddy服务配置
-- [x] 支持配置账号密码登入Docker Hub，可访问 Docker Hub 上的私有镜像同时解决Docker Hub的下载频率限制 [配置参考](https://github.com/dqzboy/Docker-Proxy/blob/main/Issue/issue.md#12%E5%85%B3%E4%BA%8Edocker-hub%E5%85%8D%E8%B4%B9%E6%8B%89%E5%8F%96%E6%94%BF%E7%AD%96%E5%86%8D%E6%AC%A1%E5%8F%98%E6%9B%B4%E5%90%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88)
-- [x] 支持自定义配置代理缓存时间(PROXY_TTL)、支持配置IP黑白名单，防止恶意攻击行为
-- [x] 提供了服务管理、配置管理、服务卸载、认证授权等功能，方便用户进行日常管理和维护
+- [x] 一键部署Docker镜像代理服务，支持多个上游镜像仓库代理，如`Docker Hub`、`ghcr`、`quay`、`k8s`、`mcr.microsoft.com`、`docker.elastic.co`等
+- [x] 自动检查安装软件依赖，如Docker\Compose、Nginx\Caddy等
+- [x] 支持选择自动部署等反代服务，自动渲染对应Nginx或Caddy反代配置
+- [x] 支持配置账号密码登入Docker Hub，可下载私有镜像并解决Docker Hub镜像下载频率限制 [配置参考](https://github.com/dqzboy/Docker-Proxy/blob/main/Issue/issue.md#12%E5%85%B3%E4%BA%8Edocker-hub%E5%85%8D%E8%B4%B9%E6%8B%89%E5%8F%96%E6%94%BF%E7%AD%96%E5%86%8D%E6%AC%A1%E5%8F%98%E6%9B%B4%E5%90%8E%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88)
+- [x] 支持自定义配置代理缓存时间(PROXY_TTL)、支持配置IP黑/白名单，防止恶意攻击行为
+- [x] 提供服务管理、配置管理、服务卸载、认证授权等功能，方便后期日常运维管理
 - [x] 支持一键配置本机Docker代理和容器服务代理(HTTP_PROXY)，仅支持http
 - [x] 支持国内服务器一键部署，解决国内环境无法安装Docker\Compose服务难题
-- [x] 支持主流Linux发行版操作系统,例如Centos、Ubuntu、Rocky、Debian、Rhel等，支持主流ARCH架构下部署，包括linux/amd64、linux/arm64
-- [x] HubCMD-UI服务，面板展示、镜像搜索、文档教程、容器管理、容器监控、网络测试、用户中心等功能
+- [x] HubCMD-UI服务，面板展示、镜像搜索、文档教程、容器管理、容器监控告警等功能
 
 ## 📦 部署
 ### 通过项目脚本部署
@@ -159,23 +157,12 @@ docker logs -f [容器ID或名称]
 
 </details>
 
-
-### 前缀替换说明
+### 使用教程
 <details>
 <summary><strong>点击查看</strong></summary>
 <div>
 
-| 源站 | 替换为 | 平台 |
-|-------|---------------|----------|
-| docker.io   | hub.your_domain_name   |  docker hub 
-| gcr.io      | gcr.your_domain_name   |  Google Container Registry
-| ghcr.io     | ghcr.your_domain_name  |  GitHub Container Registry
-| k8s.gcr.io     | k8s-gcr.your_domain_name  | Kubernetes Container Registry
-| registry.k8s.io     | k8s.your_domain_name  | Kubernetes's container image registry
-| quay.io     | quay.your_domain_name  | Quay Container Registry
-| mcr.microsoft.com     | mcr.your_domain_name  | Microsoft Container Registry
-| docker.elastic.co     | elastic.your_domain_name  | Elastic Stack
-| nvcr.io    | nvcr.your_domain_name  | NVIDIA Container Registry
+[使用教程](https://dqzboy.github.io/docs/pages/install.html#%E2%9C%A8-%E4%BD%BF%E7%94%A8)
 
 </details>
 
@@ -269,6 +256,14 @@ docker logs -f [容器ID或名称]
 [CNCF Distribution](https://distribution.github.io/distribution/) 
 
 [docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
+
+---
+
+[NodeSupport](https://github.com/NodeSeekDev/NodeSupport)赞助了本项目
+
+<a href="https://yxvm.com/" target="_blank">
+  <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/yxvm.png" width="300" height="200">
+</a>
 
 ## License
 Docker-Proxy is available under the [Apache 2 license](./LICENSE)
