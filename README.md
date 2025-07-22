@@ -220,7 +220,7 @@ docker logs -f [容器ID或名称]
       </td>
       <td width="50%" align="center">
         <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">
-          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Image_2025-07-07_16-14-49.png?raw=true" alt="RackNerd" width="200" height="120">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Image_2025-07-07_16-14-49.png?raw=true" alt="RackNerd" width="200" height="150">
         </a>
       </td>
     </tr>
@@ -231,7 +231,7 @@ docker logs -f [容器ID或名称]
       </td>
       <td width="50%" align="center">
         <a href="https://dqzboy.github.io/proxyui/CloudCone" target="_blank">
-          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" alt="CloudCone" width="200" height="120">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" alt="CloudCone" width="200" height="150">
         </a>
       </td>
     </tr>
@@ -242,7 +242,7 @@ docker logs -f [容器ID或名称]
       </td>
       <td width="50%" align="center">
         <a href="https://www.thordata.com/?ls=VNSCxroa&lk=Docker-Proxy" target="_blank">
-          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Thordata.jpg?raw=true" alt="CloudCone" width="500" height="100">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Thordata.jpg?raw=true" alt="CloudCone" width="200" height="200">
         </a>
       </td>
     </tr>
