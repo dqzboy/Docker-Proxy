@@ -242,7 +242,7 @@ docker logs -f [容器ID或名称]
       </td>
       <td width="50%" align="center">
         <a href="https://www.thordata.com/?ls=VNSCxroa&lk=Docker-Proxy" target="_blank">
-          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Thordata.jpg?raw=true" alt="CloudCone" width="400" height="60">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Thordata.jpg?raw=true" alt="CloudCone" width="500" height="100">
         </a>
       </td>
     </tr>
