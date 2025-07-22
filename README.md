@@ -268,13 +268,6 @@ docker logs -f [容器ID或名称]
 
 [docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
 
----
-
-[NodeSupport](https://github.com/NodeSeekDev/NodeSupport)赞助了本项目
-
-<a href="https://yxvm.com/" target="_blank">
-  <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/yxvm.png" width="300" height="200">
-</a>
 
 ## License
 Docker-Proxy is available under the [Apache 2 license](./LICENSE)
