@@ -213,7 +213,6 @@ docker logs -f [容器ID或名称]
     </tr>
   </thead>
   <tbody>
-    <!-- 第一个广告：RackNerd -->
     <tr>
       <td width="50%" align="left">
         <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">提供高性价比的海外VPS，支持多种操作系统，适合搭建Docker代理服务。</a>
@@ -224,7 +223,6 @@ docker logs -f [容器ID或名称]
         </a>
       </td>
     </tr>
-    <!-- 第二个广告：CloudCone -->
     <tr>
       <td width="50%" align="left">
         <a href="https://dqzboy.github.io/proxyui/CloudCone" target="_blank">CloudCone 提供灵活的云服务器方案，支持按需付费，适合个人和企业用户。</a>
@@ -235,7 +233,6 @@ docker logs -f [容器ID或名称]
         </a>
       </td>
     </tr>
-    <!-- 第三个广告：CloudCone -->
     <tr>
       <td width="50%" align="left">
         <a href="https://www.thordata.com/?ls=VNSCxroa&lk=Docker-Proxy" target="_blank">Thordata 2M+ 原生静态住宅 IP，稳定且高匿名。助力合规、高效数据抓取。</a>
@@ -268,6 +265,23 @@ docker logs -f [容器ID或名称]
 
 [docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
 
+---
+### 赞助
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://dartnode.com" title="Powered by DartNode - Free VPS for Open Source">
+        <img src="https://dartnode.com/branding/DN-Open-Source-sm.png" alt="Powered by DartNode" width="150" height="80">
+      </a>
+    </td>
+    <!--<td align="center">
+      <a href="https://your-link-3.com" title="赞助商3">
+        <img src="https://your-image-3.png" alt="Sponsor3" width="150" height="80">
+      </a>
+    </td>-->
+  </tr>
+</table>
 
 ## License
 Docker-Proxy is available under the [Apache 2 license](./LICENSE)
