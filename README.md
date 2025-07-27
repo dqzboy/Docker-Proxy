@@ -272,7 +272,7 @@ docker logs -f [容器ID或名称]
   <tr>
     <td align="center">
       <a href="https://dartnode.com" title="Powered by DartNode - Free VPS for Open Source">
-        <img src="https://dartnode.com/branding/DN-Open-Source-sm.png" alt="Powered by DartNode" width="150" height="80">
+        <img src="https://dartnode.com/branding/DN-Open-Source-sm.png" alt="Powered by DartNode" width="200" height="100">
       </a>
     </td>
     <!--<td align="center">
