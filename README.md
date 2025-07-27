@@ -265,24 +265,6 @@ docker logs -f [容器ID或名称]
 
 [docker-registry-browser](https://github.com/klausmeyer/docker-registry-browser)
 
----
-### 赞助
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://dartnode.com" title="Powered by DartNode - Free VPS for Open Source">
-        <img src="https://dartnode.com/branding/DN-Open-Source-sm.png" alt="Powered by DartNode" width="250" height="110">
-      </a>
-    </td>
-    <!--<td align="center">
-      <a href="https://your-link-3.com" title="赞助商3">
-        <img src="https://your-image-3.png" alt="Sponsor3" width="150" height="80">
-      </a>
-    </td>-->
-  </tr>
-</table>
-
 ## License
 Docker-Proxy is available under the [Apache 2 license](./LICENSE)
 
