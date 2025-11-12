@@ -236,7 +236,7 @@ docker logs -f [容器ID或名称]
   </tbody>
 </table>
 
-##### *Telegram Bot: [点击联系](https://t.me/WiseAidBot) ｜ E-Mail: support@dqzboy.com*
+##### *Telegram Bot: [点击联系](https://t.me/RelayHubBot) ｜ E-Mail: support@dqzboy.com*
 **仅接受长期稳定运营，信誉良好的商家*
 
 
