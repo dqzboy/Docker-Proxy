@@ -261,18 +261,20 @@ async function changeUsername(event) {
 function checkUcPasswordStrength() {
     const password = document.getElementById('ucNewPassword').value;
     const strengthSpan = document.getElementById('ucPasswordStrength');
-    const strengthBar = document.getElementById('strengthBar');
+    const strengthIndicator = document.getElementById('strengthIndicator');
     
     if (!password) {
-        strengthSpan.textContent = '';
-        if (strengthBar) strengthBar.style.width = '0%';
+        if (strengthSpan) strengthSpan.textContent = '';
+        if (strengthIndicator) {
+            strengthIndicator.className = 'strength-indicator';
+            strengthIndicator.style.width = '0';
+        }
         return;
     }
     
     let strength = 0;
     let strengthText = '';
-    let strengthColor = '';
-    let strengthWidth = '0%';
+    let strengthClass = '';
     
     // 长度检查
     if (password.length >= 8) strength++;
@@ -287,59 +289,55 @@ function checkUcPasswordStrength() {
     // 包含特殊字符
     if (/[.,\-_+=()[\]{}|\\;:'"<>?/@$!%*#?&]/.test(password)) strength++;
     
-    // 根据强度设置文本和颜色
-    switch(strength) {
-        case 0:
-        case 1:
-            strengthText = '密码强度：非常弱';
-            strengthColor = '#FF4136';
-            strengthWidth = '20%';
-            break;
-        case 2:
-            strengthText = '密码强度：弱';
-            strengthColor = '#FF851B';
-            strengthWidth = '40%';
-            break;
-        case 3:
-            strengthText = '密码强度：中';
-            strengthColor = '#FFDC00';
-            strengthWidth = '60%';
-            break;
-        case 4:
-            strengthText = '密码强度：强';
-            strengthColor = '#2ECC40';
-            strengthWidth = '80%';
-            break;
-        case 5:
-            strengthText = '密码强度：非常强';
-            strengthColor = '#3D9970';
-            strengthWidth = '100%';
-            break;
+    // 根据强度设置文本和样式类
+    if (strength <= 2) {
+        strengthText = '密码强度：弱';
+        strengthClass = 'weak';
+    } else if (strength <= 3) {
+        strengthText = '密码强度：中';
+        strengthClass = 'medium';
+    } else {
+        strengthText = '密码强度：强';
+        strengthClass = 'strong';
     }
     
-    // 用span元素包裹文本，并设置为不换行
-    strengthSpan.innerHTML = `<span style="white-space: nowrap;">${strengthText}</span>`;
-    strengthSpan.style.color = strengthColor;
+    // 更新UI
+    if (strengthSpan) {
+        strengthSpan.textContent = strengthText;
+        strengthSpan.className = `password-strength-text ${strengthClass}`;
+    }
     
-    if (strengthBar) {
-        strengthBar.style.width = strengthWidth;
-        strengthBar.style.backgroundColor = strengthColor;
+    if (strengthIndicator) {
+        strengthIndicator.className = `strength-indicator ${strengthClass}`;
     }
 }
 
 // 切换密码可见性
-function togglePasswordVisibility(inputId) {
+function togglePasswordVisibility(inputId, btnElement) {
     const passwordInput = document.getElementById(inputId);
-    const toggleBtn = passwordInput.nextElementSibling.querySelector('i');
+    if (!passwordInput) return;
+    
+    // 获取图标元素
+    let toggleIcon;
+    if (btnElement) {
+        toggleIcon = btnElement.querySelector('i');
+    } else {
+        const nextSibling = passwordInput.nextElementSibling;
+        toggleIcon = nextSibling ? nextSibling.querySelector('i') : null;
+    }
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleBtn.classList.remove('fa-eye');
-        toggleBtn.classList.add('fa-eye-slash');
+        if (toggleIcon) {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        }
     } else {
         passwordInput.type = 'password';
-        toggleBtn.classList.remove('fa-eye-slash');
-        toggleBtn.classList.add('fa-eye');
+        if (toggleIcon) {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
     }
 }
 

@@ -522,6 +522,390 @@
             border-color: rgba(255, 255, 255, 0.5);
         }
 
+        .btn-danger-outline {
+            background-color: transparent;
+            border: 2px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-danger-outline:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* 用户统计行样式 */
+        .user-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .user-stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .user-stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card-enhanced {
+            background: var(--container-bg);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card-enhanced:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+
+        .stat-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon-wrapper.blue {
+            background: linear-gradient(135deg, #3d7cf4 0%, #5e95f7 100%);
+            color: white;
+        }
+
+        .stat-icon-wrapper.green {
+            background: linear-gradient(135deg, #28a745 0%, #48c764 100%);
+            color: white;
+        }
+
+        .stat-icon-wrapper.purple {
+            background: linear-gradient(135deg, #6f42c1 0%, #8c68cd 100%);
+            color: white;
+        }
+
+        .stat-icon-wrapper.orange {
+            background: linear-gradient(135deg, #fd7e14 0%, #fea347 100%);
+            color: white;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-card-enhanced .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card-enhanced .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 安全设置区域标题 */
+        .security-section-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .security-section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .security-section-header h2 i {
+            color: var(--primary-color);
+        }
+
+        .security-section-header p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* 安全卡片样式 */
+        .security-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .security-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .card-icon-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .card-icon.blue {
+            background: rgba(61, 124, 244, 0.1);
+            color: #3d7cf4;
+        }
+
+        .card-icon.orange {
+            background: rgba(253, 126, 20, 0.1);
+            color: #fd7e14;
+        }
+
+        .card-icon-header .user-center-section-title {
+            margin: 0;
+            padding: 0;
+        }
+
+        .card-icon-header .user-center-section-title::after {
+            display: none;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* 现代表单样式 */
+        .modern-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .modern-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modern-form label {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modern-form label i {
+            color: var(--primary-color);
+            font-size: 0.85rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            background: var(--container-bg);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .input-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: -0.25rem;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input-wrapper .form-input {
+            padding-right: 3rem;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary-color);
+        }
+
+        /* 密码强度条 */
+        .password-strength-bar {
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .strength-indicator {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .strength-indicator.weak {
+            width: 33%;
+            background: #dc3545;
+        }
+
+        .strength-indicator.medium {
+            width: 66%;
+            background: #ffc107;
+        }
+
+        .strength-indicator.strong {
+            width: 100%;
+            background: #28a745;
+        }
+
+        .password-strength-text {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .password-strength-text.weak {
+            color: #dc3545;
+        }
+
+        .password-strength-text.medium {
+            color: #ffc107;
+        }
+
+        .password-strength-text.strong {
+            color: #28a745;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* 安全提示样式 */
+        .security-tips {
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.05) 0%, rgba(61, 124, 244, 0.1) 100%);
+            border: 1px solid rgba(61, 124, 244, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tip-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .tip-header i {
+            font-size: 1.3rem;
+        }
+
+        .tip-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .tip-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tip-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .tip-list li i {
+            color: #28a745;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
         /* 用户信息网格布局 */
         .user-dashboard-grid {
             display: grid;
@@ -2914,10 +3298,12 @@
                 <div id="user-center" class="content-section">
                     <div class="user-center-header">
                         <div>
-                            <h1 class="user-center-title">用户中心</h1>
+                            <h1 class="user-center-title"><i class="fas fa-user-cog"></i> 用户中心</h1>
                             <p class="user-center-subtitle">管理您的个人信息和账户安全</p>
                         </div>
-                        <button class="btn btn-primary" id="ucLogoutBtn" style="display: inline-block;">退出登录</button>
+                        <button class="btn btn-danger-outline" id="ucLogoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> 退出登录
+                        </button>
                     </div>
                     
                     <!-- 个人资料卡片 -->
@@ -2934,72 +3320,162 @@
                             </div>
                         </div>
                         <div class="user-profile-actions">
-                            <button class="btn btn-outline" onclick="userCenter.refreshUserInfo()"><i class="fas fa-sync-alt"></i> 刷新</button>
+                            <button class="btn btn-outline" onclick="userCenter.refreshUserInfo()">
+                                <i class="fas fa-sync-alt"></i> 刷新信息
+                            </button>
                         </div>
                     </div>
                     
-                    <div class="user-dashboard-grid">
-                        <!-- 账户信息卡片 -->
-                        <div class="user-center-card">
-                            <div class="user-center-section">
-                                <h2 class="user-center-section-title">账户信息</h2>
-                                <div class="user-stats">
-                                    <div class="stat-card">
-                                        <div class="stat-icon"><i class="fas fa-sign-in-alt"></i></div>
-                                        <div class="stat-value" id="loginCount">--</div>
-                                        <div class="stat-label">登录次数</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                                        <div class="stat-value" id="lastLogin">--</div>
-                                        <div class="stat-label">上次登录</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                                        <div class="stat-value" id="accountAge">--</div>
-                                        <div class="stat-label">账户天数</div>
-                                    </div>
-                                </div>
+                    <!-- 账户统计卡片 - 独立行 -->
+                    <div class="user-stats-row">
+                        <div class="stat-card-enhanced">
+                            <div class="stat-icon-wrapper blue">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="loginCount">--</div>
+                                <div class="stat-label">登录次数</div>
                             </div>
                         </div>
-                        
-                        <!-- 修改用户名卡片 -->
-                        <div class="user-center-card">
-                            <div class="user-center-section">
-                                <h2 class="user-center-section-title">修改用户名</h2>
-                                <form id="changeUsernameForm">
-                                    <label for="ucNewUsername">新用户名</label>
-                                    <span class="password-hint">用户名需要3-20位，只能包含字母、数字和下划线</span>
-                                    <input type="text" id="ucNewUsername" name="newUsername" placeholder="请输入新用户名">
-                                    <label for="ucUsernamePassword">当前密码</label>
-                                    <span class="password-hint">修改用户名需要验证当前密码</span>
-                                    <input type="password" id="ucUsernamePassword" name="password" placeholder="请输入当前密码">
-                                    <div style="display: flex; align-items: center; margin-top: 10px;">
-                                        <button type="submit" class="btn btn-primary">修改用户名</button>
-                                    </div>
-                                </form>
+                        <div class="stat-card-enhanced">
+                            <div class="stat-icon-wrapper green">
+                                <i class="fas fa-clock"></i>
                             </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="lastLogin">--</div>
+                                <div class="stat-label">上次登录</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-enhanced">
+                            <div class="stat-icon-wrapper purple">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="accountAge">--</div>
+                                <div class="stat-label">账户天数</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-enhanced">
+                            <div class="stat-icon-wrapper orange">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">安全</div>
+                                <div class="stat-label">账户状态</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 安全设置区域 -->
+                    <div class="security-section-header">
+                        <h2><i class="fas fa-lock"></i> 安全设置</h2>
+                        <p>管理您的账户安全信息，定期修改密码可以提高账户安全性</p>
+                    </div>
+                    
+                    <div class="user-dashboard-grid">
+                        <!-- 修改用户名卡片 -->
+                        <div class="user-center-card security-card">
+                            <div class="card-icon-header">
+                                <div class="card-icon blue">
+                                    <i class="fas fa-user-edit"></i>
+                                </div>
+                                <h2 class="user-center-section-title">修改用户名</h2>
+                            </div>
+                            <p class="card-description">修改登录用户名，建议使用不易猜测的用户名以提高安全性</p>
+                            <form id="changeUsernameForm" class="modern-form">
+                                <div class="form-group">
+                                    <label for="ucNewUsername">
+                                        <i class="fas fa-user"></i> 新用户名
+                                    </label>
+                                    <input type="text" id="ucNewUsername" name="newUsername" placeholder="请输入新用户名" class="form-input">
+                                    <span class="input-hint">3-20位，只能包含字母、数字和下划线</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ucUsernamePassword">
+                                        <i class="fas fa-key"></i> 当前密码
+                                    </label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="ucUsernamePassword" name="password" placeholder="请输入当前密码验证身份" class="form-input">
+                                        <button type="button" class="toggle-password" onclick="userCenter.togglePasswordVisibility('ucUsernamePassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-save"></i> 保存新用户名
+                                </button>
+                            </form>
                         </div>
                         
                         <!-- 密码修改卡片 -->
-                        <div class="user-center-card">
-                            <div class="user-center-section">
+                        <div class="user-center-card security-card">
+                            <div class="card-icon-header">
+                                <div class="card-icon orange">
+                                    <i class="fas fa-lock"></i>
+                                </div>
                                 <h2 class="user-center-section-title">修改密码</h2>
-                                <form id="changePasswordForm">
-                                    <label for="ucCurrentPassword">当前密码</label>
-                                    <input type="password" id="ucCurrentPassword" name="currentPassword">
-                                    <label for="ucNewPassword">新密码</label>
-                                    <span class="password-hint" id="ucPasswordHint">密码必须包含至少一个字母、一个数字和一个特殊字符，长度在8到16个字符之间</span>
-                                    <input type="password" id="ucNewPassword" name="newPassword" oninput="userCenter.checkUcPasswordStrength()">
-                                    <label for="ucConfirmPassword">确认新密码</label>
-                                    <input type="password" id="ucConfirmPassword" name="confirmPassword">
-                                    <div style="display: flex; align-items: center; margin-top: 10px;">
-                                        <button type="submit" class="btn btn-primary">修改密码</button>
-                                        <span id="ucPasswordStrength" style="color: red; white-space: nowrap; display: inline-block; margin-left: 15px;"></span>
-                                    </div>
-                                </form>
                             </div>
+                            <p class="card-description">定期修改密码可以有效提高账户安全性，建议每3个月更换一次</p>
+                            <form id="changePasswordForm" class="modern-form">
+                                <div class="form-group">
+                                    <label for="ucCurrentPassword">
+                                        <i class="fas fa-key"></i> 当前密码
+                                    </label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="ucCurrentPassword" name="currentPassword" placeholder="请输入当前密码" class="form-input">
+                                        <button type="button" class="toggle-password" onclick="userCenter.togglePasswordVisibility('ucCurrentPassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ucNewPassword">
+                                        <i class="fas fa-lock"></i> 新密码
+                                    </label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="ucNewPassword" name="newPassword" placeholder="请输入新密码" class="form-input" oninput="userCenter.checkUcPasswordStrength()">
+                                        <button type="button" class="toggle-password" onclick="userCenter.togglePasswordVisibility('ucNewPassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-strength-bar">
+                                        <div class="strength-indicator" id="strengthIndicator"></div>
+                                    </div>
+                                    <span class="input-hint" id="ucPasswordHint">8-16位，需包含字母、数字和特殊字符</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ucConfirmPassword">
+                                        <i class="fas fa-check-circle"></i> 确认新密码
+                                    </label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="ucConfirmPassword" name="confirmPassword" placeholder="请再次输入新密码" class="form-input">
+                                        <button type="button" class="toggle-password" onclick="userCenter.togglePasswordVisibility('ucConfirmPassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-save"></i> 更新密码
+                                    </button>
+                                    <span id="ucPasswordStrength" class="password-strength-text"></span>
+                                </div>
+                            </form>
                         </div>
+                    </div>
+                    
+                    <!-- 安全提示 -->
+                    <div class="security-tips">
+                        <div class="tip-header">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>安全提示</span>
+                        </div>
+                        <ul class="tip-list">
+                            <li><i class="fas fa-check"></i> 使用强密码，包含大小写字母、数字和特殊字符</li>
+                            <li><i class="fas fa-check"></i> 不要与他人共享您的登录凭据</li>
+                            <li><i class="fas fa-check"></i> 定期更换密码，建议每3个月更换一次</li>
+                            <li><i class="fas fa-check"></i> 使用独特的用户名，避免使用常见名称如admin、root等</li>
+                        </ul>
                     </div>
                 </div>
 
