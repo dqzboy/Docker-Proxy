@@ -73,7 +73,12 @@ app.use('/api', (req, res, next) => {
     '/api/config',
     '/api/monitoring-config',
     '/api/documentation',
-    '/api/documentation/file'
+    '/api/documentation/file',
+    '/api/captcha',
+    '/api/auth/captcha',
+    '/api/auth/request-reset-token',
+    '/api/auth/reset-password',
+    '/api/auth/validate-reset-token'
   ];
   
   // 如果是公共API或用户已登录，则继续

@@ -161,3 +161,4 @@ cython_debug/
 node_modules
 .DS_Store
 hubcmdui/package-lock.json
+hubcmdui/data/app.db

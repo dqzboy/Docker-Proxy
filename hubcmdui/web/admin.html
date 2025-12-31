@@ -2963,6 +2963,24 @@
                             </div>
                         </div>
                         
+                        <!-- 修改用户名卡片 -->
+                        <div class="user-center-card">
+                            <div class="user-center-section">
+                                <h2 class="user-center-section-title">修改用户名</h2>
+                                <form id="changeUsernameForm">
+                                    <label for="ucNewUsername">新用户名</label>
+                                    <span class="password-hint">用户名需要3-20位，只能包含字母、数字和下划线</span>
+                                    <input type="text" id="ucNewUsername" name="newUsername" placeholder="请输入新用户名">
+                                    <label for="ucUsernamePassword">当前密码</label>
+                                    <span class="password-hint">修改用户名需要验证当前密码</span>
+                                    <input type="password" id="ucUsernamePassword" name="password" placeholder="请输入当前密码">
+                                    <div style="display: flex; align-items: center; margin-top: 10px;">
+                                        <button type="submit" class="btn btn-primary">修改用户名</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
                         <!-- 密码修改卡片 -->
                         <div class="user-center-card">
                             <div class="user-center-section">
@@ -2992,9 +3010,10 @@
     <div class="login-modal" id="loginModal" style="display: none;">
         <div class="login-content">
             <div class="login-header">
-                <h2>管理员登录</h2>
+                <h2 id="loginTitle">管理员登录</h2>
             </div>
     
+            <!-- 登录表单 -->
             <form id="loginForm" class="login-form">
                 <input type="text" id="username" name="username" placeholder="用户名" required>
                 <input type="password" id="password" name="password" placeholder="密码" required>
@@ -3004,6 +3023,44 @@
                     <span id="captchaText" onclick="auth.refreshCaptcha()">点击刷新验证码</span>
                 </div>
                 <button type="submit" id="loginButton">登录</button>
+                <div class="forgot-password-link" style="text-align: center; margin-top: 15px;">
+                    <a href="javascript:void(0)" onclick="auth.showForgotPassword()" style="color: #3d7cf4; text-decoration: none; font-size: 14px;">忘记密码？</a>
+                </div>
+            </form>
+
+            <!-- 忘记密码表单 - 步骤1: 验证用户名 -->
+            <form id="forgotPasswordForm" class="login-form" style="display: none;">
+                <div class="form-description" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
+                    请输入您的用户名来获取密码重置令牌
+                </div>
+                <input type="text" id="resetUsername" name="resetUsername" placeholder="用户名" required>
+                <div class="captcha-container">
+                    <input type="text" id="resetCaptcha" name="resetCaptcha" placeholder="验证码" required>
+                    <span id="resetCaptchaText" onclick="auth.refreshCaptcha()">点击刷新验证码</span>
+                </div>
+                <button type="submit" id="getTokenButton">获取重置令牌</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="javascript:void(0)" onclick="auth.showLoginForm()" style="color: #3d7cf4; text-decoration: none; font-size: 14px;">← 返回登录</a>
+                </div>
+            </form>
+
+            <!-- 重置密码表单 - 步骤2: 设置新密码 -->
+            <form id="resetPasswordForm" class="login-form" style="display: none;">
+                <div class="form-description" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
+                    请设置您的新密码
+                </div>
+                <div id="resetTokenDisplay" style="background: #f0f8ff; padding: 10px; border-radius: 5px; margin-bottom: 15px; word-break: break-all; font-size: 12px; display: none;">
+                    <strong>重置令牌：</strong><span id="tokenValue"></span>
+                </div>
+                <input type="password" id="resetNewPassword" name="resetNewPassword" placeholder="新密码（8-16位，含字母、数字和特殊字符）" required>
+                <input type="password" id="resetConfirmPassword" name="resetConfirmPassword" placeholder="确认新密码" required>
+                <div class="password-requirements" style="font-size: 12px; color: #888; margin-bottom: 15px;">
+                    密码要求：8-16位，包含字母、数字和特殊字符
+                </div>
+                <button type="submit" id="resetPasswordButton">重置密码</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="javascript:void(0)" onclick="auth.showLoginForm()" style="color: #3d7cf4; text-decoration: none; font-size: 14px;">← 返回登录</a>
+                </div>
             </form>
         </div>
     </div>

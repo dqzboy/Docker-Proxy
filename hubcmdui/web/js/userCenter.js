@@ -163,6 +163,100 @@ function isPasswordComplex(password) {
     return passwordRegex.test(password);
 }
 
+// 验证用户名格式
+function isUsernameValid(username) {
+    // 3-20位，只能包含字母、数字和下划线
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+}
+
+// 修改用户名
+async function changeUsername(event) {
+    if (event) {
+        event.preventDefault();
+    }
+    
+    const form = document.getElementById('changeUsernameForm');
+    const newUsername = form.querySelector('#ucNewUsername').value;
+    const password = form.querySelector('#ucUsernamePassword').value;
+    
+    // 验证表单
+    if (!newUsername || !password) {
+        return core.showAlert('所有字段都不能为空', 'error');
+    }
+    
+    // 用户名格式检查
+    if (!isUsernameValid(newUsername)) {
+        return core.showAlert('用户名格式不正确（3-20位，只能包含字母、数字和下划线）', 'error');
+    }
+    
+    // 显示加载状态
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+    
+    try {
+        const response = await fetch('/api/auth/change-username', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                newUsername,
+                password
+            })
+        });
+        
+        // 无论成功与否，去除加载状态
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '修改用户名失败');
+        }
+        
+        const data = await response.json();
+        
+        // 清空表单
+        form.reset();
+        
+        // 设置倒计时并显示
+        let countDown = 5;
+        
+        Swal.fire({
+            title: '用户名修改成功',
+            html: `您的用户名已成功修改为 <b>${data.newUsername}</b>，系统将在 <b>${countDown}</b> 秒后自动退出，请使用新用户名重新登录。`,
+            icon: 'success',
+            timer: countDown * 1000,
+            timerProgressBar: true,
+            didOpen: () => {
+                const content = Swal.getHtmlContainer();
+                const timerInterval = setInterval(() => {
+                    countDown--;
+                    if (content) {
+                        const b = content.querySelectorAll('b')[1]; // 获取第二个b标签（倒计时）
+                        if (b) {
+                            b.textContent = countDown > 0 ? countDown : 0;
+                        }
+                    }
+                    if (countDown <= 0) clearInterval(timerInterval);
+                }, 1000);
+            },
+            allowOutsideClick: false,
+            showConfirmButton: true,
+            confirmButtonText: '确定'
+        }).then((result) => {
+            if (result.dismiss === Swal.DismissReason.timer || result.isConfirmed) {
+                auth.logout();
+            }
+        });
+    } catch (error) {
+        core.showAlert('修改用户名失败: ' + error.message, 'error');
+    }
+}
+
 // 检查密码强度
 function checkUcPasswordStrength() {
     const password = document.getElementById('ucNewPassword').value;
@@ -312,11 +406,20 @@ function loadUserStats() {
 const userCenter = {
     init: function() {
         // console.log('初始化用户中心模块...');
-        // 可以在这里调用初始化逻辑，也可以延迟到需要时调用
+        // 初始化修改用户名表单事件
+        const changeUsernameForm = document.getElementById('changeUsernameForm');
+        if (changeUsernameForm) {
+            changeUsernameForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                changeUsername();
+            });
+        }
         return Promise.resolve(); // 返回一个已解决的 Promise，保持与其他模块一致
     },
     getUserInfo,
     changePassword,
+    changeUsername,
+    isUsernameValid,
     checkUcPasswordStrength,
     initUserCenter,
     loadUserStats,
