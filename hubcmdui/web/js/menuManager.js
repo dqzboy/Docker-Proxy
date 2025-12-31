@@ -24,11 +24,11 @@ const menuManager = {
         const thead = menuTable.querySelector('thead') || document.createElement('thead');
         thead.innerHTML = `
             <tr>
-                <th style="width: 5%">#</th>
-                <th style="width: 25%">文本 (Text)</th>
-                <th style="width: 40%">链接 (Link)</th>
-                <th style="width: 10%">新标签页 (New Tab)</th>
-                <th style="width: 20%">操作</th>
+                <th style="width: 6%">#</th>
+                <th style="width: 22%">菜单文本</th>
+                <th style="width: 38%">链接地址</th>
+                <th style="width: 12%">新标签页</th>
+                <th style="width: 22%">操作</th>
             </tr>
         `;
 
@@ -84,7 +84,24 @@ const menuManager = {
 
         if (!Array.isArray(configMenuItems)) {
             // console.error("configMenuItems 不是一个数组:", configMenuItems);
-            menuTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ff4d4f;">菜单数据格式错误</td></tr>';
+            menuTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>菜单数据格式错误</p>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        if (configMenuItems.length === 0) {
+            menuTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="table-empty-state">
+                        <i class="fas fa-list-ul"></i>
+                        <p>暂无菜单项，点击"添加菜单项"开始创建</p>
+                    </td>
+                </tr>`;
             return;
         }
 
@@ -92,10 +109,10 @@ const menuManager = {
             const row = document.createElement('tr');
             // 使用 index 作为临时 ID 进行操作
             row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.text || ''}</td>
-                <td>${item.link || ''}</td>
-                <td>${item.newTab ? '是' : '否'}</td>
+                <td><span class="table-row-num">${index + 1}</span></td>
+                <td><span class="menu-text-display">${item.text || ''}</span></td>
+                <td><code class="menu-link-display">${item.link || ''}</code></td>
+                <td><span class="menu-newtab-badge ${item.newTab ? 'yes' : 'no'}">${item.newTab ? '是' : '否'}</span></td>
                 <td class="action-buttons">
                     <button class="action-btn edit-btn" title="编辑菜单" onclick="menuManager.editMenuItem(${index})">
                         <i class="fas fa-edit"></i>
@@ -113,6 +130,12 @@ const menuManager = {
     showNewMenuItemRow: function() {
         const menuTableBody = document.getElementById('menuTableBody');
         if (!menuTableBody) return;
+
+        // 移除空状态行（如果存在）
+        const emptyState = menuTableBody.querySelector('.table-empty-state');
+        if (emptyState) {
+            emptyState.closest('tr').remove();
+        }
 
         // 如果已存在新行，则不重复添加
         if (document.getElementById('new-menu-item-row')) {
@@ -207,248 +230,324 @@ const menuManager = {
         }
 
         Swal.fire({
-            title: '<div class="edit-title"><i class="fas fa-edit"></i> 编辑菜单项</div>',
+            title: '',
             html: `
-                <div class="edit-menu-form">
-                    <div class="form-group">
-                        <label for="edit-text">
-                            <i class="fas fa-font"></i> 菜单文本
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="text" id="edit-text" class="modern-input" value="${item.text || ''}" placeholder="请输入菜单文本">
-                            <span class="input-icon"><i class="fas fa-heading"></i></span>
+                <div class="swal-edit-container">
+                    <div class="swal-edit-header">
+                        <div class="swal-edit-icon">
+                            <i class="fas fa-edit"></i>
                         </div>
-                        <small class="form-hint">菜单项显示的文本，保持简洁明了</small>
+                        <h2 class="swal-edit-title">编辑菜单项</h2>
+                        <p class="swal-edit-subtitle">修改菜单显示文本和链接配置</p>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="edit-link">
-                            <i class="fas fa-link"></i> 链接地址
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="text" id="edit-link" class="modern-input" value="${item.link || ''}" placeholder="请输入链接地址">
-                            <span class="input-icon"><i class="fas fa-globe"></i></span>
+                    <div class="swal-edit-form">
+                        <div class="swal-form-group">
+                            <label for="edit-text" class="swal-form-label">
+                                <i class="fas fa-font"></i> 菜单文本
+                            </label>
+                            <div class="swal-input-wrapper">
+                                <input type="text" id="edit-text" class="swal-modern-input" value="${item.text || ''}" placeholder="输入菜单显示文本">
+                            </div>
+                            <p class="swal-form-hint">用户在导航中看到的文字</p>
                         </div>
-                        <small class="form-hint">完整URL路径（例如: https://example.com）或相对路径（例如: /docs）</small>
-                    </div>
-                    
-                    <div class="form-group toggle-switch">
-                        <label for="edit-newTab" class="toggle-label-text">
-                            <i class="fas fa-external-link-alt"></i> 在新标签页打开
-                        </label>
-                        <div class="toggle-switch-container">
-                            <input type="checkbox" id="edit-newTab" class="toggle-input" ${item.newTab ? 'checked' : ''}>
-                            <label for="edit-newTab" class="toggle-label"></label>
-                            <span class="toggle-status">${item.newTab ? '是' : '否'}</span>
+                        
+                        <div class="swal-form-group">
+                            <label for="edit-link" class="swal-form-label">
+                                <i class="fas fa-link"></i> 链接地址
+                            </label>
+                            <div class="swal-input-wrapper">
+                                <input type="text" id="edit-link" class="swal-modern-input" value="${item.link || ''}" placeholder="https://example.com 或 /page">
+                            </div>
+                            <p class="swal-form-hint">点击菜单后跳转的URL</p>
                         </div>
-                    </div>
-                    
-                    <div class="form-preview">
-                        <div class="preview-title"><i class="fas fa-eye"></i> 预览</div>
-                        <div class="preview-content">
-                            <a href="${item.link || '#'}" class="preview-link" target="${item.newTab ? '_blank' : '_self'}">
-                                <span class="preview-text">${item.text || '菜单项'}</span>
-                                ${item.newTab ? '<i class="fas fa-external-link-alt preview-icon"></i>' : ''}
-                            </a>
+                        
+                        <div class="swal-form-group swal-toggle-group">
+                            <div class="swal-toggle-left">
+                                <label class="swal-form-label">
+                                    <i class="fas fa-external-link-alt"></i> 新标签页打开
+                                </label>
+                                <p class="swal-form-hint">是否在新窗口中打开链接</p>
+                            </div>
+                            <div class="swal-toggle-right">
+                                <label class="swal-toggle-switch">
+                                    <input type="checkbox" id="edit-newTab" ${item.newTab ? 'checked' : ''}>
+                                    <span class="swal-toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="swal-preview-box">
+                            <div class="swal-preview-label">
+                                <i class="fas fa-eye"></i> 效果预览
+                            </div>
+                            <div class="swal-preview-content">
+                                <a href="javascript:void(0)" class="swal-preview-link" id="preview-link-el">
+                                    <span id="preview-text-el">${item.text || '菜单项'}</span>
+                                    <i class="fas fa-external-link-alt swal-preview-external" id="preview-external-icon" style="${item.newTab ? '' : 'display:none'}"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <style>
-                    .edit-title {
+                    .swal2-popup.swal2-modal {
+                        border-radius: 20px !important;
+                        padding: 0 !important;
+                        overflow: hidden;
+                    }
+                    .swal-edit-container {
+                        padding: 0;
+                    }
+                    .swal-edit-header {
+                        background: linear-gradient(135deg, #3d7cfa 0%, #6366f1 100%);
+                        padding: 2rem 2rem 1.75rem;
+                        text-align: center;
+                        position: relative;
+                    }
+                    .swal-edit-icon {
+                        width: 56px;
+                        height: 56px;
+                        background: rgba(255,255,255,0.2);
+                        border-radius: 16px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-bottom: 1rem;
+                        backdrop-filter: blur(10px);
+                    }
+                    .swal-edit-icon i {
                         font-size: 1.5rem;
-                        color: #3085d6;
-                        margin-bottom: 10px;
+                        color: white;
                     }
-                    .edit-menu-form {
-                        text-align: left;
-                        padding: 0 15px;
+                    .swal-edit-title {
+                        color: white;
+                        font-size: 1.4rem;
+                        font-weight: 700;
+                        margin: 0 0 0.35rem 0;
                     }
-                    .form-group {
-                        margin-bottom: 20px;
-                        position: relative;
+                    .swal-edit-subtitle {
+                        color: rgba(255,255,255,0.85);
+                        font-size: 0.9rem;
+                        margin: 0;
+                        font-weight: 400;
                     }
-                    .form-group label {
-                        display: block;
-                        margin-bottom: 8px;
+                    .swal-edit-form {
+                        padding: 1.75rem 2rem 1.5rem;
+                    }
+                    .swal-form-group {
+                        margin-bottom: 1.35rem;
+                    }
+                    .swal-form-label {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        font-size: 0.9rem;
                         font-weight: 600;
-                        color: #444;
-                        font-size: 0.95rem;
+                        color: #334155;
+                        margin-bottom: 0.6rem;
                     }
-                    .input-wrapper {
+                    .swal-form-label i {
+                        color: #3d7cfa;
+                        font-size: 0.85rem;
+                    }
+                    .swal-input-wrapper {
                         position: relative;
                     }
-                    .modern-input {
+                    .swal-modern-input {
                         width: 100%;
-                        padding: 12px 40px 12px 15px;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        font-size: 1rem;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                        padding: 0.85rem 1rem;
+                        border: 2px solid #e2e8f0;
+                        border-radius: 12px;
+                        font-size: 0.95rem;
+                        transition: all 0.25s ease;
+                        background: #f8fafc;
+                        color: #1e293b;
+                        box-sizing: border-box;
                     }
-                    .modern-input:focus {
-                        border-color: #3085d6;
-                        box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.2);
+                    .swal-modern-input::placeholder {
+                        color: #94a3b8;
+                    }
+                    .swal-modern-input:focus {
+                        border-color: #3d7cfa;
+                        background: white;
+                        box-shadow: 0 0 0 4px rgba(61, 124, 250, 0.12);
                         outline: none;
                     }
-                    .input-icon {
-                        position: absolute;
-                        right: 12px;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        color: #aaa;
+                    .swal-form-hint {
+                        font-size: 0.78rem;
+                        color: #94a3b8;
+                        margin: 0.4rem 0 0 0;
                     }
-                    .form-hint {
-                        display: block;
-                        font-size: 0.8rem;
-                        color: #888;
-                        margin-top: 5px;
-                        font-style: italic;
-                    }
-                    .toggle-switch {
+                    .swal-toggle-group {
                         display: flex;
+                        align-items: center;
                         justify-content: space-between;
-                        align-items: center;
-                        padding: 5px 0;
+                        background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+                        padding: 1rem 1.25rem;
+                        border-radius: 12px;
+                        border: 1px solid #e2e8f0;
                     }
-                    .toggle-label-text {
-                        margin-bottom: 0 !important;
+                    .swal-toggle-left {
+                        flex: 1;
                     }
-                    .toggle-switch-container {
-                        display: flex;
-                        align-items: center;
+                    .swal-toggle-left .swal-form-label {
+                        margin-bottom: 0.25rem;
                     }
-                    .toggle-input {
-                        display: none;
+                    .swal-toggle-left .swal-form-hint {
+                        margin: 0;
                     }
-                    .toggle-label {
-                        display: block;
-                        width: 52px;
-                        height: 26px;
-                        background: #e6e6e6;
-                        border-radius: 13px;
+                    .swal-toggle-switch {
                         position: relative;
-                        cursor: pointer;
-                        transition: background 0.3s ease;
-                        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+                        display: inline-block;
+                        width: 52px;
+                        height: 28px;
                     }
-                    .toggle-label:after {
-                        content: '';
+                    .swal-toggle-switch input {
+                        opacity: 0;
+                        width: 0;
+                        height: 0;
+                    }
+                    .swal-toggle-slider {
                         position: absolute;
-                        top: 3px;
+                        cursor: pointer;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: #cbd5e1;
+                        transition: 0.3s;
+                        border-radius: 28px;
+                    }
+                    .swal-toggle-slider:before {
+                        position: absolute;
+                        content: "";
+                        height: 22px;
+                        width: 22px;
                         left: 3px;
-                        width: 20px;
-                        height: 20px;
+                        bottom: 3px;
                         background: white;
+                        transition: 0.3s;
                         border-radius: 50%;
-                        transition: transform 0.3s ease, box-shadow 0.3s ease;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
                     }
-                    .toggle-input:checked + .toggle-label {
-                        background: #3085d6;
+                    .swal-toggle-switch input:checked + .swal-toggle-slider {
+                        background: linear-gradient(135deg, #10b981, #34d399);
                     }
-                    .toggle-input:checked + .toggle-label:after {
-                        transform: translateX(26px);
+                    .swal-toggle-switch input:checked + .swal-toggle-slider:before {
+                        transform: translateX(24px);
                     }
-                    .toggle-status {
-                        margin-left: 10px;
-                        font-size: 0.9rem;
-                        color: #666;
-                        min-width: 20px;
+                    .swal-preview-box {
+                        margin-top: 1.5rem;
+                        border: 2px dashed #e2e8f0;
+                        border-radius: 12px;
+                        padding: 1rem;
+                        background: linear-gradient(135deg, #fafbfc, #f5f7fa);
                     }
-                    .form-preview {
-                        margin-top: 25px;
-                        border: 1px dashed #ccc;
-                        border-radius: 8px;
-                        padding: 15px;
-                        background-color: #f9f9f9;
-                    }
-                    .preview-title {
-                        font-size: 0.9rem;
-                        color: #666;
-                        margin-bottom: 10px;
+                    .swal-preview-label {
                         text-align: center;
+                        font-size: 0.8rem;
+                        color: #94a3b8;
+                        margin-bottom: 0.75rem;
+                        font-weight: 500;
                     }
-                    .preview-content {
+                    .swal-preview-label i {
+                        margin-right: 0.35rem;
+                    }
+                    .swal-preview-content {
                         display: flex;
                         justify-content: center;
-                        padding: 10px;
+                        padding: 0.75rem;
                         background: white;
-                        border-radius: 6px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
                     }
-                    .preview-link {
-                        display: flex;
+                    .swal-preview-link {
+                        display: inline-flex;
                         align-items: center;
-                        color: #3085d6;
+                        gap: 0.4rem;
+                        color: #3d7cfa;
                         text-decoration: none;
-                        font-weight: 500;
-                        padding: 5px 10px;
-                        border-radius: 4px;
-                        transition: background 0.2s ease;
+                        font-weight: 600;
+                        font-size: 1rem;
+                        padding: 0.5rem 1rem;
+                        border-radius: 8px;
+                        transition: all 0.2s ease;
                     }
-                    .preview-link:hover {
-                        background: #f0f7ff;
+                    .swal-preview-link:hover {
+                        background: rgba(61, 124, 250, 0.08);
                     }
-                    .preview-text {
-                        margin-right: 5px;
-                    }
-                    .preview-icon {
-                        font-size: 0.8rem;
+                    .swal-preview-external {
+                        font-size: 0.75rem;
                         opacity: 0.7;
+                    }
+                    .swal2-actions {
+                        padding: 0 2rem 1.75rem !important;
+                        gap: 0.75rem !important;
+                        margin: 0 !important;
+                    }
+                    .swal2-confirm {
+                        background: linear-gradient(135deg, #3d7cfa, #6366f1) !important;
+                        border-radius: 10px !important;
+                        padding: 0.75rem 1.5rem !important;
+                        font-weight: 600 !important;
+                        font-size: 0.95rem !important;
+                        box-shadow: 0 4px 14px rgba(61, 124, 250, 0.35) !important;
+                        border: none !important;
+                    }
+                    .swal2-confirm:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 20px rgba(61, 124, 250, 0.45) !important;
+                    }
+                    .swal2-cancel {
+                        background: #f1f5f9 !important;
+                        color: #64748b !important;
+                        border-radius: 10px !important;
+                        padding: 0.75rem 1.5rem !important;
+                        font-weight: 600 !important;
+                        font-size: 0.95rem !important;
+                        border: none !important;
+                    }
+                    .swal2-cancel:hover {
+                        background: #e2e8f0 !important;
+                    }
+                    .swal2-validation-message {
+                        background: #fef2f2 !important;
+                        color: #dc2626 !important;
+                        border-radius: 8px !important;
+                        margin: 0 2rem 1rem !important;
+                        padding: 0.75rem 1rem !important;
+                        font-size: 0.9rem !important;
                     }
                 </style>
             `,
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-save"></i> 保存',
-            cancelButtonText: '<i class="fas fa-times"></i> 取消',
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#6c757d',
-            width: '550px',
+            confirmButtonText: '<i class="fas fa-check"></i> 保存更改',
+            cancelButtonText: '取消',
+            width: '480px',
             focusConfirm: false,
-            customClass: {
-                container: 'menu-edit-container',
-                popup: 'menu-edit-popup',
-                title: 'menu-edit-title',
-                confirmButton: 'menu-edit-confirm',
-                cancelButton: 'menu-edit-cancel'
+            showClass: {
+                popup: 'animate__animated animate__fadeInUp animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutDown animate__faster'
             },
             didOpen: () => {
                 // 添加输入监听，更新预览
                 const textInput = document.getElementById('edit-text');
                 const linkInput = document.getElementById('edit-link');
                 const newTabToggle = document.getElementById('edit-newTab');
-                const toggleStatus = document.querySelector('.toggle-status');
-                const previewText = document.querySelector('.preview-text');
-                const previewLink = document.querySelector('.preview-link');
-                const previewIcon = document.querySelector('.preview-icon') || document.createElement('i');
-                
-                if (!previewIcon.classList.contains('fas')) {
-                    previewIcon.className = 'fas fa-external-link-alt preview-icon';
-                }
+                const previewTextEl = document.getElementById('preview-text-el');
+                const previewExternalIcon = document.getElementById('preview-external-icon');
                 
                 const updatePreview = () => {
-                    previewText.textContent = textInput.value || '菜单项';
-                    previewLink.href = linkInput.value || '#';
-                    previewLink.target = newTabToggle.checked ? '_blank' : '_self';
-                    
-                    if (newTabToggle.checked) {
-                        if (!previewLink.contains(previewIcon)) {
-                            previewLink.appendChild(previewIcon);
-                        }
-                    } else {
-                        if (previewLink.contains(previewIcon)) {
-                            previewLink.removeChild(previewIcon);
-                        }
-                    }
+                    previewTextEl.textContent = textInput.value || '菜单项';
+                    previewExternalIcon.style.display = newTabToggle.checked ? '' : 'none';
                 };
                 
                 textInput.addEventListener('input', updatePreview);
                 linkInput.addEventListener('input', updatePreview);
-                newTabToggle.addEventListener('change', () => {
-                    toggleStatus.textContent = newTabToggle.checked ? '是' : '否';
-                    updatePreview();
-                });
+                newTabToggle.addEventListener('change', updatePreview);
             },
             preConfirm: () => {
                 const text = document.getElementById('edit-text').value.trim();
@@ -456,12 +555,12 @@ const menuManager = {
                 const newTab = document.getElementById('edit-newTab').checked;
                 
                 if (!text) {
-                    Swal.showValidationMessage('<i class="fas fa-exclamation-circle"></i> 菜单文本不能为空');
+                    Swal.showValidationMessage('菜单文本不能为空');
                     return false;
                 }
                 
                 if (!link) {
-                    Swal.showValidationMessage('<i class="fas fa-exclamation-circle"></i> 链接地址不能为空');
+                    Swal.showValidationMessage('链接地址不能为空');
                     return false;
                 }
                 

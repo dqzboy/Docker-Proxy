@@ -365,7 +365,7 @@
         
         async function loadDocument(id) {
             try {
-                const response = await fetch(`/api/documents/${id}`, {
+                const response = await fetch(`/api/documentation/documents/${id}`, {
                     credentials: 'same-origin'
                 });
                 
@@ -426,7 +426,7 @@
             document.getElementById('loadingOverlay').style.display = 'flex';
             
             try {
-                const url = currentDocId ? `/api/documents/${currentDocId}` : '/api/documents';
+                const url = currentDocId ? `/api/documentation/documents/${currentDocId}` : '/api/documentation/documents';
                 const method = currentDocId ? 'PUT' : 'POST';
                 
                 const response = await fetch(url, {

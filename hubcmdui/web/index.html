@@ -815,14 +815,12 @@
                 
                 // 根据标签数量判断是否显示警告
                 let warningMessage = '';
-                let loadAllBtnDisabled = false;
                 
                 if (tagCount > 1000) {
                     warningMessage = `<div class="tag-count-warning">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>该镜像包含 <strong>${tagCount}</strong> 个标签，加载全部可能会很慢。建议使用分页浏览或利用搜索功能查找特定标签。</p>
                     </div>`;
-                    loadAllBtnDisabled = true;
                 } else if (tagCount > 500) {
                     warningMessage = `<div class="tag-count-warning moderate">
                         <i class="fas fa-info-circle"></i>
@@ -851,7 +849,7 @@
                         <div class="tag-search-container">
                             <input type="text" id="tagSearchInput" placeholder="搜索TAG..." onkeyup="filterTags()">
                         </div>
-                        <button id="loadAllTagsBtn" class="load-all-btn" onclick="loadAllTags()" ${loadAllBtnDisabled ? 'disabled' : ''}>
+                        <button id="loadAllTagsBtn" class="load-all-btn" onclick="loadAllTags()">
                             <i class="fas fa-cloud-download-alt"></i> 加载全部TAG
                         </button>
                     </div>
@@ -1530,12 +1528,6 @@
 
         // 显示指定的文档
         function showDocument(index) {
-            // 清理之前的返回顶部按钮
-            const existingBackToTopBtn = document.querySelector('.back-to-top-btn');
-            if (existingBackToTopBtn) {
-                existingBackToTopBtn.remove();
-            }
-            
             if (!window.documentationData || !Array.isArray(window.documentationData)) {
                 console.error('文档数据不可用');
                 return;
@@ -1793,42 +1785,26 @@
                         }
                         container.appendChild(docMetaDiv);
 
-                        // 添加返回顶部按钮（如果内容很长）
-                        if (docContentDiv.scrollHeight > 1000) {
-                            const backToTopBtn = document.createElement('button');
+                        // 添加返回顶部按钮
+                        let backToTopBtn = document.querySelector('.back-to-top-btn');
+                        if (!backToTopBtn) {
+                            backToTopBtn = document.createElement('button');
                             backToTopBtn.className = 'back-to-top-btn';
                             backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-                            backToTopBtn.style.cssText = `
-                                position: fixed;
-                                bottom: 2rem;
-                                right: 2rem;
-                                width: 3rem;
-                                height: 3rem;
-                                border-radius: 50%;
-                                background: var(--primary-color);
-                                color: white;
-                                border: none;
-                                cursor: pointer;
-                                box-shadow: 0 4px 12px rgba(61, 124, 244, 0.3);
-                                z-index: 1000;
-                                opacity: 0.8;
-                                transition: all 0.3s ease;
-                            `;
+                            backToTopBtn.title = '返回顶部';
                             backToTopBtn.onclick = () => {
-                                container.scrollIntoView({ behavior: 'smooth' });
-                            };
-                            backToTopBtn.onmouseenter = () => {
-                                backToTopBtn.style.opacity = '1';
-                                backToTopBtn.style.transform = 'scale(1.1)';
-                            };
-                            backToTopBtn.onmouseleave = () => {
-                                backToTopBtn.style.opacity = '0.8';
-                                backToTopBtn.style.transform = 'scale(1)';
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
                             };
                             document.body.appendChild(backToTopBtn);
                             
-                            // 当切换文档时清理按钮
-                            container.setAttribute('data-back-to-top', 'true');
+                            // 监听滚动事件
+                            window.addEventListener('scroll', () => {
+                                if (window.scrollY > 300) {
+                                    backToTopBtn.classList.add('visible');
+                                } else {
+                                    backToTopBtn.classList.remove('visible');
+                                }
+                            });
                         }
 
                     } catch (error) {

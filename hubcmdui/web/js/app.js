@@ -432,7 +432,13 @@ function refreshStoppedContainers() {
             tbody.innerHTML = '';
             
             if (containers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">没有已停止的容器</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="stopped-containers-empty">
+                            <i class="fas fa-check-circle"></i>
+                            <p>所有容器运行正常，没有已停止的容器</p>
+                        </td>
+                    </tr>`;
                 return;
             }
             
@@ -444,10 +450,10 @@ function refreshStoppedContainers() {
                 
                 const row = `
                     <tr>
-                        <td>${container.id}</td>
-                        <td>${container.name}</td>
-                        <td>${container.image ? container.image : '未知'}</td>
-                        <td>${container.status}</td>
+                        <td><code class="container-id-cell">${container.id}</code></td>
+                        <td><span class="container-name-cell">${container.name}</span></td>
+                        <td><span class="container-image-cell">${container.image ? container.image : '未知'}</span></td>
+                        <td><span class="container-status-badge stopped"><i class="fas fa-stop-circle"></i> ${container.status}</span></td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
@@ -455,8 +461,13 @@ function refreshStoppedContainers() {
         })
         .catch(error => {
             console.error('获取已停止容器列表失败:', error);
-            document.getElementById('stoppedContainersBody').innerHTML = 
-                '<tr><td colspan="4" style="text-align: center; color: red;">获取已停止容器列表失败</td></tr>';
+            document.getElementById('stoppedContainersBody').innerHTML = `
+                <tr>
+                    <td colspan="4" class="table-empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>获取容器列表失败，请检查 Docker 服务状态</p>
+                    </td>
+                </tr>`;
         });
 }
 

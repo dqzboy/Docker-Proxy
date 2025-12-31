@@ -39,10 +39,10 @@ const documentManager = {
             // 设置表头内容 (包含 ID 列)
             thead.innerHTML = `
                 <tr>
-                    <th style="width: 5%">#</th>
-                    <th style="width: 25%">标题</th>
-                    <th style="width: 20%">创建时间</th>
-                    <th style="width: 20%">更新时间</th>
+                    <th style="width: 6%">#</th>
+                    <th style="width: 28%">文档标题</th>
+                    <th style="width: 18%">创建时间</th>
+                    <th style="width: 18%">更新时间</th>
                     <th style="width: 10%">状态</th>
                     <th style="width: 20%">操作</th>
                 </tr>
@@ -187,7 +187,13 @@ const documentManager = {
         tbody.innerHTML = '';
         
         if (documents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">没有找到文档</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="table-empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>暂无文档，点击"新建文档"开始创建</p>
+                    </td>
+                </tr>`;
             return;
         }
         
@@ -239,21 +245,21 @@ const documentManager = {
                 // console.warn(`解析文档时间失败:`, error, doc);
             }
             
-            const statusClasses = doc.published ? 'status-badge status-running' : 'status-badge status-stopped';
-            const statusText = doc.published ? '已发布' : '未发布';
+            const statusClasses = doc.published ? 'doc-status-badge published' : 'doc-status-badge draft';
+            const statusText = doc.published ? '已发布' : '草稿';
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${doc.title || '无标题文档'}</td>
-                <td>${createdAt}</td>
-                <td>${updatedAt}</td>
+                <td><span class="table-row-num">${index + 1}</span></td>
+                <td><span class="doc-title-display">${doc.title || '无标题文档'}</span></td>
+                <td><span class="doc-date">${createdAt}</span></td>
+                <td><span class="doc-date">${updatedAt}</span></td>
                 <td><span class="${statusClasses}">${statusText}</span></td>
                 <td class="action-buttons">
                     <button class="action-btn edit-btn" title="编辑文档" onclick="documentManager.editDocument('${doc.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="action-btn ${doc.published ? 'unpublish-btn' : 'publish-btn'}" 
+                    <button class="action-btn ${doc.published ? 'view-btn' : 'publish-btn'}" 
                         title="${doc.published ? '取消发布' : '发布文档'}" 
                         onclick="documentManager.togglePublish('${doc.id}')">
                         <i class="fas ${doc.published ? 'fa-toggle-off' : 'fa-toggle-on'}"></i>

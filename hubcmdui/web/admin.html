@@ -42,27 +42,45 @@
 
         .sidebar {
             width: 280px;
-            background-color: var(--container-bg);
-            box-shadow: var(--shadow-md);
+            background: linear-gradient(180deg, var(--container-bg) 0%, #f8fafc 100%);
+            box-shadow: var(--shadow-lg);
             padding: 1.5rem 0;
             z-index: 10;
             transition: all 0.3s ease;
+            border-right: 1px solid var(--border-light, #e5e7eb);
         }
 
         .sidebar-header {
             text-align: center;
             margin-bottom: 1rem;
+            padding: 0 1rem;
+        }
+        
+        .sidebar-header h2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+        }
+        
+        .sidebar-header h2 i {
+            font-size: 1.1rem;
         }
 
         /* 文档管理新建文档徽章 */
         .new-badge {
             display: inline-block;
             padding: 2px 8px;
-            background-color: #28a745;
+            background: linear-gradient(135deg, #10b981, #34d399);
             color: white;
             border-radius: 12px;
             font-size: 0.75rem;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
         }
 
         @keyframes pulse {
@@ -73,26 +91,30 @@
 
         /* 用户信息部分样式 */
         .user-profile {
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            margin: 0 1rem 1.5rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(61, 124, 244, 0.1);
         }
 
         .user-avatar {
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
-            background-color: var(--primary-light);
+            background: linear-gradient(135deg, var(--primary-color), #6366f1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
-            color: var(--primary-color);
-            margin-bottom: 0.8rem;
-            box-shadow: var(--shadow-sm);
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(61, 124, 244, 0.3);
+            border: 3px solid white;
         }
 
         .user-info {
@@ -101,8 +123,8 @@
         }
 
         .user-name {
-            font-weight: 600;
-            font-size: 1.1rem;
+            font-weight: 700;
+            font-size: 1.15rem;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
         }
@@ -111,37 +133,45 @@
             color: var(--text-secondary);
             font-size: 0.85rem;
             margin-bottom: 0.5rem;
+            background: rgba(61, 124, 244, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            display: inline-block;
         }
 
         .user-actions {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
         }
 
         .user-action-btn {
-            padding: 0.4rem 0.8rem;
+            padding: 0.5rem 1rem;
             font-size: 0.85rem;
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             background-color: rgba(61, 124, 244, 0.1);
             color: var(--primary-color);
             cursor: pointer;
             transition: all var(--transition-fast);
+            font-weight: 500;
         }
 
         .user-action-btn:hover {
             background-color: var(--primary-color);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(61, 124, 244, 0.25);
         }
 
         .user-action-btn.logout {
-            background-color: rgba(255, 82, 82, 0.1);
+            background-color: rgba(239, 68, 68, 0.1);
             color: var(--danger-color);
         }
 
         .user-action-btn.logout:hover {
             background-color: var(--danger-color);
             color: white;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
         }
 
         /* 仪表盘卡片样式 */
@@ -154,18 +184,18 @@
 
         .dashboard-card {
             background-color: var(--container-bg);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            padding: 1.5rem;
-            transition: all var(--transition-fast);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 1.75rem;
+            transition: all var(--transition-normal);
             border: 1px solid var(--border-light);
             position: relative;
             overflow: hidden;
         }
 
         .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
             border-color: var(--primary-light);
         }
 
@@ -174,29 +204,45 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 4px;
+            width: 5px;
             height: 100%;
-            background-color: var(--primary-color);
+            background: linear-gradient(180deg, var(--primary-color), #6366f1);
+            border-radius: 3px 0 0 3px;
+        }
+        
+        .dashboard-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 60%, rgba(61, 124, 244, 0.03) 100%);
+            pointer-events: none;
         }
 
         .card-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background-color: rgba(61, 124, 244, 0.1);
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.15), rgba(99, 102, 241, 0.1));
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
             color: var(--primary-color);
-            font-size: 1.4rem;
+            font-size: 1.5rem;
+            position: relative;
+            z-index: 1;
         }
 
         .card-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
             color: var(--text-primary);
+            position: relative;
+            z-index: 1;
         }
 
         .card-value {
@@ -244,14 +290,14 @@
         }
 
         .welcome-banner {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 50%, var(--primary-dark) 100%);
             border-radius: var(--radius-lg);
-            padding: 2rem;
+            padding: 2.5rem;
             margin-bottom: 2rem;
             color: white;
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 10px 40px rgba(61, 124, 244, 0.3);
         }
 
         .welcome-content {
@@ -260,22 +306,32 @@
         }
 
         .welcome-title {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .welcome-title span {
+            background: linear-gradient(90deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .welcome-subtitle {
-            font-size: 1rem;
+            font-size: 1.1rem;
             margin-bottom: 1.5rem;
-            opacity: 0.9;
+            opacity: 0.95;
+            font-weight: 400;
         }
 
         .welcome-action {
             background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
             color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.85rem 1.75rem;
             border-radius: var(--radius-md);
             font-weight: 500;
             cursor: pointer;
@@ -283,33 +339,75 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.95rem;
         }
 
         .welcome-action:hover {
-            background-color: rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.35);
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .welcome-action i {
+            transition: transform 0.3s ease;
+        }
+        
+        .welcome-action:hover i {
+            transform: rotate(180deg);
         }
 
         .welcome-banner::after {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
+            top: -60%;
+            right: -15%;
+            width: 350px;
+            height: 350px;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
+            animation: pulse-slow 4s ease-in-out infinite;
         }
 
         .welcome-banner::before {
             content: '';
             position: absolute;
-            bottom: -30%;
-            left: -5%;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.1);
+            bottom: -40%;
+            left: -8%;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 50%;
+            animation: pulse-slow 4s ease-in-out infinite 1s;
+        }
+        
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        /* Docker 状态指示器 */
+        .docker-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+        
+        .docker-status.docker-running {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        
+        .docker-status.docker-stopped {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
         }
 
         /* 用户中心样式 */
@@ -741,12 +839,14 @@
 
         .form-input {
             width: 100%;
-            padding: 0.875rem 1rem;
+            padding: 0.5rem 0.75rem; /* 减小全局输入内边距以降低高度 */
             border: 2px solid var(--border-light);
             border-radius: var(--radius-md);
             font-size: 0.95rem;
-            transition: all 0.2s ease;
+            transition: all 0.16s ease;
             background: var(--container-bg);
+            box-sizing: border-box;
+            line-height: 1.1;
         }
 
         .form-input:focus {
@@ -767,28 +867,71 @@
         }
 
         .password-input-wrapper {
-            position: relative;
             display: flex;
             align-items: center;
+            width: 100%;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            background: var(--container-bg);
+            transition: all 0.15s ease;
+            overflow: hidden;
+            padding: 0 8px; /* 取消垂直内边距，使用固定输入高度居中 */
+        }
+
+        .password-input-wrapper:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.08);
         }
 
         .password-input-wrapper .form-input {
-            padding-right: 3rem;
+            flex: 1;
+            border: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 12px !important; /* 横向内边距 */
+            height: 28px !important; /* 固定高度，保持不变 */
+            line-height: 28px !important; /* 与高度相同，垂直居中占位文本与输入文本 */
+            font-size: 14px !important;
+            box-sizing: border-box !important;
+            vertical-align: middle;
         }
 
-        .toggle-password {
-            position: absolute;
-            right: 0.75rem;
-            background: none;
-            border: none;
+        .password-input-wrapper .form-input::placeholder {
+            /* 有时浏览器对 placeholder 的居中不同，确保其 padding 一致 */
             color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: color 0.2s ease;
+            opacity: 0.6;
         }
 
-        .toggle-password:hover {
-            color: var(--primary-color);
+        .password-input-wrapper .form-input:focus {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .password-input-wrapper .toggle-password {
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            font-size: 13px;
+            padding: 0;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .password-input-wrapper .toggle-password:hover {
+            background: #2563eb;
+        }
+
+        .password-input-wrapper .toggle-password i {
+            pointer-events: none;
         }
 
         /* 密码强度条 */
@@ -1124,39 +1267,63 @@
 
         .sidebar ul {
             list-style: none;
-            padding: 0;
+            padding: 0 0.75rem;
             margin: 0;
         }
 
         .sidebar li {
-            padding: 1rem 1.5rem;
+            padding: 0.9rem 1.25rem;
             cursor: pointer;
             transition: all var(--transition-fast);
             color: var(--text-secondary);
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.9rem;
             font-weight: 500;
-            margin: 0.25rem 0;
-            border-left: 3px solid transparent;
+            margin: 0.35rem 0;
+            border-radius: var(--radius-md);
+            border-left: none;
+            position: relative;
         }
 
         .sidebar li:hover {
-            background-color: rgba(61, 124, 244, 0.08);
+            background: linear-gradient(90deg, rgba(61, 124, 244, 0.1), rgba(99, 102, 241, 0.05));
             color: var(--primary-color);
+            transform: translateX(3px);
         }
 
         .sidebar li.active {
-            background-color: rgba(61, 124, 244, 0.1);
-            color: var(--primary-color);
-            border-left: 3px solid var(--primary-color);
+            background: linear-gradient(90deg, var(--primary-color), #6366f1);
+            color: white;
             font-weight: 600;
+            box-shadow: 0 4px 15px rgba(61, 124, 244, 0.3);
+        }
+        
+        .sidebar li.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: white;
+            border-radius: 0 3px 3px 0;
         }
 
         .sidebar li i {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             width: 1.5rem;
             text-align: center;
+            transition: transform var(--transition-fast);
+        }
+        
+        .sidebar li:hover i {
+            transform: scale(1.1);
+        }
+        
+        .sidebar li.active i {
+            color: white;
         }
 
         .content-area {
@@ -1468,19 +1635,19 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(26, 35, 126, 0.85) 0%, rgba(61, 124, 244, 0.85) 100%);
-            backdrop-filter: blur(5px);
+            background: linear-gradient(135deg, rgba(26, 35, 126, 0.9) 0%, rgba(61, 124, 244, 0.85) 50%, rgba(99, 102, 241, 0.85) 100%);
+            backdrop-filter: blur(8px);
         }
 
         .login-content {
-            background-color: var(--container-bg);
-            padding: 2.5rem;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+            padding: 2.75rem;
             border-radius: var(--radius-lg);
-            width: 380px;
-            box-shadow: var(--shadow-lg);
+            width: 400px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             position: relative;
             animation: slideUp 0.5s ease-out;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         @keyframes fadeIn {
@@ -1495,10 +1662,10 @@
 
         .login-header h2 {
             color: var(--text-primary);
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             margin-bottom: 2rem;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
             position: relative;
             padding-bottom: 1rem;
         }
@@ -1509,21 +1676,22 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 50px;
-            height: 2px;
-            background: var(--primary-color);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), #6366f1);
+            border-radius: 2px;
         }
 
         .login-form input[type="text"],
         .login-form input[type="password"] {
             width: 100%;
-            padding: 1rem 1.2rem;
+            padding: 1rem 1.25rem;
             margin: 0.75rem 0;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             box-sizing: border-box;
             font-size: 1rem;
-            background-color: var (--container-bg);
+            background-color: #fafbfc;
             color: var(--text-primary);
             transition: all var(--transition-fast);
             box-shadow: var(--shadow-sm);
@@ -1531,32 +1699,34 @@
 
         .login-form input:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.2);
+            box-shadow: 0 0 0 4px rgba(61, 124, 244, 0.15);
             outline: none;
+            background-color: white;
         }
 
         .login-form button {
             width: 100%;
             padding: 1rem;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), #6366f1);
             color: white;
             border: none;
-            border-radius: var (--radius-md);
+            border-radius: var(--radius-md);
             cursor: pointer;
             font-size: 1.1rem;
-            font-weight: 500;
+            font-weight: 600;
             margin-top: 1.8rem;
             transition: all var(--transition-fast);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(61, 124, 244, 0.35);
         }
 
         .login-form button:hover {
-            background-color: var(--primary-dark);
+            background: linear-gradient(135deg, #5084f5, #7c7ff7);
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 6px 20px rgba(61, 124, 244, 0.4);
         }
 
         .login-form button:active {
@@ -1581,8 +1751,8 @@
         }
 
         .captcha-container span {
-            padding: 0.85rem;
-            background-color: var(--background-color);
+            padding: 0.85rem 1rem;
+            background: linear-gradient(135deg, #f0f4ff, #f7f8fc);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             cursor: pointer;
@@ -1592,11 +1762,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 500;
         }
 
         .captcha-container span:hover {
-            background-color: var(--border-light);
+            background: linear-gradient(135deg, #e8eeff, #f0f4ff);
             color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         /* 加载指示器 */
@@ -3037,6 +3209,1057 @@
         .action-cell .btn-group .btn-primary {
             display: none; /* 隐藏原始按钮，由select替代 */
         }
+
+        /* ==================== 页面美化样式 ==================== */
+        
+        /* 统一页面头部样式 */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-light, #e5e7eb);
+        }
+        
+        .page-header-content {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            opacity: 0.9;
+        }
+        
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 0;
+            text-align: left;
+            padding-left: 0;
+        }
+        
+        /* 配置卡片网格 */
+        .config-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .monitoring-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .config-card {
+            background: var(--container-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--border-light, #e5e7eb);
+        }
+        
+        .config-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .config-card.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .config-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.05) 0%, rgba(61, 124, 244, 0.02) 100%);
+            border-bottom: 1px solid var(--border-light, #e5e7eb);
+        }
+        
+        .config-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .config-card-icon.purple {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+        }
+        
+        .config-card-icon.blue {
+            background: linear-gradient(135deg, #3d7cf4, #6366f1);
+        }
+        
+        .config-card-icon.green {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+        
+        .config-card-icon.red {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
+        
+        .config-card-icon.orange {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        }
+        
+        .config-card-title h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .config-card-title p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .config-card-body {
+            padding: 1.5rem;
+        }
+        
+        /* 现代表单样式 */
+        .modern-form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .modern-form-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .modern-form-group label i {
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            opacity: 0.7;
+        }
+        
+        .required-badge {
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 0.15rem 0.5rem;
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+            border-radius: 4px;
+        }
+        
+        .modern-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: var(--input-bg, #fff);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .modern-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.15);
+            outline: none;
+        }
+        
+        .modern-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        
+        .input-hint {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        
+        /* 带图标的按钮 */
+        .btn-with-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+        
+        .btn-with-icon i {
+            font-size: 0.9rem;
+        }
+        
+        /* 按钮组现代样式 */
+        .button-group-modern {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        
+        /* 表格容器样式 */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+        
+        .table-container .table-responsive {
+            padding: 0;
+        }
+        
+        /* 现代表格样式 - 2024主流设计 */
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+        
+        .modern-table thead {
+            background: transparent;
+        }
+        
+        .modern-table th {
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 500;
+            color: #6b7280;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f3f4f6;
+            white-space: nowrap;
+        }
+        
+        .modern-table th:first-child {
+            padding-left: 24px;
+        }
+        
+        .modern-table th:last-child {
+            padding-right: 24px;
+        }
+        
+        .modern-table td {
+            padding: 16px 20px;
+            vertical-align: middle;
+            color: #111827;
+            font-size: 14px;
+            border-bottom: 1px solid #f9fafb;
+        }
+        
+        .modern-table td:first-child {
+            padding-left: 24px;
+        }
+        
+        .modern-table td:last-child {
+            padding-right: 24px;
+        }
+        
+        .modern-table tbody tr {
+            transition: background-color 0.1s ease;
+        }
+        
+        .modern-table tbody tr:hover {
+            background-color: #fafbfc;
+        }
+        
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* 表格操作按钮样式 - 现代风格 */
+        .modern-table .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+        
+        .modern-table .action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            font-size: 14px;
+        }
+        
+        .modern-table .action-btn.edit-btn {
+            background: #f0f9ff;
+            color: #0ea5e9;
+        }
+        
+        .modern-table .action-btn.edit-btn:hover {
+            background: #0ea5e9;
+            color: white;
+        }
+        
+        .modern-table .action-btn.delete-btn {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        
+        .modern-table .action-btn.delete-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .modern-table .action-btn.view-btn {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+        
+        .modern-table .action-btn.view-btn:hover {
+            background: #22c55e;
+            color: white;
+        }
+        
+        /* 表格序号和链接展示 */
+        .table-row-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: #f3f4f6;
+            color: #6b7280;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .menu-link-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #475569;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .menu-link-display i {
+            color: #94a3b8;
+            font-size: 11px;
+        }
+        
+        /* 表格空状态 */
+        .table-empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #9ca3af;
+        }
+        
+        .table-empty-state i {
+            font-size: 40px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .table-empty-state p {
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        /* 新增菜单行样式 */
+        #new-menu-item-row,
+        .new-item-row {
+            background: #f0fdf4 !important;
+        }
+        
+        #new-menu-item-row td,
+        .new-item-row td {
+            padding: 14px 20px !important;
+            border-bottom: 1px dashed #86efac !important;
+            background: transparent !important;
+        }
+        
+        #new-menu-item-row input,
+        #new-menu-item-row select,
+        .new-item-row input,
+        .new-item-row select {
+            padding: 10px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.15s ease;
+            background: white;
+        }
+        
+        #new-menu-item-row input:focus,
+        #new-menu-item-row select:focus,
+        .new-item-row input:focus,
+        .new-item-row select:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            outline: none;
+        }
+        
+        .action-buttons-new-menu {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-buttons-new-menu .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        
+        .save-new-menu-btn {
+            background: #22c55e !important;
+            border: none !important;
+            color: white !important;
+        }
+        
+        .save-new-menu-btn:hover {
+            background: #16a34a !important;
+        }
+        
+        .cancel-new-menu-btn {
+            background: #f3f4f6 !important;
+            border: 1px solid #e5e7eb !important;
+            color: #6b7280 !important;
+        }
+        
+        .cancel-new-menu-btn:hover {
+            background: #ef4444 !important;
+            border-color: transparent !important;
+            color: white !important;
+        }
+        
+        /* 编辑行样式 */
+        .editing-row {
+            background: #fffbeb !important;
+        }
+        
+        .editing-row td {
+            border-bottom: 1px dashed #fbbf24 !important;
+            background: transparent !important;
+        }
+        
+        .editing-row input,
+        .editing-row select {
+            padding: 10px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.15s ease;
+            background: white;
+        }
+        
+        .editing-row input:focus,
+        .editing-row select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            outline: none;
+        }
+        
+        /* 表格加载状态 */
+        .table-loading {
+            text-align: center;
+            padding: 32px;
+            color: #9ca3af;
+        }
+        
+        .table-loading i {
+            color: #3b82f6;
+            margin-right: 8px;
+        }
+        
+        /* 文档管理特殊样式 */
+        #documentTable .doc-title {
+            font-weight: 500;
+            color: #111827;
+        }
+        
+        #documentTable .doc-path {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+        
+        #documentTable .doc-date,
+        .doc-date {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .doc-title-display {
+            font-weight: 500;
+            color: #111827;
+            font-size: 14px;
+        }
+        
+        .doc-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .doc-status-badge.published {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .doc-status-badge.draft {
+            background: #fefce8;
+            color: #ca8a04;
+        }
+        
+        /* 发布/取消发布按钮 */
+        .modern-table .action-btn.publish-btn {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+        
+        .modern-table .action-btn.publish-btn:hover {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .modern-table .action-btn.unpublish-btn {
+            background: #fefce8;
+            color: #eab308;
+        }
+        
+        .modern-table .action-btn.unpublish-btn:hover {
+            background: #eab308;
+            color: white;
+        }
+        
+        /* 菜单管理表格特殊样式 */
+        .menu-text-display {
+            font-weight: 500;
+            color: #111827;
+            font-size: 14px;
+        }
+        
+        .menu-newtab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .menu-newtab-badge.yes {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .menu-newtab-badge.no {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        /* 容器表格专用样式 */
+        .container-id-cell {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+            color: #64748b;
+            background: #f3f4f6;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .container-name-cell {
+            font-weight: 500;
+            color: #111827;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .container-name-cell::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+            display: inline-block;
+        }
+        
+        .container-image-cell {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 13px;
+            color: #0284c7;
+            background: #f0f9ff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .container-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .container-status-badge.stopped {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .container-status-badge.running {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .container-status-badge.paused {
+            background: #fefce8;
+            color: #ca8a04;
+        }
+        
+        .container-status-badge i {
+            font-size: 8px;
+        }
+        
+        /* 空容器状态 */
+        .stopped-containers-empty {
+            text-align: center;
+            padding: 48px 24px;
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .stopped-containers-empty i {
+            font-size: 48px;
+            color: #22c55e;
+            margin-bottom: 12px;
+            display: block;
+        }
+        
+        .stopped-containers-empty p {
+            color: #16a34a;
+            font-weight: 600;
+            font-size: 15px;
+            margin: 0;
+        }
+        
+        /* 测试控制卡片 */
+        .test-controls-card {
+            background: var(--container-bg);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light, #e5e7eb);
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-controls-card .test-controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            align-items: flex-end;
+        }
+        
+        .test-controls-card .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .test-controls-card .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .test-controls-card .form-group label i {
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            opacity: 0.7;
+        }
+        
+        .test-controls-card .form-select,
+        .test-controls-card .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            transition: all var(--transition-fast);
+            background-color: var(--input-bg, #fff);
+        }
+        
+        .test-controls-card .form-select:focus,
+        .test-controls-card .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.15);
+            outline: none;
+        }
+        
+        .test-controls-card .start-test-btn {
+            flex-shrink: 0;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* 测试结果容器美化 */
+        #testResultsContainer {
+            background: var(--container-bg-dark, #1e2532);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        
+        #testResultsContainer .results-header {
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 0;
+        }
+        
+        #testResultsContainer .results-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light, #e9ecef);
+        }
+        
+        #testResultsContainer .results-header h3 i {
+            color: var(--primary-color);
+        }
+        
+        /* 监控状态徽章 */
+        .monitoring-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--container-bg);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light, #e5e7eb);
+        }
+        
+        .monitoring-status-badge .status-indicator {
+            font-weight: 600;
+        }
+        
+        .monitoring-status-badge .status-indicator.running {
+            color: var(--success-color);
+        }
+        
+        .monitoring-status-badge .status-indicator.stopped {
+            color: var(--danger-color);
+        }
+        
+        /* Docker 监控配置页面样式 */
+        .monitoring-config-card {
+            margin-bottom: 1.5rem;
+        }
+        
+        .monitoring-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .monitoring-form-section {
+            padding: 0;
+        }
+        
+        .form-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1.25rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-light, #e5e7eb);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-section-title i {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+        
+        .monitoring-info-box {
+            display: flex;
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.08), rgba(99, 102, 241, 0.05));
+            border: 1px solid rgba(61, 124, 244, 0.15);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1.25rem;
+        }
+        
+        .info-box-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-color), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .info-box-content h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.35rem 0;
+        }
+        
+        .info-box-content p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+        
+        .monitoring-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-light, #e5e7eb);
+        }
+        
+        @media (max-width: 768px) {
+            .monitoring-form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .monitoring-actions {
+                flex-direction: column;
+            }
+            
+            .monitoring-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* 登录页面表单美化 */
+        .forgot-password-link {
+            text-align: center;
+            margin-top: 1.25rem;
+        }
+        
+        .forgot-password-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+        
+        .forgot-password-link a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .form-description {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-align: center;
+            margin-bottom: 1.25rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(61, 124, 244, 0.08), rgba(99, 102, 241, 0.05));
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border: 1px solid rgba(61, 124, 244, 0.1);
+        }
+        
+        .form-description i {
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .token-display {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            border: 1px solid rgba(61, 124, 244, 0.2);
+            display: none;
+        }
+        
+        .token-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .token-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            background: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid rgba(61, 124, 244, 0.1);
+        }
+        
+        .password-requirements {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(245, 158, 11, 0.08);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
+        
+        .password-requirements i {
+            color: #f59e0b;
+        }
+        
+        .back-to-login {
+            text-align: center;
+            margin-top: 1.25rem;
+        }
+        
+        .back-to-login a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all var(--transition-fast);
+        }
+        
+        .back-to-login a:hover {
+            color: var(--primary-dark);
+        }
+        
+        .back-to-login a i {
+            transition: transform var(--transition-fast);
+        }
+        
+        .back-to-login a:hover i {
+            transform: translateX(-3px);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .page-header .btn-with-icon {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .config-cards-grid,
+            .monitoring-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-controls-card .test-controls-container {
+                flex-direction: column;
+            }
+            
+            .test-controls-card .form-group {
+                width: 100%;
+            }
+            
+            .test-controls-card .start-test-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .button-group-modern {
+                flex-direction: column;
+            }
+            
+            .button-group-modern .btn-with-icon {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -3115,60 +4338,112 @@
 
                 <!-- 基本配置 -->
                 <div id="basic-config" class="content-section">
-                    <h1 class="admin-title">基本配置</h1>
-                    <div class="config-form">
-                        <div class="form-group">
-                            <label for="logoUrl">Logo URL: (可选)</label>
-                            <input type="url" id="logoUrl" name="logoUrl" class="form-control">
+                    <div class="page-header">
+                        <div class="page-header-content">
+                            <h1 class="page-title"><i class="fas fa-cog"></i> 基本配置</h1>
+                            <p class="page-subtitle">配置系统的基本参数和代理地址</p>
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="validateAndSaveConfig('logo')">保存 Logo</button>
+                    </div>
                     
-                        <div class="form-group" style="margin-top: 2rem;">
-                            <label for="proxyDomain">Docker镜像代理地址: (必填)</label>
-                            <input type="text" id="proxyDomain" name="proxyDomain" class="form-control" required>
+                    <div class="config-cards-grid">
+                        <!-- Logo配置卡片 -->
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="config-card-icon purple">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                <div class="config-card-title">
+                                    <h3>Logo 设置</h3>
+                                    <p>自定义系统Logo图片</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+                                <div class="modern-form-group">
+                                    <label for="logoUrl"><i class="fas fa-link"></i> Logo URL</label>
+                                    <input type="url" id="logoUrl" name="logoUrl" class="modern-input" placeholder="请输入Logo图片URL（可选）">
+                                    <span class="input-hint">支持 PNG、JPG、SVG 格式的图片链接</span>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-with-icon" onclick="validateAndSaveConfig('logo')">
+                                    <i class="fas fa-save"></i> 保存 Logo
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="validateAndSaveConfig('proxy')">保存代理地址</button>
+                        
+                        <!-- 代理地址配置卡片 -->
+                        <div class="config-card">
+                            <div class="config-card-header">
+                                <div class="config-card-icon blue">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div class="config-card-title">
+                                    <h3>代理地址</h3>
+                                    <p>配置Docker镜像代理服务器</p>
+                                </div>
+                            </div>
+                            <div class="config-card-body">
+                                <div class="modern-form-group">
+                                    <label for="proxyDomain"><i class="fas fa-globe"></i> 代理地址 <span class="required-badge">必填</span></label>
+                                    <input type="text" id="proxyDomain" name="proxyDomain" class="modern-input" placeholder="例如: proxy.example.com" required>
+                                    <span class="input-hint">填写您的Docker镜像代理服务器地址</span>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-with-icon" onclick="validateAndSaveConfig('proxy')">
+                                    <i class="fas fa-save"></i> 保存代理地址
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- 菜单管理 -->
                 <div id="menu-management" class="content-section">
-                    <h2 class="menu-label">菜单项管理</h2>
-                    <table id="menuTable">
-                        <thead>
-                            <!-- 表头将由 menuManager.renderMenuItems() 动态生成 -->
-                        </thead>
-                        <tbody id="menuTableBody">
-                            <!-- 菜单项将在这里动态添加 -->
-                        </tbody>
-                    </table>
-                    <button type="button" class="add-btn" onclick="menuManager.showNewMenuItemRow()">
-                        <i class="fas fa-plus"></i> 添加菜单项
-                    </button>
+                    <div class="page-header">
+                        <div class="page-header-content">
+                            <h1 class="page-title"><i class="fas fa-bars"></i> 菜单管理</h1>
+                            <p class="page-subtitle">管理前台页面的导航菜单项</p>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-with-icon" onclick="menuManager.showNewMenuItemRow()">
+                            <i class="fas fa-plus"></i> 添加菜单项
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table id="menuTable" class="modern-table">
+                            <thead>
+                                <!-- 表头将由 menuManager.renderMenuItems() 动态生成 -->
+                            </thead>
+                            <tbody id="menuTableBody">
+                                <!-- 菜单项将在这里动态添加 -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
   
                 <!-- 文档管理部分 -->
                 <div id="documentation-management" class="content-section">
-                    <h2 class="menu-label">文档管理</h2>
-                    
-                    <table id="documentTable">
-                        <thead>
-                            <!-- 表头将由 documentManager.renderDocumentList() 动态生成 -->
-                        </thead>
-                        <tbody id="documentTableBody">
-                            <!-- 文档列表将在这里动态添加 -->
-                        </tbody>
-                    </table>
-
-                    <div class="action-bar" style="margin-top: 15px; margin-bottom: 15px;">
-                        <button type="button" class="btn btn-primary add-btn" onclick="documentManager.newDocument()">
+                    <div class="page-header">
+                        <div class="page-header-content">
+                            <h1 class="page-title"><i class="fas fa-file-alt"></i> 文档管理</h1>
+                            <p class="page-subtitle">管理系统帮助文档和使用指南</p>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-with-icon" onclick="documentManager.newDocument()">
                             <i class="fas fa-plus"></i> 新建文档
                         </button>
                     </div>
+                    
+                    <div class="table-container">
+                        <table id="documentTable" class="modern-table">
+                            <thead>
+                                <!-- 表头将由 documentManager.renderDocumentList() 动态生成 -->
+                            </thead>
+                            <tbody id="documentTableBody">
+                                <!-- 文档列表将在这里动态添加 -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>  
 
-                <!-- 修改密码部分 -->
-                <div id="password-change" class="content-section">
+                <!-- 修改密码部分 - 保留但隐藏，因为用户中心已有此功能 -->
+                <div id="password-change" class="content-section" style="display: none;">
                     <h2 class="menu-label">修改密码</h2>
                     <label for="currentPassword">当前密码</label>
                     <input type="password" id="currentPassword" name="currentPassword">
@@ -3181,33 +4456,40 @@
 
                 <!-- 网络测试 -->
                 <div id="network-test" class="content-section">
-                    <h1 class="admin-title">网络测试</h1>
+                    <div class="page-header">
+                        <div class="page-header-content">
+                            <h1 class="page-title"><i class="fas fa-network-wired"></i> 网络测试</h1>
+                            <p class="page-subtitle">测试与Docker镜像仓库的网络连通性</p>
+                        </div>
+                    </div>
                     
-                    <div class="test-controls-container">
-                        <div class="form-group">
-                            <label for="domainSelect">目标域名：</label>
-                            <select id="domainSelect" class="form-select">
-                                <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
-                            </select>
+                    <div class="test-controls-card">
+                        <div class="test-controls-container">
+                            <div class="form-group">
+                                <label for="domainSelect"><i class="fas fa-globe"></i> 目标域名</label>
+                                <select id="domainSelect" class="form-select">
+                                    <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
+                                </select>
+                            </div>
+                            <div class="form-group" id="customDomainContainer" style="display: none;">
+                                <label for="customDomain"><i class="fas fa-edit"></i> 自定义域名</label>
+                                <input type="text" id="customDomain" class="form-control" placeholder="请输入域名，如 example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="testType"><i class="fas fa-tasks"></i> 测试类型</label>
+                                <select id="testType" class="form-select">
+                                    <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
+                                </select>
+                            </div>
+                            <button id="startTestBtn" class="btn btn-primary start-test-btn">
+                                <i class="fas fa-play"></i> 开始测试
+                            </button>
                         </div>
-                        <div class="form-group" id="customDomainContainer" style="display: none;">
-                            <label for="customDomain">自定义域名：</label>
-                            <input type="text" id="customDomain" class="form-control" placeholder="请输入域名，如 example.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="testType">测试类型：</label>
-                            <select id="testType" class="form-select">
-                                <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
-                            </select>
-                        </div>
-                        <button id="startTestBtn" class="btn btn-primary start-test-btn">
-                            <i class="fas fa-play"></i> 开始测试
-                        </button>
                     </div>
 
                     <div id="testResultsContainer">
                         <div class="results-header">
-                            <h3>测试结果</h3>
+                            <h3><i class="fas fa-terminal"></i> 测试结果</h3>
                             <button id="clearTestResultsBtn" class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-times-circle"></i> 清空结果
                             </button>
@@ -3220,78 +4502,145 @@
 
                 <!-- Docker服务状态 -->
                 <div id="docker-status" class="content-section">
-                    <div class="section-heading">
-                        <h2 class="section-title">Docker 服务状态</h2>
-                        <div class="section-description">
-                            查看和管理Docker容器状态和操作
+                    <div class="page-header">
+                        <div class="page-header-content">
+                            <h1 class="page-title"><i class="fab fa-docker"></i> Docker 服务状态</h1>
+                            <p class="page-subtitle">查看和管理Docker容器状态和操作</p>
                         </div>
                     </div>
                     
                     <!-- 新增表格容器以支持标题和操作区域 -->
-                    <div id="dockerTableContainer" class="table-responsive">
-                        <table id="dockerStatusTable" class="excel-table">
-                            <thead></thead>
-                            <tbody id="dockerStatusTableBody"></tbody>
-                        </table>
+                    <div class="table-container">
+                        <div id="dockerTableContainer" class="table-responsive">
+                            <table id="dockerStatusTable" class="modern-table excel-table">
+                                <thead></thead>
+                                <tbody id="dockerStatusTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Docker监控配置 -->
                 <div id="docker-monitoring" class="content-section">
-                    <h1 class="admin-title">Docker 容器监控</h1>
-                    <div class="monitoring-status">
-                        <span>监控状态：</span>
-                        <span id="monitoringStatus" class="status-indicator">加载中...</span>
+                    <div class="page-header">
+                        <div class="page-header-content">
+                            <h1 class="page-title"><i class="fas fa-chart-line"></i> Docker 容器监控</h1>
+                            <p class="page-subtitle">配置容器监控和告警通知</p>
+                        </div>
+                        <div class="monitoring-status-badge">
+                            <span>监控状态：</span>
+                            <span id="monitoringStatus" class="status-indicator">加载中...</span>
+                        </div>
                     </div>
-                    <div class="config-form">
-                        <div class="form-group">
-                            <label for="notificationType">通知方式：</label>
-                            <select id="notificationType" class="form-control">
-                                <option value="wechat">企业微信群机器人</option>
-                                <option value="telegram">Telegram Bot</option>
-                            </select>
-                        </div>
-                        <div id="wechatFields">
-                            <div class="form-group">
-                                <label for="webhookUrl">企业微信机器人 Webhook URL:</label>
-                                <input type="text" id="webhookUrl" name="webhookUrl" class="form-control">
+                    
+                    <!-- 通知配置卡片 - 全宽 -->
+                    <div class="config-card monitoring-config-card">
+                        <div class="config-card-header">
+                            <div class="config-card-icon green">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="config-card-title">
+                                <h3>通知配置</h3>
+                                <p>设置告警通知方式和监控参数</p>
                             </div>
                         </div>
-                        <div id="telegramFields" style="display: none;">
-                            <div class="form-group">
-                                <label for="telegramToken">Telegram Bot Token:</label>
-                                <input type="text" id="telegramToken" name="telegramToken" class="form-control">
+                        <div class="config-card-body">
+                            <div class="monitoring-form-grid">
+                                <!-- 左侧：通知方式选择 -->
+                                <div class="monitoring-form-section">
+                                    <h4 class="form-section-title"><i class="fas fa-paper-plane"></i> 通知渠道</h4>
+                                    <div class="modern-form-group">
+                                        <label for="notificationType">通知方式</label>
+                                        <select id="notificationType" class="modern-input">
+                                            <option value="wechat">企业微信群机器人</option>
+                                            <option value="telegram">Telegram Bot</option>
+                                        </select>
+                                    </div>
+                                    <div id="wechatFields">
+                                        <div class="modern-form-group">
+                                            <label for="webhookUrl"><i class="fas fa-link"></i> Webhook URL</label>
+                                            <input type="text" id="webhookUrl" name="webhookUrl" class="modern-input" placeholder="企业微信机器人 Webhook URL">
+                                            <span class="input-hint">从企业微信群机器人设置中获取</span>
+                                        </div>
+                                    </div>
+                                    <div id="telegramFields" style="display: none;">
+                                        <div class="modern-form-group">
+                                            <label for="telegramToken"><i class="fas fa-key"></i> Bot Token</label>
+                                            <input type="text" id="telegramToken" name="telegramToken" class="modern-input" placeholder="Telegram Bot Token">
+                                            <span class="input-hint">从 @BotFather 获取</span>
+                                        </div>
+                                        <div class="modern-form-group">
+                                            <label for="telegramChatId"><i class="fas fa-comments"></i> Chat ID</label>
+                                            <input type="text" id="telegramChatId" name="telegramChatId" class="modern-input" placeholder="Telegram Chat ID">
+                                            <span class="input-hint">个人/群组/频道的 Chat ID</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 右侧：监控参数 -->
+                                <div class="monitoring-form-section">
+                                    <h4 class="form-section-title"><i class="fas fa-cog"></i> 监控参数</h4>
+                                    <div class="modern-form-group">
+                                        <label for="monitorInterval"><i class="fas fa-clock"></i> 监控间隔 (秒)</label>
+                                        <input type="number" id="monitorInterval" name="monitorInterval" min="1" value="60" class="modern-input">
+                                        <span class="input-hint">建议设置 60 秒以上，避免频繁检测</span>
+                                    </div>
+                                    
+                                    <div class="monitoring-info-box">
+                                        <div class="info-box-icon">
+                                            <i class="fas fa-info-circle"></i>
+                                        </div>
+                                        <div class="info-box-content">
+                                            <h5>监控说明</h5>
+                                            <p>系统会定期检查容器状态，当发现容器停止运行时，会通过配置的渠道发送告警通知。</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="telegramChatId">Telegram Chat ID:</label>
-                                <input type="text" id="telegramChatId" name="telegramChatId" class="form-control">
+                            
+                            <!-- 操作按钮 -->
+                            <div class="monitoring-actions">
+                                <button class="btn btn-outline-secondary btn-with-icon" id="testNotifyBtn" onclick="app.testNotification()">
+                                    <i class="fas fa-vial"></i> 测试通知
+                                </button>
+                                <button class="btn btn-primary btn-with-icon" id="saveConfigBtn" onclick="app.saveMonitoringConfig()">
+                                    <i class="fas fa-save"></i> 保存配置
+                                </button>
+                                <button class="btn btn-secondary btn-with-icon" id="toggleMonitoringBtn" onclick="app.toggleMonitoring()">
+                                    <i class="fas fa-power-off"></i> 开启/关闭监控
+                                </button>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="monitorInterval">监控间隔 (秒):</label>
-                            <input type="number" id="monitorInterval" name="monitorInterval" min="1" value="60" class="form-control">
+                    </div>
+                        
+                    <!-- 已停止容器卡片 -->
+                    <div class="config-card">
+                        <div class="config-card-header">
+                            <div class="config-card-icon red">
+                                <i class="fas fa-stop-circle"></i>
+                            </div>
+                            <div class="config-card-title">
+                                <h3>已停止的容器</h3>
+                                <p>显示当前处于停止状态的容器列表</p>
+                            </div>
                         </div>
-                        <div class="button-group">
-                            <button class="btn btn-secondary" id="testNotifyBtn" onclick="app.testNotification()">测试通知</button>
-                            <button class="btn btn-primary" id="saveConfigBtn" onclick="app.saveMonitoringConfig()">保存配置</button>
-                            <button class="btn btn-secondary" id="toggleMonitoringBtn" onclick="app.toggleMonitoring()">开启/关闭监控</button>
+                        <div class="config-card-body">
+                            <div class="table-responsive">
+                                <table id="stoppedContainersTable" class="modern-table">
+                                    <thead>
+                                        <tr>
+                                            <th>容器ID</th>
+                                            <th>容器名称</th>
+                                            <th>镜像名称</th>
+                                            <th>运行状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stoppedContainersBody"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div id="messageContainer"></div>
-                    <h2 class="section-title">已停止的容器</h2>
-                    <div class="container-list">
-                        <table id="stoppedContainersTable" class="container-table">
-                            <thead>
-                                <tr>
-                                    <th>容器ID</th>
-                                    <th>容器名称</th>
-                                    <th>镜像名称</th>
-                                    <th>运行状态</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stoppedContainersBody"></tbody>
-                        </table>
-                    </div>
                 </div>
 
                 <!-- 用户中心部分 -->
@@ -3499,15 +4848,16 @@
                     <span id="captchaText" onclick="auth.refreshCaptcha()">点击刷新验证码</span>
                 </div>
                 <button type="submit" id="loginButton">登录</button>
-                <div class="forgot-password-link" style="text-align: center; margin-top: 15px;">
-                    <a href="javascript:void(0)" onclick="auth.showForgotPassword()" style="color: #3d7cf4; text-decoration: none; font-size: 14px;">忘记密码？</a>
+                <div class="forgot-password-link">
+                    <a href="javascript:void(0)" onclick="auth.showForgotPassword()">忘记密码？</a>
                 </div>
             </form>
 
             <!-- 忘记密码表单 - 步骤1: 验证用户名 -->
             <form id="forgotPasswordForm" class="login-form" style="display: none;">
-                <div class="form-description" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
-                    请输入您的用户名来获取密码重置令牌
+                <div class="form-description">
+                    <i class="fas fa-key"></i>
+                    <span>请输入您的用户名来获取密码重置令牌</span>
                 </div>
                 <input type="text" id="resetUsername" name="resetUsername" placeholder="用户名" required>
                 <div class="captcha-container">
@@ -3515,27 +4865,30 @@
                     <span id="resetCaptchaText" onclick="auth.refreshCaptcha()">点击刷新验证码</span>
                 </div>
                 <button type="submit" id="getTokenButton">获取重置令牌</button>
-                <div style="text-align: center; margin-top: 15px;">
-                    <a href="javascript:void(0)" onclick="auth.showLoginForm()" style="color: #3d7cf4; text-decoration: none; font-size: 14px;">← 返回登录</a>
+                <div class="back-to-login">
+                    <a href="javascript:void(0)" onclick="auth.showLoginForm()"><i class="fas fa-arrow-left"></i> 返回登录</a>
                 </div>
             </form>
 
             <!-- 重置密码表单 - 步骤2: 设置新密码 -->
             <form id="resetPasswordForm" class="login-form" style="display: none;">
-                <div class="form-description" style="text-align: center; margin-bottom: 15px; color: #666; font-size: 14px;">
-                    请设置您的新密码
+                <div class="form-description">
+                    <i class="fas fa-lock"></i>
+                    <span>请设置您的新密码</span>
                 </div>
-                <div id="resetTokenDisplay" style="background: #f0f8ff; padding: 10px; border-radius: 5px; margin-bottom: 15px; word-break: break-all; font-size: 12px; display: none;">
-                    <strong>重置令牌：</strong><span id="tokenValue"></span>
+                <div id="resetTokenDisplay" class="token-display">
+                    <div class="token-label"><i class="fas fa-ticket-alt"></i> 重置令牌</div>
+                    <div class="token-value" id="tokenValue"></div>
                 </div>
                 <input type="password" id="resetNewPassword" name="resetNewPassword" placeholder="新密码（8-16位，含字母、数字和特殊字符）" required>
                 <input type="password" id="resetConfirmPassword" name="resetConfirmPassword" placeholder="确认新密码" required>
-                <div class="password-requirements" style="font-size: 12px; color: #888; margin-bottom: 15px;">
+                <div class="password-requirements">
+                    <i class="fas fa-info-circle"></i>
                     密码要求：8-16位，包含字母、数字和特殊字符
                 </div>
                 <button type="submit" id="resetPasswordButton">重置密码</button>
-                <div style="text-align: center; margin-top: 15px;">
-                    <a href="javascript:void(0)" onclick="auth.showLoginForm()" style="color: #3d7cf4; text-decoration: none; font-size: 14px;">← 返回登录</a>
+                <div class="back-to-login">
+                    <a href="javascript:void(0)" onclick="auth.showLoginForm()"><i class="fas fa-arrow-left"></i> 返回登录</a>
                 </div>
             </form>
         </div>

@@ -60,7 +60,7 @@ class DocumentationServiceDB {
       );
       
       if (!document) {
-        throw new Error(`文档 ${docId} 不存在`);
+        return null;
       }
       
       return {
