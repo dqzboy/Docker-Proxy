@@ -173,6 +173,8 @@ docker logs -f [容器ID或名称]
 
 > HubCMD-UI 手动安装教程：[点击查看教程](hubcmdui/README.md)
 
+> HubCMD-UI 演示环境 [点击查看](https://ufxsgwxleywi.ap-southeast-1.clawcloudrun.com/)
+
 <br/>
 <table>
     <tr>
