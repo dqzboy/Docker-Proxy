@@ -13,15 +13,17 @@ async function initializeDatabase() {
     // 连接数据库
     await database.connect();
 
+    // 始终运行 createTables 以确保新表被创建 (使用 IF NOT EXISTS 是安全的)
+    await database.createTables();
+
     // 检查数据库是否已经初始化
     const isInitialized = await database.isInitialized();
     if (isInitialized) {
-      logger.info('数据库已经初始化，跳过重复初始化');
+      logger.info('数据库已经初始化，检查并初始化新配置...');
+      // 即使已初始化，也要确保 Registry 配置存在
+      await configServiceDB.initializeRegistryConfigs();
       return;
     }
-
-    // 创建数据表
-    await database.createTables();
 
     // 创建默认管理员用户（如果不存在）
     await database.createDefaultAdmin();
@@ -31,6 +33,9 @@ async function initializeDatabase() {
 
     // 初始化默认配置
     await configServiceDB.initializeDefaultConfig();
+
+    // 初始化 Registry 配置
+    await configServiceDB.initializeRegistryConfigs();
 
     // 标记数据库已初始化
     await database.markAsInitialized();

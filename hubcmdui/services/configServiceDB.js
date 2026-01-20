@@ -228,6 +228,287 @@ class ConfigServiceDB {
       throw error;
     }
   }
+
+  /**
+   * 获取默认 Registry 配置
+   */
+  getDefaultRegistryConfigs() {
+    return [
+      {
+        registry_id: 'docker-hub',
+        name: 'Docker Hub',
+        icon: 'fab fa-docker',
+        color: '#2496ED',
+        prefix: '',
+        description: 'Docker 官方镜像仓库',
+        proxy_url: 'registry-1.docker.io',
+        enabled: true,
+        sort_order: 1
+      },
+      {
+        registry_id: 'ghcr',
+        name: 'GitHub Container Registry',
+        icon: 'fab fa-github',
+        color: '#333333',
+        prefix: 'ghcr.io',
+        description: 'GitHub 容器镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 2
+      },
+      {
+        registry_id: 'quay',
+        name: 'Quay.io',
+        icon: 'fas fa-cube',
+        color: '#40B4E5',
+        prefix: 'quay.io',
+        description: 'Red Hat Quay 容器镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 3
+      },
+      {
+        registry_id: 'gcr',
+        name: 'Google Container Registry',
+        icon: 'fab fa-google',
+        color: '#4285F4',
+        prefix: 'gcr.io',
+        description: 'Google 容器镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 4
+      },
+      {
+        registry_id: 'k8s',
+        name: 'Kubernetes Registry',
+        icon: 'fas fa-dharmachakra',
+        color: '#326CE5',
+        prefix: 'registry.k8s.io',
+        description: 'Kubernetes 官方镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 5
+      },
+      {
+        registry_id: 'mcr',
+        name: 'Microsoft Container Registry',
+        icon: 'fab fa-microsoft',
+        color: '#00A4EF',
+        prefix: 'mcr.microsoft.com',
+        description: 'Microsoft 容器镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 6
+      },
+      {
+        registry_id: 'elastic',
+        name: 'Elastic Container Registry',
+        icon: 'fas fa-bolt',
+        color: '#FEC514',
+        prefix: 'docker.elastic.co',
+        description: 'Elastic 官方镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 7
+      },
+      {
+        registry_id: 'nvcr',
+        name: 'NVIDIA Container Registry',
+        icon: 'fas fa-microchip',
+        color: '#76B900',
+        prefix: 'nvcr.io',
+        description: 'NVIDIA GPU 容器镜像仓库',
+        proxy_url: '',
+        enabled: false,
+        sort_order: 8
+      }
+    ];
+  }
+
+  /**
+   * 初始化 Registry 配置
+   */
+  async initializeRegistryConfigs() {
+    try {
+      const defaultConfigs = this.getDefaultRegistryConfigs();
+      
+      for (const config of defaultConfigs) {
+        const existing = await database.get(
+          'SELECT id FROM registry_configs WHERE registry_id = ?',
+          [config.registry_id]
+        );
+        
+        if (!existing) {
+          await database.run(
+            `INSERT INTO registry_configs 
+             (registry_id, name, icon, color, prefix, description, proxy_url, enabled, sort_order, created_at, updated_at) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              config.registry_id,
+              config.name,
+              config.icon,
+              config.color,
+              config.prefix,
+              config.description,
+              config.proxy_url,
+              config.enabled ? 1 : 0,
+              config.sort_order,
+              new Date().toISOString(),
+              new Date().toISOString()
+            ]
+          );
+        }
+      }
+      
+      logger.info('Registry 配置初始化完成');
+    } catch (error) {
+      logger.error('初始化 Registry 配置失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取所有 Registry 配置
+   */
+  async getRegistryConfigs() {
+    try {
+      const configs = await database.all(
+        'SELECT * FROM registry_configs ORDER BY sort_order'
+      );
+      
+      // 如果表不存在或为空，返回默认配置
+      if (!configs || configs.length === 0) {
+        return this.getDefaultRegistryConfigs().map(config => ({
+          registryId: config.registry_id,
+          name: config.name,
+          icon: config.icon,
+          color: config.color,
+          prefix: config.prefix,
+          description: config.description,
+          proxyUrl: config.proxy_url,
+          enabled: config.enabled,
+          sortOrder: config.sort_order
+        }));
+      }
+      
+      return configs.map(config => ({
+        registryId: config.registry_id,
+        name: config.name,
+        icon: config.icon,
+        color: config.color,
+        prefix: config.prefix,
+        description: config.description,
+        proxyUrl: config.proxy_url,
+        enabled: Boolean(config.enabled),
+        sortOrder: config.sort_order
+      }));
+    } catch (error) {
+      logger.error('获取 Registry 配置失败:', error);
+      // 返回默认配置
+      return this.getDefaultRegistryConfigs().map(config => ({
+        registryId: config.registry_id,
+        name: config.name,
+        icon: config.icon,
+        color: config.color,
+        prefix: config.prefix,
+        description: config.description,
+        proxyUrl: config.proxy_url,
+        enabled: config.enabled,
+        sortOrder: config.sort_order
+      }));
+    }
+  }
+
+  /**
+   * 获取启用的 Registry 配置
+   */
+  async getEnabledRegistryConfigs() {
+    try {
+      const configs = await database.all(
+        'SELECT * FROM registry_configs WHERE enabled = 1 ORDER BY sort_order'
+      );
+      
+      // 如果没有启用的配置，返回默认的 Docker Hub
+      if (!configs || configs.length === 0) {
+        return [{
+          registryId: 'docker-hub',
+          name: 'Docker Hub',
+          icon: 'fab fa-docker',
+          color: '#2496ED',
+          prefix: '',
+          description: 'Docker 官方镜像仓库',
+          proxyUrl: '',
+          enabled: true,
+          sortOrder: 1
+        }];
+      }
+      
+      return configs.map(config => ({
+        registryId: config.registry_id,
+        name: config.name,
+        icon: config.icon,
+        color: config.color,
+        prefix: config.prefix,
+        description: config.description,
+        proxyUrl: config.proxy_url,
+        enabled: true,
+        sortOrder: config.sort_order
+      }));
+    } catch (error) {
+      logger.error('获取启用的 Registry 配置失败:', error);
+      // 返回默认的 Docker Hub 配置
+      return [{
+        registryId: 'docker-hub',
+        name: 'Docker Hub',
+        icon: 'fab fa-docker',
+        color: '#2496ED',
+        prefix: '',
+        description: 'Docker 官方镜像仓库',
+        proxyUrl: '',
+        enabled: true,
+        sortOrder: 1
+      }];
+    }
+  }
+
+  /**
+   * 更新单个 Registry 配置
+   */
+  async updateRegistryConfig(registryId, config) {
+    try {
+      await database.run(
+        `UPDATE registry_configs 
+         SET proxy_url = ?, enabled = ?, updated_at = ?
+         WHERE registry_id = ?`,
+        [
+          config.proxyUrl || '',
+          config.enabled ? 1 : 0,
+          new Date().toISOString(),
+          registryId
+        ]
+      );
+      
+      logger.info(`Registry 配置 ${registryId} 更新成功`);
+    } catch (error) {
+      logger.error('更新 Registry 配置失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量更新 Registry 配置
+   */
+  async updateRegistryConfigs(configs) {
+    try {
+      for (const config of configs) {
+        await this.updateRegistryConfig(config.registryId, config);
+      }
+      logger.info('批量更新 Registry 配置成功');
+    } catch (error) {
+      logger.error('批量更新 Registry 配置失败:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new ConfigServiceDB();

@@ -138,6 +138,9 @@ async function initializeSQLite() {
     const configServiceDB = require('../services/configServiceDB');
     await configServiceDB.initializeDefaultConfig();
     
+    // 初始化 Registry 配置
+    await configServiceDB.initializeRegistryConfigs();
+    
     // 标记数据库已初始化
     await database.markAsInitialized();
     

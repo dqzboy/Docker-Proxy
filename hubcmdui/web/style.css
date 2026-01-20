@@ -304,6 +304,208 @@
     white-space: nowrap;
   }
   
+  /* ===== Registry 平台选择器样式 ===== */
+  .registry-selector {
+    margin-bottom: 1.5rem;
+  }
+  
+  .registry-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .registry-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  
+  .registry-tab:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #f0f7ff;
+    transform: translateY(-1px);
+  }
+  
+  .registry-tab.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+  
+  .registry-tab i {
+    font-size: 14px;
+  }
+  
+  .registry-tab[data-registry="docker-hub"] i { color: #2496ED; }
+  .registry-tab[data-registry="ghcr"] i { color: #333; }
+  .registry-tab[data-registry="quay"] i { color: #40B4E5; }
+  .registry-tab[data-registry="k8s"] i { color: #326CE5; }
+  .registry-tab[data-registry="gcr"] i { color: #4285F4; }
+  .registry-tab[data-registry="mcr"] i { color: #00A4EF; }
+  .registry-tab[data-registry="elastic"] i { color: #FEC514; }
+  .registry-tab[data-registry="nvcr"] i { color: #76B900; }
+  .registry-tab[data-registry="all"] i { color: #6c757d; }
+  
+  .registry-tab.active i {
+    color: white !important;
+  }
+  
+  /* 当前 Registry 信息提示 */
+  .current-registry-info {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    font-size: 14px;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .current-registry-info i {
+    font-size: 16px;
+  }
+  
+  /* Registry 分组标题 */
+  .registry-group-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .registry-group-header:first-child {
+    margin-top: 0;
+  }
+  
+  .registry-group-header i {
+    font-size: 20px;
+  }
+  
+  .registry-group-header span:first-of-type {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1e293b;
+  }
+  
+  .registry-group-header .result-count {
+    font-size: 13px;
+    color: #64748b;
+    background: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    margin-left: auto;
+  }
+  
+  /* Registry 徽章 */
+  .registry-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  
+  /* 镜像拉取命令显示 */
+  .result-pull-command {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .result-pull-command code {
+    flex: 1;
+    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-size: 12px;
+    color: #334155;
+    word-break: break-all;
+  }
+  
+  .copy-small-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+  }
+  
+  .copy-small-btn:hover {
+    color: #3b82f6;
+    background: #eff6ff;
+  }
+  
+  /* 响应式 Registry 选择器 */
+  @media (max-width: 768px) {
+    .registry-tabs {
+      gap: 6px;
+      padding: 10px;
+    }
+    
+    .registry-tab {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+    
+    .registry-tab span {
+      display: none;
+    }
+    
+    .registry-tab i {
+      font-size: 16px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .registry-tabs {
+      justify-content: center;
+    }
+    
+    .registry-tab {
+      padding: 10px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      justify-content: center;
+    }
+  }
+  
   /* ===== 搜索结果样式 - 现代设计 ===== */
   #searchResults {
     display: grid;
@@ -517,6 +719,29 @@
     font-size: 0.9rem;
   }
   
+  /* 检测到的 Registry 信息样式 */
+.detected-registry-info {
+    margin-bottom: 1rem;
+}
+
+.registry-detection-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.registry-detection-badge i {
+    font-size: 1.1rem;
+}
+
+.registry-detection-badge strong {
+    font-weight: 600;
+}
+  
   /* 命令终端样式优化 */
 .command-terminal {
     background: #1F2937;
@@ -597,12 +822,15 @@
 /* ===== 标签展示区域 - 现代设计 ===== */
 #imageTagsView {
     width: 100%;
+    max-width: 100%;
     background: white;
     border-radius: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     margin: 0;
     padding: 32px;
     border: 1px solid #f3f4f6;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .tag-header {
@@ -3236,6 +3464,288 @@
 
 .details-swal-popup .resource-details-table td {
     border-bottom: 1px dashed var(--border-light, #e5e7eb); /* 使用虚线分隔行 */
+}
+
+/* ===== 多 Registry 标签网格样式 ===== */
+.tags-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    max-width: 100%;
+}
+
+.tag-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.tag-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tag-name {
+    font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.tag-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.tag-item .tag-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.copy-tag-btn,
+.use-tag-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: none;
+}
+
+.copy-tag-btn {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.copy-tag-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.use-tag-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.use-tag-btn:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* 响应式标签网格 */
+@media (max-width: 640px) {
+    .tags-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tag-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .tag-item .tag-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Tag 操作行样式 */
+.tag-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.tag-actions-row .search-input-wrapper {
+    flex: 1;
+    min-width: 200px;
+}
+
+.tag-actions-row input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.tag-actions-row input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.reset-search-btn {
+    padding: 10px 16px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reset-search-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+/* 无标签提示 */
+.no-tags-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    font-size: 15px;
+}
+
+/* Tag 数量警告 */
+.tag-count-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.tag-count-warning i {
+    color: #f59e0b;
+    font-size: 16px;
+}
+
+/* ===== 加载指示器增强 ===== */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 20px;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.loading-indicator i {
+    font-size: 18px;
+    color: #3b82f6;
+}
+
+/* ===== 搜索结果操作按钮增强 ===== */
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.title-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.result-stats {
+    display: flex;
+    gap: 12px;
+}
+
+.result-stats .stats {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.result-stats .stats i {
+    font-size: 12px;
+}
+
+.result-description {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 12px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 12px;
+    flex-wrap: wrap;
+}
+
+.result-actions .action-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+}
+
+.result-actions .action-btn.primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.result-actions .action-btn.primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+}
+
+.result-actions .action-btn.secondary {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.result-actions .action-btn.secondary:hover {
+    background: #e2e8f0;
+    color: #334155;
+    border-color: #cbd5e1;
 }
 /* --- 结束：资源详情表格特殊样式 --- */
 

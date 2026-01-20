@@ -75,13 +75,26 @@
 
         <!-- 搜索内容 -->
         <div id="searchContent" class="content">
+            <!-- Registry 平台选择器 -->
+            <div class="registry-selector">
+                <div class="registry-tabs" id="registryTabs">
+                    <!-- Registry 选项卡将由 JavaScript 动态生成 -->
+                    <div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> 加载中...</div>
+                </div>
+            </div>
+            
             <div class="search-container">
                 <input type="text" id="searchInput" 
-                       placeholder="输入关键词搜索Docker镜像，例如：nginx、mysql、redis..." 
-                       onkeypress="if(event.key === 'Enter') searchDockerHub(1)">
-                <button onclick="searchDockerHub(1)">
+                       placeholder="输入关键词搜索镜像，例如：nginx、mysql、redis..." 
+                       onkeypress="if(event.key === 'Enter') searchImages(1)">
+                <button onclick="searchImages(1)">
                     <i class="fas fa-search"></i> 搜索镜像
                 </button>
+            </div>
+            
+            <!-- 当前选中的 Registry 信息 -->
+            <div id="currentRegistryInfo" class="current-registry-info" style="display: none;">
+                <span id="registryInfoText"></span>
             </div>
             
             <!-- 搜索结果容器 -->
@@ -359,6 +372,614 @@
         let totalPages = 1;
         let currentTagPage = 1;
         let currentImageData = null;
+        let currentRegistry = 'docker-hub'; // 当前选中的 Registry
+        let enabledRegistries = []; // 启用的 Registry 列表
+        
+        // Registry 配置信息（默认配置，会被后端配置覆盖）
+        const REGISTRY_INFO = {
+            'docker-hub': { name: 'Docker Hub', icon: 'fab fa-docker', color: '#2496ED', prefix: '', proxyUrl: '' },
+            'ghcr': { name: 'GitHub Container Registry', icon: 'fab fa-github', color: '#333', prefix: 'ghcr.io', proxyUrl: '' },
+            'quay': { name: 'Quay.io', icon: 'fas fa-cube', color: '#40B4E5', prefix: 'quay.io', proxyUrl: '' },
+            'k8s': { name: 'Kubernetes Registry', icon: 'fas fa-dharmachakra', color: '#326CE5', prefix: 'registry.k8s.io', proxyUrl: '' },
+            'gcr': { name: 'Google Container Registry', icon: 'fab fa-google', color: '#4285F4', prefix: 'gcr.io', proxyUrl: '' },
+            'mcr': { name: 'Microsoft Container Registry', icon: 'fab fa-microsoft', color: '#00A4EF', prefix: 'mcr.microsoft.com', proxyUrl: '' },
+            'elastic': { name: 'Elastic Container Registry', icon: 'fas fa-bolt', color: '#FEC514', prefix: 'docker.elastic.co', proxyUrl: '' },
+            'nvcr': { name: 'NVIDIA Container Registry', icon: 'fas fa-microchip', color: '#76B900', prefix: 'nvcr.io', proxyUrl: '' },
+            'all': { name: '所有平台', icon: 'fas fa-globe', color: '#6c757d', prefix: '', proxyUrl: '' }
+        };
+        
+        // 加载启用的 Registry 配置
+        async function loadEnabledRegistries() {
+            try {
+                const response = await fetch('/api/config/registry-configs/enabled');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Loaded enabled registries:', data);
+                    
+                    // 如果返回空数组，使用默认配置
+                    if (!data || data.length === 0) {
+                        enabledRegistries = [{ registryId: 'docker-hub', name: 'Docker Hub', icon: 'fab fa-docker', color: '#2496ED', prefix: '' }];
+                    } else {
+                        enabledRegistries = data;
+                        
+                        // 更新 REGISTRY_INFO 中的代理地址
+                        enabledRegistries.forEach(config => {
+                            console.log(`Registry ${config.registryId}: proxyUrl = ${config.proxyUrl}`);
+                            if (REGISTRY_INFO[config.registryId]) {
+                                REGISTRY_INFO[config.registryId].proxyUrl = config.proxyUrl || '';
+                            }
+                        });
+                    }
+                    
+                    console.log('Updated REGISTRY_INFO:', REGISTRY_INFO);
+                    console.log('Updated enabledRegistries:', enabledRegistries);
+                    
+                    renderRegistryTabs();
+                } else {
+                    // 如果加载失败，显示默认的 Docker Hub
+                    enabledRegistries = [{ registryId: 'docker-hub', name: 'Docker Hub', icon: 'fab fa-docker', color: '#2496ED', prefix: '' }];
+                    renderRegistryTabs();
+                }
+            } catch (error) {
+                console.error('加载 Registry 配置失败:', error);
+                // 如果加载失败，显示默认的 Docker Hub
+                enabledRegistries = [{ registryId: 'docker-hub', name: 'Docker Hub', icon: 'fab fa-docker', color: '#2496ED', prefix: '' }];
+                renderRegistryTabs();
+            }
+        }
+        
+        // 渲染 Registry 选择标签
+        function renderRegistryTabs() {
+            const tabsContainer = document.getElementById('registryTabs');
+            if (!tabsContainer) return;
+            
+            let tabsHtml = '';
+            
+            // 渲染启用的 Registry 标签
+            enabledRegistries.forEach((config, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                const info = REGISTRY_INFO[config.registryId] || config;
+                const shortName = config.name.replace(' Container Registry', '').replace(' Registry', '');
+                
+                tabsHtml += `
+                    <button class="registry-tab ${isActive}" data-registry="${config.registryId}" onclick="selectRegistry('${config.registryId}')">
+                        <i class="${info.icon || config.icon}"></i>
+                        <span>${shortName}</span>
+                    </button>
+                `;
+            });
+            
+            // 如果有多个启用的 Registry，添加"全部"选项
+            if (enabledRegistries.length > 1) {
+                tabsHtml += `
+                    <button class="registry-tab" data-registry="all" onclick="selectRegistry('all')">
+                        <i class="fas fa-globe"></i>
+                        <span>全部</span>
+                    </button>
+                `;
+            }
+            
+            tabsContainer.innerHTML = tabsHtml;
+            
+            // 设置默认选中的 Registry
+            if (enabledRegistries.length > 0) {
+                currentRegistry = enabledRegistries[0].registryId;
+            }
+        }
+        
+        // 选择 Registry 平台
+        function selectRegistry(registryId) {
+            currentRegistry = registryId;
+            currentPage = 1;
+            currentSearchTerm = '';
+            
+            // 更新选项卡样式
+            document.querySelectorAll('.registry-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.registry === registryId) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // 更新搜索框占位符
+            const searchInput = document.getElementById('searchInput');
+            const info = REGISTRY_INFO[registryId];
+            if (registryId === 'all') {
+                searchInput.placeholder = '输入关键词在所有平台搜索镜像...';
+            } else {
+                searchInput.placeholder = `在 ${info.name} 中搜索镜像...`;
+            }
+            
+            // 显示当前 Registry 信息
+            const registryInfoEl = document.getElementById('currentRegistryInfo');
+            const registryInfoText = document.getElementById('registryInfoText');
+            if (registryId !== 'docker-hub' && registryId !== 'all') {
+                registryInfoEl.style.display = 'block';
+                registryInfoText.innerHTML = `<i class="${info.icon}" style="color: ${info.color}"></i> 当前搜索平台: <strong>${info.name}</strong> (镜像前缀: ${info.prefix})`;
+            } else if (registryId === 'all') {
+                registryInfoEl.style.display = 'block';
+                registryInfoText.innerHTML = `<i class="${info.icon}"></i> 将在所有支持的 Registry 平台中搜索`;
+            } else {
+                registryInfoEl.style.display = 'none';
+            }
+            
+            // 清空搜索结果
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('paginationContainer').style.display = 'none';
+            document.querySelector('#searchContent .features').style.display = 'grid';
+        }
+        window.selectRegistry = selectRegistry;
+        
+        // 统一搜索入口函数
+        async function searchImages(page = 1) {
+            if (currentRegistry === 'docker-hub') {
+                // 保持对 Docker Hub 的原有搜索逻辑
+                await searchDockerHub(page);
+            } else if (currentRegistry === 'all') {
+                // 搜索所有平台
+                await searchAllRegistries(page);
+            } else {
+                // 搜索特定 Registry
+                await searchSpecificRegistry(currentRegistry, page);
+            }
+        }
+        window.searchImages = searchImages;
+        
+        // 搜索所有 Registry 平台
+        async function searchAllRegistries(page = 1) {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) {
+                showToastNotification('请输入搜索关键词', 'info');
+                return;
+            }
+            
+            if (currentSearchTerm !== searchTerm) {
+                page = 1;
+                currentSearchTerm = searchTerm;
+            }
+            
+            currentPage = page;
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> 正在搜索所有平台...</div>';
+            searchResults.style.display = 'block';
+            document.querySelector('#searchContent .features').style.display = 'none';
+            document.getElementById('searchResultsList').style.display = 'block';
+            document.getElementById('imageTagsView').style.display = 'none';
+            
+            try {
+                const data = await fetchWithRetry(
+                    `/api/registry/search-all?term=${encodeURIComponent(searchTerm)}&page=${page}&limit=5`
+                );
+                
+                searchResults.innerHTML = '';
+                let hasResults = false;
+                
+                // 按 Registry 分组显示结果
+                data.registries.forEach(registry => {
+                    if (registry.results && registry.results.length > 0) {
+                        hasResults = true;
+                        const info = REGISTRY_INFO[registry.registry] || {};
+                        
+                        // 创建 Registry 分组标题
+                        const groupHeader = document.createElement('div');
+                        groupHeader.className = 'registry-group-header';
+                        groupHeader.innerHTML = `
+                            <i class="${info.icon || 'fas fa-cube'}" style="color: ${info.color || '#666'}"></i>
+                            <span>${registry.registryName || registry.registry}</span>
+                            <span class="result-count">${registry.count} 个结果</span>
+                        `;
+                        searchResults.appendChild(groupHeader);
+                        
+                        // 显示该 Registry 的结果
+                        registry.results.forEach(result => {
+                            searchResults.appendChild(createMultiRegistryResultItem(result, registry.registry));
+                        });
+                    }
+                });
+                
+                if (!hasResults) {
+                    searchResults.innerHTML = '<div class="empty-result"><i class="fas fa-search"></i><p>在所有平台中未找到匹配的镜像</p></div>';
+                }
+                
+                // 聚合搜索不显示分页
+                document.getElementById('paginationContainer').style.display = 'none';
+                
+            } catch (error) {
+                console.error('聚合搜索出错:', error);
+                searchResults.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>搜索时发生错误: ${error.message}</p>
+                        <button onclick="searchAllRegistries(${page})" class="retry-btn">
+                            <i class="fas fa-redo"></i> 重试
+                        </button>
+                    </div>`;
+            }
+        }
+        window.searchAllRegistries = searchAllRegistries;
+        
+        // 搜索特定 Registry
+        async function searchSpecificRegistry(registryId, page = 1) {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) {
+                showToastNotification('请输入搜索关键词', 'info');
+                return;
+            }
+            
+            if (currentSearchTerm !== searchTerm) {
+                page = 1;
+                currentSearchTerm = searchTerm;
+            }
+            
+            currentPage = page;
+            const searchResults = document.getElementById('searchResults');
+            const info = REGISTRY_INFO[registryId] || {};
+            searchResults.innerHTML = `<div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> 正在搜索 ${info.name}...</div>`;
+            searchResults.style.display = 'block';
+            document.querySelector('#searchContent .features').style.display = 'none';
+            document.getElementById('searchResultsList').style.display = 'block';
+            document.getElementById('imageTagsView').style.display = 'none';
+            
+            try {
+                const data = await fetchWithRetry(
+                    `/api/registry/search/${registryId}?term=${encodeURIComponent(searchTerm)}&page=${page}&limit=25`
+                );
+                
+                if (data.results && data.results.length > 0) {
+                    searchResults.innerHTML = '';
+                    
+                    // 创建 Registry 分组标题
+                    const groupHeader = document.createElement('div');
+                    groupHeader.className = 'registry-group-header';
+                    groupHeader.innerHTML = `
+                        <i class="${info.icon}" style="color: ${info.color}"></i>
+                        <span>${info.name}</span>
+                        <span class="result-count">${data.count} 个结果</span>
+                    `;
+                    searchResults.appendChild(groupHeader);
+                    
+                    data.results.forEach(result => {
+                        searchResults.appendChild(createMultiRegistryResultItem(result, registryId));
+                    });
+                    
+                    // 更新分页（对于支持分页的 Registry）
+                    totalPages = Math.ceil((data.count || data.results.length) / 25);
+                    if (totalPages > 1) {
+                        updatePagination(page, totalPages);
+                        document.getElementById('paginationContainer').style.display = 'flex';
+                        
+                        // 更新分页按钮的事件
+                        document.getElementById('prevPageBtn').onclick = () => searchSpecificRegistry(registryId, currentPage - 1);
+                        document.getElementById('nextPageBtn').onclick = () => searchSpecificRegistry(registryId, currentPage + 1);
+                    } else {
+                        document.getElementById('paginationContainer').style.display = 'none';
+                    }
+                } else {
+                    searchResults.innerHTML = `<div class="empty-result"><i class="fas fa-search"></i><p>在 ${info.name} 中未找到匹配的镜像</p></div>`;
+                    document.getElementById('paginationContainer').style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error(`搜索 ${registryId} 出错:`, error);
+                searchResults.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>搜索时发生错误: ${error.message}</p>
+                        <button onclick="searchSpecificRegistry('${registryId}', ${page})" class="retry-btn">
+                            <i class="fas fa-redo"></i> 重试
+                        </button>
+                    </div>`;
+                document.getElementById('paginationContainer').style.display = 'none';
+            }
+        }
+        window.searchSpecificRegistry = searchSpecificRegistry;
+        
+        // 创建多 Registry 搜索结果项
+        function createMultiRegistryResultItem(result, registryId) {
+            const resultItem = document.createElement('div');
+            resultItem.className = `search-result-item ${result.isOfficial ? 'official-image' : ''}`;
+            
+            const info = REGISTRY_INFO[registryId] || {};
+            const description = result.description || '暂无描述';
+            const pullCommand = result.pullCommand || (info.prefix ? `${info.prefix}/${result.fullName || result.name}` : result.name);
+            
+            resultItem.innerHTML = `
+                <div class="result-header">
+                    <div class="title-badge">
+                        <span class="registry-badge" style="background-color: ${info.color || '#666'}">
+                            <i class="${info.icon || 'fas fa-cube'}"></i>
+                        </span>
+                        <h3>${result.fullName || result.name}</h3>
+                        ${result.isOfficial ? '<span class="official-badge"><i class="fas fa-check-circle"></i> 官方</span>' : ''}
+                    </div>
+                    <div class="result-stats">
+                        ${result.stars > 0 ? `<span class="stats"><i class="fas fa-star"></i> ${formatNumber(result.stars)}</span>` : ''}
+                        ${result.pulls > 0 ? `<span class="stats"><i class="fas fa-download"></i> ${formatNumber(result.pulls)}</span>` : ''}
+                    </div>
+                </div>
+                <p class="result-description">${description}</p>
+                <div class="result-pull-command">
+                    <code>${pullCommand}</code>
+                    <button class="copy-small-btn" onclick="copyToClipboard('${pullCommand.replace(/'/g, "\\'")}', this); event.stopPropagation();">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="result-actions">
+                    <button class="action-btn primary" onclick="useImageFromRegistry('${pullCommand.replace(/'/g, "\\'")}', '${registryId}')">
+                        <i class="fas fa-rocket"></i> 使用此镜像
+                    </button>
+                    ${registryId === 'docker-hub' || registryId === 'quay' ? `
+                        <button class="action-btn secondary" onclick="viewImageDetailsForRegistry('${(result.fullName || result.name).replace(/'/g, "\\'")}', ${result.isOfficial || false}, '${encodeURIComponent(description).replace(/'/g, "%27")}', ${result.stars || 0}, ${result.pulls || 0}, '${registryId}')">
+                            <i class="fas fa-tags"></i> 查看标签
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            return resultItem;
+        }
+        
+        // 从特定 Registry 使用镜像
+        function useImageFromRegistry(pullCommand, registryId) {
+            switchTab('accelerate');
+            
+            const imageInput = document.getElementById('imageInput');
+            if (imageInput) {
+                imageInput.value = pullCommand;
+                generateCommands(pullCommand);
+                
+                const resultDiv = document.getElementById('result');
+                if (resultDiv) {
+                    resultDiv.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            
+            showToastNotification(`已选择镜像: ${pullCommand}`, 'success');
+        }
+        window.useImageFromRegistry = useImageFromRegistry;
+        
+        // 查看特定 Registry 的镜像标签详情
+        async function viewImageDetailsForRegistry(imageName, isOfficial, description, stars, pulls, registryId) {
+            if (registryId === 'docker-hub') {
+                // 使用原有的 Docker Hub 标签查看逻辑
+                viewImageDetails(imageName, isOfficial, description, stars, pulls);
+            } else {
+                // 其他 Registry 使用新的标签查看逻辑
+                currentImageData = {
+                    name: imageName,
+                    isOfficial: isOfficial,
+                    description: decodeURIComponent(description || ''),
+                    stars: stars,
+                    pulls: pulls,
+                    registry: registryId
+                };
+                
+                const imageTagsView = document.getElementById('imageTagsView');
+                const info = REGISTRY_INFO[registryId] || {};
+                imageTagsView.innerHTML = `<div class="loading-container"><div class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> 正在加载 ${info.name} 镜像标签...</div></div>`;
+                document.getElementById('searchResultsList').style.display = 'none';
+                imageTagsView.style.display = 'block';
+                
+                try {
+                    const data = await fetchWithRetry(
+                        `/api/registry/tags/${registryId}?name=${encodeURIComponent(imageName)}`
+                    );
+                    
+                    const pullPrefix = info.prefix ? `${info.prefix}/${imageName}` : imageName;
+                    
+                    const tagCount = data.count || data.results?.length || 0;
+                    
+                    // 根据标签数量判断是否显示警告
+                    let warningMessage = '';
+                    if (tagCount > 1000) {
+                        warningMessage = `<div class="tag-count-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>该镜像包含 <strong>${tagCount}</strong> 个标签，加载全部可能会很慢。建议使用搜索功能查找特定标签。</p>
+                        </div>`;
+                    } else if (tagCount > 500) {
+                        warningMessage = `<div class="tag-count-warning moderate">
+                            <i class="fas fa-info-circle"></i>
+                            <p>该镜像包含 <strong>${tagCount}</strong> 个标签。</p>
+                        </div>`;
+                    }
+                    
+                    // 保存当前 Registry 标签数据供筛选使用
+                    window.currentRegistryTags = data.results || [];
+                    window.currentRegistryPullPrefix = pullPrefix;
+                    window.currentRegistryId = registryId;
+                    
+                    imageTagsView.innerHTML = `
+                        <div class="tag-header">
+                            <div class="tag-breadcrumb">
+                                <a href="javascript:void(0);" onclick="showSearchResults()">返回搜索结果</a>
+                            </div>
+                            <h2 id="currentImageTitle">
+                                <span class="registry-badge" style="background-color: ${info.color || '#666'}">
+                                    <i class="${info.icon || 'fas fa-cube'}"></i>
+                                </span>
+                                ${imageName}
+                            </h2>
+                            <p id="imageDescription" class="image-description">${currentImageData.description || '暂无描述'}</p>
+                            <div class="image-meta">
+                                ${currentImageData.stars > 0 ? `<span id="imageStars"><i class="fas fa-star"></i> ${formatNumber(currentImageData.stars)} 星标</span>` : ''}
+                                ${currentImageData.pulls > 0 ? `<span id="imagePulls"><i class="fas fa-download"></i> ${formatNumber(currentImageData.pulls)} 下载</span>` : ''}
+                                <span id="imageTags"><i class="fas fa-tags"></i> ${formatNumber(tagCount)} 个标签</span>
+                            </div>
+                        </div>
+                        
+                        ${warningMessage}
+                        
+                        <div class="tag-actions">
+                            <div class="tag-search-container">
+                                <input type="text" id="tagSearchInput" placeholder="搜索TAG..." onkeyup="filterRegistryTags()">
+                                <button class="reset-search-btn" onclick="resetRegistryTagSearch()">
+                                    <i class="fas fa-times"></i> 重置
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="tag-search-stats" id="registryTagStats">
+                            <p>共找到 <strong>${tagCount}</strong> 个标签</p>
+                        </div>
+                        
+                        <div class="tag-table-container">
+                            <table class="tag-table" id="registryTagTable">
+                                <thead>
+                                    <tr>
+                                        <th width="25%">TAG</th>
+                                        <th width="35%">OS/ARCH</th>
+                                        <th width="15%">大小</th>
+                                        <th width="15%">更新时间</th>
+                                        <th width="10%">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="registryTagTableBody">
+                                    <!-- 标签将通过 JS 渲染 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    // 渲染标签表格
+                    renderRegistryTagsTable(data.results || [], pullPrefix, registryId);
+                    enhanceTagSearchContainer();
+                    
+                } catch (error) {
+                    console.error('获取镜像标签失败:', error);
+                    imageTagsView.innerHTML = `
+                        <div class="tag-header">
+                            <div class="tag-breadcrumb">
+                                <a href="javascript:void(0);" onclick="showSearchResults()">返回搜索结果</a>
+                            </div>
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>加载镜像标签失败: ${error.message}</p>
+                                <button onclick="viewImageDetailsForRegistry('${imageName.replace(/'/g, "\\'")}', ${isOfficial}, '${encodeURIComponent(description).replace(/'/g, "%27")}', ${stars}, ${pulls}, '${registryId}')" class="retry-btn">
+                                    <i class="fas fa-redo"></i> 重试
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        window.viewImageDetailsForRegistry = viewImageDetailsForRegistry;
+
+        // 渲染 registry 标签表格（与 Docker Hub 相同的表格布局）
+        function renderRegistryTagsTable(tags, pullPrefix, registryId) {
+            const tbody = document.getElementById('registryTagTableBody');
+            if (!tbody) return;
+            
+            if (!tags || tags.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-tags-message">暂无标签数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = tags.map((tag, index) => {
+                // 处理标签数据 - 标签可能是字符串或对象
+                const tagName = typeof tag === 'string' ? tag : (tag.name || tag);
+                const tagDigest = typeof tag === 'object' ? tag.digest : null;
+                const tagSize = typeof tag === 'object' ? tag.size : null;
+                const tagLastUpdated = typeof tag === 'object' ? tag.lastUpdated : null;
+                const tagImages = typeof tag === 'object' && tag.images ? tag.images : [];
+                
+                // 计算大小
+                let sizeDisplay = '-';
+                if (tagSize) {
+                    const sizeInMB = Math.round(tagSize / 1024 / 1024);
+                    sizeDisplay = `${sizeInMB} MB`;
+                }
+                
+                // 格式化日期
+                let lastUpdatedDisplay = '-';
+                if (tagLastUpdated) {
+                    const date = new Date(tagLastUpdated);
+                    if (!isNaN(date.getTime())) {
+                        lastUpdatedDisplay = date.toLocaleDateString('zh-CN');
+                    }
+                }
+                
+                // 创建 OS/ARCH 显示
+                const osArchHtml = tagImages.length > 0 
+                    ? createOsArchHtml(tagImages, index)
+                    : '<span class="arch-badge">linux/amd64</span>';
+                
+                return `
+                    <tr data-tag="${tagName}">
+                        <td><span class="tag-name-cell">${tagName}</span></td>
+                        <td>${osArchHtml}</td>
+                        <td>${sizeDisplay}</td>
+                        <td>${lastUpdatedDisplay}</td>
+                        <td>
+                            <button class="primary-btn" onclick="useTagFromRegistry('${pullPrefix}', '${tagName}', '${registryId}')">
+                                <i class="fas fa-rocket"></i> 使用
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 过滤 registry 标签（表格版本）
+        function filterRegistryTags() {
+            const searchInput = document.getElementById('tagSearchInput');
+            const tbody = document.getElementById('registryTagTableBody');
+            if (!searchInput || !tbody) return;
+            
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const rows = tbody.querySelectorAll('tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const tagName = row.getAttribute('data-tag');
+                if (!tagName) return;
+                
+                if (searchTerm === '' || tagName.toLowerCase().includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // 更新统计信息
+            const statsDiv = document.getElementById('registryTagStats');
+            if (statsDiv) {
+                const totalCount = rows.length;
+                if (searchTerm) {
+                    statsDiv.innerHTML = `<p>搜索结果: <strong>${visibleCount}</strong> / ${totalCount} 个标签</p>`;
+                } else {
+                    statsDiv.innerHTML = `<p>共找到 <strong>${totalCount}</strong> 个标签</p>`;
+                }
+            }
+        }
+
+        // 重置 registry 标签搜索
+        function resetRegistryTagSearch() {
+            const searchInput = document.getElementById('tagSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+                filterRegistryTags();
+            }
+        }
+
+        // 使用指定 registry 的标签
+        function useTagFromRegistry(pullPrefix, tag, registryId) {
+            const fullImage = `${pullPrefix}:${tag}`;
+            const imageInput = document.getElementById('imageInput');
+            if (imageInput) {
+                imageInput.value = fullImage;
+                // 跳转到镜像加速页面
+                switchTab('accelerate');
+                // 生成加速命令
+                setTimeout(() => {
+                    generateCommands();
+                    showNotification(`已选择镜像: ${fullImage}`, 'success');
+                }, 100);
+            } else {
+                console.error('imageInput element not found');
+            }
+        }
+        window.useTagFromRegistry = useTagFromRegistry;
 
         // 初始化时加载代理域名配置
         async function initProxyDomain() {
@@ -521,7 +1142,7 @@
             return num.toString();
         }
 
-        // 生成加速命令
+        // 生成加速命令 - 支持多 Registry 镜像格式
         function generateCommands(imageNameInput) {
             let currentImageName = imageNameInput;
             if (!currentImageName) {
@@ -533,15 +1154,77 @@
                 alert('请输入 Docker 镜像名称');
                 return;
             }
-            let [imageName, tag] = currentImageName.split(':');
-            tag = tag || 'latest';
+            
+            // 解析镜像名称和标签
+            let imageName, tag;
+            const lastColonIndex = currentImageName.lastIndexOf(':');
+            // 检查冒号后面是不是端口号（如果包含 / 则不是标签）
+            if (lastColonIndex > -1 && !currentImageName.substring(lastColonIndex + 1).includes('/')) {
+                imageName = currentImageName.substring(0, lastColonIndex);
+                tag = currentImageName.substring(lastColonIndex + 1);
+            } else {
+                imageName = currentImageName;
+                tag = 'latest';
+            }
             
             let originalImage = `${imageName}:${tag}`;
             let proxyImage = '';
-            if (!imageName.includes('/')) {
-                proxyImage = `${proxyDomain}/library/${imageName}:${tag}`;
+            let detectedRegistry = 'docker-hub';
+            
+            // 从 enabledRegistries 获取 Docker Hub 的代理地址作为默认值
+            const dockerHubConfig = enabledRegistries.find(r => r.registryId === 'docker-hub');
+            let usedProxyDomain = (dockerHubConfig && dockerHubConfig.proxyUrl) ? dockerHubConfig.proxyUrl : proxyDomain;
+            
+            // Registry 前缀到 Registry ID 的映射
+            const prefixToRegistryId = {
+                'ghcr.io': 'ghcr',
+                'quay.io': 'quay',
+                'gcr.io': 'gcr',
+                'registry.k8s.io': 'k8s',
+                'k8s.gcr.io': 'k8s',
+                'mcr.microsoft.com': 'mcr',
+                'docker.elastic.co': 'elastic',
+                'nvcr.io': 'nvcr',
+                'docker.io': 'docker-hub'
+            };
+            
+            // 检测镜像来源
+            let matchedPrefix = null;
+            for (const prefix of Object.keys(prefixToRegistryId)) {
+                if (imageName.startsWith(prefix + '/')) {
+                    matchedPrefix = prefix;
+                    detectedRegistry = prefixToRegistryId[prefix];
+                    break;
+                }
+            }
+            
+            // 查找对应 Registry 的代理地址
+            if (detectedRegistry !== 'docker-hub') {
+                const registryConfig = enabledRegistries.find(r => r.registryId === detectedRegistry);
+                console.log(`Looking for registry ${detectedRegistry}, found:`, registryConfig);
+                
+                if (registryConfig && registryConfig.proxyUrl) {
+                    usedProxyDomain = registryConfig.proxyUrl;
+                    console.log(`Using proxy URL: ${usedProxyDomain} for ${detectedRegistry}`);
+                    // 移除原始前缀，使用代理地址
+                    const imageWithoutPrefix = imageName.substring(matchedPrefix.length + 1);
+                    proxyImage = `${usedProxyDomain}/${imageWithoutPrefix}:${tag}`;
+                } else {
+                    // 该 Registry 未启用或没有配置代理地址，使用原始地址
+                    console.warn(`No proxy URL configured for ${detectedRegistry}`);
+                    proxyImage = `${imageName}:${tag}`;
+                    showToastNotification(`${REGISTRY_INFO[detectedRegistry]?.name || detectedRegistry} 未配置代理地址，使用原始地址`, 'warning');
+                }
             } else {
-                proxyImage = `${proxyDomain}/${imageName}:${tag}`;
+                // Docker Hub 镜像
+                console.log(`Using Docker Hub proxy: ${usedProxyDomain}`);
+                if (!imageName.includes('/')) {
+                    // 官方镜像
+                    proxyImage = `${usedProxyDomain}/library/${imageName}:${tag}`;
+                } else {
+                    // 用户镜像
+                    proxyImage = `${usedProxyDomain}/${imageName}:${tag}`;
+                }
             }
             
             const commands = [
@@ -554,6 +1237,20 @@
             const resultDiv = document.getElementById('result');
             const container = document.getElementById('commandsContainer');
             container.innerHTML = '';
+            
+            // 显示检测到的 Registry 信息
+            if (detectedRegistry !== 'docker-hub') {
+                const registryInfo = REGISTRY_INFO[detectedRegistry] || {};
+                const registryInfoDiv = document.createElement('div');
+                registryInfoDiv.className = 'detected-registry-info';
+                registryInfoDiv.innerHTML = `
+                    <div class="registry-detection-badge" style="background-color: ${registryInfo.color || '#666'}20; border-left: 3px solid ${registryInfo.color || '#666'};">
+                        <i class="${registryInfo.icon || 'fas fa-cube'}" style="color: ${registryInfo.color || '#666'}"></i>
+                        <span>检测到 <strong>${registryInfo.name || detectedRegistry}</strong> 镜像</span>
+                    </div>
+                `;
+                container.appendChild(registryInfoDiv);
+            }
             
             // 将生成的命令添加到结果容器中
             commands.forEach((command, index) => {
@@ -568,7 +1265,7 @@
                             <div class="terminal-button button-green"></div>
                         </div>
                         <pre><code>${command.cmd}</code>
-                            <button class="copy-btn" onclick="copyToClipboard('${command.cmd}', this)">复制</button>
+                            <button class="copy-btn" onclick="copyToClipboard('${command.cmd.replace(/'/g, "\\'")}', this)">复制</button>
                         </pre>
                     </div>
                 `;
@@ -1870,6 +2567,9 @@
             
             // 初始化代理域名
             initProxyDomain();
+            
+            // 加载启用的 Registry 配置
+            loadEnabledRegistries();
             
             // 确保元素存在再添加事件监听器
             const searchInput = document.getElementById('searchInput');

@@ -105,6 +105,22 @@ class Database {
         enabled BOOLEAN DEFAULT 1,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`,
+
+      // Registry 配置表 - 用于存储各 Registry 平台的启用状态和代理地址
+      `CREATE TABLE IF NOT EXISTS registry_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        registry_id TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        icon TEXT,
+        color TEXT,
+        prefix TEXT,
+        description TEXT,
+        proxy_url TEXT,
+        enabled BOOLEAN DEFAULT 0,
+        sort_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )`
     ];
 

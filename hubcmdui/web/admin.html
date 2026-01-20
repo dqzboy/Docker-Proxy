@@ -1802,7 +1802,7 @@
         }
 
         /* 状态指示样式 */
-        .disabled {
+        .status-disabled {
             opacity: 0.5;
             pointer-events: none;
         }
@@ -3340,6 +3340,253 @@
             padding: 1.5rem;
         }
         
+        /* Registry 配置列表样式 */
+        .registry-config-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            padding: 0;
+        }
+        
+        @media (max-width: 1200px) {
+            .registry-config-list {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .registry-config-list {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .registry-config-item {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+        
+        .registry-config-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .registry-config-item.enabled {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        
+        .registry-config-item.disabled {
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+            background: #fff;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        .registry-config-item.disabled:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .registry-config-header {
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            position: relative;
+            transition: background 0.2s ease;
+        }
+        
+        .registry-config-header:hover {
+            background: linear-gradient(135deg, #f0f4f8 0%, #f8fafc 100%);
+        }
+        
+        .registry-config-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1rem;
+            right: 1rem;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+        }
+        
+        .registry-config-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: center;
+        }
+        
+        .registry-config-info .registry-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .registry-config-info .registry-badge::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.08), transparent);
+            transform: rotate(45deg);
+        }
+        
+        .registry-config-details {
+            width: 100%;
+        }
+        
+        .registry-config-details h4 {
+            margin: 0 0 0.15rem 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.01em;
+        }
+        
+        .registry-config-details .registry-prefix {
+            display: inline-block;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.65rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .registry-config-details p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .registry-status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .registry-status-indicator.enabled {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .registry-status-indicator.disabled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .registry-status-indicator i {
+            font-size: 0.6rem;
+        }
+        
+        .registry-config-body {
+            padding: 1rem;
+            background: #fafbfc;
+        }
+        
+        .registry-config-actions {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            text-align: center;
+        }
+        
+        /* 空状态样式 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        /* Toggle 开关样式 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        
+        .toggle-switch input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 5;
+            margin: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
         /* 现代表单样式 */
         .modern-form-group {
             margin-bottom: 1.25rem;
@@ -3899,68 +4146,96 @@
         
         /* 测试控制卡片 */
         .test-controls-card {
-            background: var(--container-bg);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-light, #e5e7eb);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(59, 130, 246, 0.1);
             margin-bottom: 1.5rem;
         }
         
         .test-controls-card .test-controls-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.25rem;
-            align-items: flex-end;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+        
+        @media (max-width: 768px) {
+            .test-controls-card .test-controls-container {
+                grid-template-columns: 1fr;
+            }
         }
         
         .test-controls-card .form-group {
-            flex: 1;
-            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .test-controls-card .form-group.btn-group {
+            justify-content: flex-end;
         }
         
         .test-controls-card .form-group label {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         
         .test-controls-card .form-group label i {
             font-size: 0.85rem;
             color: var(--primary-color);
-            opacity: 0.7;
+            opacity: 0.8;
         }
         
         .test-controls-card .form-select,
         .test-controls-card .form-control {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            font-size: 0.95rem;
-            transition: all var(--transition-fast);
+            padding: 0.65rem 0.85rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
             background-color: var(--input-bg, #fff);
+            font-weight: 500;
         }
         
         .test-controls-card .form-select:focus,
         .test-controls-card .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(61, 124, 244, 0.15);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
             outline: none;
+            background-color: #fff;
         }
         
         .test-controls-card .start-test-btn {
-            flex-shrink: 0;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            display: flex;
+            padding: 0.65rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
+            height: auto;
+            white-space: nowrap;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+            transition: all 0.2s ease;
+        }
+        
+        .test-controls-card .start-test-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .test-controls-card .start-test-btn:active {
+            transform: translateY(0);
         }
         
         /* 测试结果容器美化 */
@@ -4369,26 +4644,29 @@
                             </div>
                         </div>
                         
-                        <!-- 代理地址配置卡片 -->
+                        <!-- Registry 平台配置卡片 -->
                         <div class="config-card">
                             <div class="config-card-header">
-                                <div class="config-card-icon blue">
-                                    <i class="fas fa-server"></i>
+                                <div class="config-card-icon purple">
+                                    <i class="fas fa-layer-group"></i>
                                 </div>
                                 <div class="config-card-title">
-                                    <h3>代理地址</h3>
-                                    <p>配置Docker镜像代理服务器</p>
+                                    <h3>Registry 平台配置</h3>
+                                    <p>配置支持的容器镜像仓库平台及其代理地址</p>
                                 </div>
                             </div>
                             <div class="config-card-body">
-                                <div class="modern-form-group">
-                                    <label for="proxyDomain"><i class="fas fa-globe"></i> 代理地址 <span class="required-badge">必填</span></label>
-                                    <input type="text" id="proxyDomain" name="proxyDomain" class="modern-input" placeholder="例如: proxy.example.com" required>
-                                    <span class="input-hint">填写您的Docker镜像代理服务器地址</span>
+                                <div class="registry-config-list" id="registryConfigList">
+                                    <!-- Registry 配置项将在这里动态加载 -->
+                                    <div class="loading-indicator">
+                                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                    </div>
                                 </div>
-                                <button type="button" class="btn btn-primary btn-with-icon" onclick="validateAndSaveConfig('proxy')">
-                                    <i class="fas fa-save"></i> 保存代理地址
-                                </button>
+                                <div class="registry-config-actions">
+                                    <button type="button" class="btn btn-primary btn-with-icon" onclick="saveRegistryConfigs()">
+                                        <i class="fas fa-save"></i> 保存 Registry 配置
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4481,9 +4759,12 @@
                                     <!-- 选项将由 networkTest.initNetworkTest() 动态生成 -->
                                 </select>
                             </div>
-                            <button id="startTestBtn" class="btn btn-primary start-test-btn">
-                                <i class="fas fa-play"></i> 开始测试
-                            </button>
+                            <div class="form-group btn-group">
+                                <label>&nbsp;</label>
+                                <button id="startTestBtn" class="btn btn-primary start-test-btn">
+                                    <i class="fas fa-play"></i> 开始测试
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -4916,6 +5197,214 @@
     <script src="js/app.js"></script>
 
     <script>
+        // Registry 配置管理
+        let registryConfigs = [];
+
+        // 加载 Registry 配置
+        async function loadRegistryConfigs() {
+            console.log('loadRegistryConfigs called');
+            try {
+                const response = await fetch('/api/config/registry-configs');
+                console.log('loadRegistryConfigs response status:', response.status);
+                if (response.ok) {
+                    registryConfigs = await response.json();
+                    console.log('loadRegistryConfigs data:', registryConfigs);
+                    renderRegistryConfigs();
+                } else {
+                    console.error('加载 Registry 配置失败, status:', response.status);
+                }
+            } catch (error) {
+                console.error('加载 Registry 配置失败:', error);
+            }
+        }
+
+        // 渲染 Registry 配置列表
+        function renderRegistryConfigs() {
+            const container = document.getElementById('registryConfigList');
+            if (!container) {
+                console.error('Registry config container not found');
+                return;
+            }
+            
+            if (!registryConfigs || registryConfigs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无配置</p></div>';
+                return;
+            }
+
+            container.innerHTML = registryConfigs.map((config, index) => {
+                const isEnabled = config.enabled || false;
+                const proxyValue = config.proxyUrl || '';
+                const statusClass = isEnabled ? 'enabled' : 'disabled';
+                const statusIcon = isEnabled ? 'fa-check-circle' : 'fa-times-circle';
+                const statusText = isEnabled ? '已启用' : '已禁用';
+                
+                return `
+                <div class="registry-config-item ${statusClass}" data-registry-id="${config.registryId}">
+                    <div class="registry-config-header">
+                        <div class="registry-config-info">
+                            <span class="registry-badge" style="background: linear-gradient(135deg, ${config.color || '#666'}, ${adjustColor(config.color || '#666', -20)})">
+                                <i class="${config.icon || 'fas fa-cube'}"></i>
+                            </span>
+                            <div class="registry-config-details">
+                                <h4>${config.name || 'Unknown Registry'}</h4>
+                                <small class="registry-prefix">${config.prefix || 'Docker Hub'}</small>
+                                <p>${config.description || ''}</p>
+                            </div>
+                            <div class="registry-status-indicator ${statusClass}">
+                                <i class="fas ${statusIcon}"></i>
+                                <span>${statusText}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="registry-config-body" 
+                         id="registry-body-${config.registryId}" 
+                         style="display: block;">
+                        <div class="modern-form-group">
+                            <label for="registry-proxy-${config.registryId}">
+                                <i class="fas fa-link"></i> 代理地址 
+                                <span class="required-badge">必填</span>
+                            </label>
+                            <input type="text" 
+                                   id="registry-proxy-${config.registryId}" 
+                                   class="modern-input" 
+                                   placeholder="例如: ${config.prefix ? config.prefix.replace(/\./g, '-') + '.proxy.example.com' : 'dockerhub.proxy.example.com'}"
+                                   value="${proxyValue}"
+                                   ${isEnabled ? 'required' : ''}>
+                            <span class="input-hint">填写此 Registry 的代理服务器地址</span>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                            <label class="toggle-switch" style="margin: 0;">
+                                <input type="checkbox" 
+                                       id="registry-enabled-${config.registryId}" 
+                                       ${isEnabled ? 'checked' : ''} 
+                                       onchange="event.stopPropagation(); toggleRegistryEnabled('${config.registryId}', this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span style="font-size: 0.85rem; color: #64748b; line-height: 26px;">启用此 Registry</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+        
+        // 辅助函数：调整颜色亮度
+        function adjustColor(color, amount) {
+            const clamp = (num) => Math.min(Math.max(num, 0), 255);
+            const num = parseInt(color.replace('#', ''), 16);
+            const r = clamp((num >> 16) + amount);
+            const g = clamp(((num >> 8) & 0x00FF) + amount);
+            const b = clamp((num & 0x0000FF) + amount);
+            return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+        }
+        
+        // 切换 Registry body 显示/隐藏（点击头部时）
+        function toggleRegistryBody(registryId) {
+            const body = document.getElementById(`registry-body-${registryId}`);
+            const checkbox = document.getElementById(`registry-enabled-${registryId}`);
+            
+            // 只有在启用状态下才允许通过点击展开/收起
+            if (checkbox && checkbox.checked && body) {
+                const isVisible = body.style.display !== 'none';
+                body.style.display = isVisible ? 'none' : 'block';
+            }
+        }
+
+        // 切换 Registry 启用状态
+        function toggleRegistryEnabled(registryId, enabled) {
+            console.log(`toggleRegistryEnabled: ${registryId}, enabled: ${enabled}`);
+            
+            // 先保存所有输入框的当前值到内存中，避免重新渲染时丢失
+            registryConfigs.forEach(config => {
+                const proxyInput = document.getElementById(`registry-proxy-${config.registryId}`);
+                if (proxyInput) {
+                    config.proxyUrl = proxyInput.value.trim();
+                }
+            });
+            
+            const config = registryConfigs.find(c => c.registryId === registryId);
+            if (config) {
+                config.enabled = enabled;
+            }
+            
+            // 重新渲染以更新状态指示器和UI
+            renderRegistryConfigs();
+        }
+
+        // 保存 Registry 配置
+        async function saveRegistryConfigs() {
+            console.log('saveRegistryConfigs called, registryConfigs:', registryConfigs);
+            
+            try {
+                // 收集所有配置
+                const configs = [];
+                let validationError = null;
+                
+                for (const config of registryConfigs) {
+                    const enabledCheckbox = document.getElementById(`registry-enabled-${config.registryId}`);
+                    const proxyInput = document.getElementById(`registry-proxy-${config.registryId}`);
+                    
+                    const enabled = enabledCheckbox ? enabledCheckbox.checked : config.enabled;
+                    const proxyUrl = proxyInput ? proxyInput.value.trim() : (config.proxyUrl || '');
+                    
+                    console.log(`Config ${config.registryId}: enabled=${enabled}, proxyUrl=${proxyUrl}`);
+                    
+                    // 验证：如果启用了但没有填写代理地址
+                    if (enabled && !proxyUrl) {
+                        validationError = `请填写 ${config.name} 的代理地址`;
+                        break;
+                    }
+                    
+                    configs.push({
+                        registryId: config.registryId,
+                        enabled: enabled,
+                        proxyUrl: proxyUrl
+                    });
+                }
+                
+                if (validationError) {
+                    if (window.app && typeof window.app.showNotification === 'function') {
+                        window.app.showNotification(validationError, 'error');
+                    } else {
+                        alert(validationError);
+                    }
+                    return;
+                }
+                
+                console.log('Sending configs:', configs);
+                
+                const response = await fetch('/api/config/registry-configs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ configs })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    if (window.app && typeof window.app.showNotification === 'function') {
+                        window.app.showNotification('Registry 配置保存成功', 'success');
+                    } else {
+                        alert('Registry 配置保存成功');
+                    }
+                    // 重新加载配置
+                    await loadRegistryConfigs();
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.details || error.message || '保存失败');
+                }
+            } catch (error) {
+                console.error('saveRegistryConfigs error:', error);
+                if (window.app && typeof window.app.showNotification === 'function') {
+                    window.app.showNotification(error.message || '保存 Registry 配置失败', 'error');
+                } else {
+                    alert(error.message || '保存 Registry 配置失败');
+                }
+            }
+        }
+
         // 在DOM加载完成后初始化登录表单
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('loginForm');
@@ -4962,6 +5451,17 @@
             window.validateAndSaveConfig = window.app ? window.app.validateAndSaveConfig : function(type) {
                 console.error('validateAndSaveConfig未定义');
             };
+            
+            // 加载 Registry 配置
+            loadRegistryConfigs();
+            
+            // 将 Registry 相关函数暴露到 window 对象
+            window.loadRegistryConfigs = loadRegistryConfigs;
+            window.saveRegistryConfigs = saveRegistryConfigs;
+            window.toggleRegistryEnabled = toggleRegistryEnabled;
+            window.toggleRegistryBody = toggleRegistryBody;
+            window.renderRegistryConfigs = renderRegistryConfigs;
+            window.adjustColor = adjustColor;
         });
     </script>
 </body>

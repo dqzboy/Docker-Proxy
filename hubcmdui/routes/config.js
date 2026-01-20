@@ -122,4 +122,67 @@ router.post('/menu-items', requireLogin, async (req, res) => {
     }
 });
 
+// 获取所有 Registry 配置
+router.get('/registry-configs', async (req, res) => {
+    try {
+        const configs = await configServiceDB.getRegistryConfigs();
+        res.json(configs);
+    } catch (error) {
+        logger.error('获取 Registry 配置失败:', error);
+        res.status(500).json({ error: '获取 Registry 配置失败', details: error.message });
+    }
+});
+
+// 获取启用的 Registry 配置
+router.get('/registry-configs/enabled', async (req, res) => {
+    try {
+        const configs = await configServiceDB.getEnabledRegistryConfigs();
+        res.json(configs);
+    } catch (error) {
+        logger.error('获取启用的 Registry 配置失败:', error);
+        res.status(500).json({ error: '获取启用的 Registry 配置失败', details: error.message });
+    }
+});
+
+// 更新单个 Registry 配置
+router.put('/registry-configs/:registryId', requireLogin, async (req, res) => {
+    try {
+        const { registryId } = req.params;
+        const config = req.body;
+        
+        if (!config || typeof config !== 'object') {
+            return res.status(400).json({
+                error: '无效的配置数据',
+                details: '配置必须是一个对象'
+            });
+        }
+        
+        await configServiceDB.updateRegistryConfig(registryId, config);
+        res.json({ success: true, message: `Registry ${registryId} 配置已更新` });
+    } catch (error) {
+        logger.error('更新 Registry 配置失败:', error);
+        res.status(500).json({ error: '更新 Registry 配置失败', details: error.message });
+    }
+});
+
+// 批量更新 Registry 配置
+router.post('/registry-configs', requireLogin, async (req, res) => {
+    try {
+        const { configs } = req.body;
+        
+        if (!Array.isArray(configs)) {
+            return res.status(400).json({
+                error: '无效的配置数据',
+                details: '配置必须是一个数组'
+            });
+        }
+        
+        await configServiceDB.updateRegistryConfigs(configs);
+        res.json({ success: true, message: 'Registry 配置已保存' });
+    } catch (error) {
+        logger.error('保存 Registry 配置失败:', error);
+        res.status(500).json({ error: '保存 Registry 配置失败', details: error.message });
+    }
+});
+
 module.exports = router;
