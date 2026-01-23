@@ -287,13 +287,7 @@
         $(document).ready(function() {
             // 初始化 Editor.md
             initEditor();
-            
-            // 如果有文档 ID，则加载文档
-            if (docId) {
-                loadDocument(docId);
-                document.getElementById('pageTitle').textContent = '编辑文档';
-            }
-            
+
             // 绑定保存按钮事件
             document.getElementById('saveBtn').addEventListener('click', saveDocument);
             
@@ -340,6 +334,11 @@
                 indentUnit: 4,
                 // 使用官方默认工具栏配置
                 onload: function() {
+                    // 如果有文档 ID，则加载文档
+                    if (docId) {
+                        loadDocument(docId);
+                        document.getElementById('pageTitle').textContent = '编辑文档';
+                    }
                     console.log('Editor.md 初始化完成');
                 },
                 onchange: function() {
