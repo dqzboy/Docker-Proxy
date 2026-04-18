@@ -1381,17 +1381,20 @@ success=false
 cpu_arch=$(uname -m)
 save_path="/opt/docker_tgz"
 mkdir -p $save_path
-docker_ver="docker-27.1.2.tgz"
+docker_ver="docker-29.4.0"
 
 case $cpu_arch in
   "arm64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/2ce4d6bc245ab1c4525b3e6f55db7d710681e56f/$docker_ver"
+    docker_tgz="${docker_ver}-arm64.tgz"
+    url="https://gitcode.com/dqzboy/docker/releases/download/${docker_ver}/${docker_tgz}"
     ;;
   "aarch64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/2ce4d6bc245ab1c4525b3e6f55db7d710681e56f/$docker_ver"
+    docker_tgz="${docker_ver}-arm64.tgz"
+    url="https://gitcode.com/dqzboy/docker/releases/download/${docker_ver}/${docker_tgz}"
     ;;
   "x86_64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/179729785ed2c4a8c99aeb546fb6ac2864d7da5c/$docker_ver"
+    docker_tgz="${docker_ver}-amd64.tgz"
+    url="https://gitcode.com/dqzboy/docker/releases/download/${docker_ver}/${docker_tgz}"
     ;;
   *)
     ERROR "不支持的CPU架构: $cpu_arch"
@@ -1415,7 +1418,7 @@ if ! command -v docker &> /dev/null; then
   done
 
   if $success; then
-     tar -xzf $save_path/$docker_ver -C $save_path
+     tar -xzf $save_path/$docker_tgz -C $save_path
      \cp $save_path/docker/* /usr/bin/ &>/dev/null
      rm -rf $save_path
      INFO "Docker 安装成功，版本为：$(docker --version)"
@@ -1468,13 +1471,13 @@ save_path="/usr/local/bin"
 
 case $cpu_arch in
   "arm64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/b7be39a4442a103749c769ca48740e8e1a93a16c/docker-compose-linux-aarch64"
+    url="https://gitcode.com/dqzboy/docker/releases/download/compose/docker-compose-linux-aarch64"
     ;;
   "aarch64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/b7be39a4442a103749c769ca48740e8e1a93a16c/docker-compose-linux-aarch64"
+    url="https://gitcode.com/dqzboy/docker/releases/download/compose/docker-compose-linux-aarch64"
     ;;
   "x86_64")
-    url="https://raw.gitcode.com/dqzboy/docker/blobs/df1b7935ced481a20d16141d97e163823ee793f5/docker-compose-linux-x86_64"
+    url="https://gitcode.com/dqzboy/docker/releases/download/compose/docker-compose-linux-x86_64"
     ;;
   *)
     ERROR "不支持的CPU架构: $cpu_arch"
