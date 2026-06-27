@@ -871,12 +871,12 @@
             display: flex;
             align-items: center;
             width: 100%;
-            border: 1px solid var(--border-light);
+            border: 2px solid var(--border-light);
             border-radius: var(--radius-md);
             background: var(--container-bg);
             transition: all 0.15s ease;
             overflow: hidden;
-            padding: 0 8px; /* 取消垂直内边距，使用固定输入高度居中 */
+            padding: 3px 4px;
         }
 
         .password-input-wrapper:focus-within {
@@ -890,16 +890,14 @@
             border-radius: 0 !important;
             background: transparent !important;
             box-shadow: none !important;
-            padding: 0 12px !important; /* 横向内边距 */
-            height: 28px !important; /* 固定高度，保持不变 */
-            line-height: 28px !important; /* 与高度相同，垂直居中占位文本与输入文本 */
+            padding: 0 8px !important;
             font-size: 14px !important;
             box-sizing: border-box !important;
-            vertical-align: middle;
+            height: 34px !important;
+            line-height: 34px !important;
         }
 
         .password-input-wrapper .form-input::placeholder {
-            /* 有时浏览器对 placeholder 的居中不同，确保其 padding 一致 */
             color: var(--text-secondary);
             opacity: 0.6;
         }
@@ -923,7 +921,7 @@
             transition: all 0.15s ease;
             font-size: 13px;
             padding: 0;
-            margin-left: 8px;
+            margin-left: 4px;
             flex-shrink: 0;
         }
 
@@ -1457,56 +1455,33 @@
         /* 表格样式 - 增强 Excel 效果 */
         .content-section table {
             width: 100%;
-            border-collapse: collapse; /* 合并边框 */
+            border-collapse: collapse;
             border-spacing: 0;
-            margin-top: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid #ccc; /* 表格外边框 */
-            font-size: 0.9rem; /* 稍微减小字体 */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 轻微阴影 */
+            margin: 0;
+            border: none;
+            box-shadow: none;
+            font-size: 0.9rem;
         }
 
-        .content-section th {
-            background-color: #f2f2f2; /* Excel 灰色表头背景 */
-            color: #333;
-            font-weight: bold; /* 加粗 */
-            text-align: left;
-            padding: 0.6rem 0.8rem; /* 调整内边距 */
-            border: 1px solid #ccc; /* 单元格边框 */
-        }
-
+        .content-section th,
         .content-section td {
-            padding: 0.6rem 0.8rem; /* 调整内边距 */
-            border: 1px solid #ddd; /* 单元格边框，比表头稍浅 */
-            vertical-align: middle;
-            background-color: #ffffff;
-            color: #444; /* 单元格文字颜色 */
-            word-break: break-word; /* 防止长 ID 撑开单元格 */
+            padding: 0;
+            border: none;
         }
-
-        /* 可选：添加斑马纹效果 */
-        /*
-        .content-section tr:nth-child(even) td {
-            background-color: #f9f9f9;
-        }
-        */
 
         .content-section tr:hover td {
-            background-color: #e9f5ff; /* 鼠标悬停高亮 */
+            background-color: transparent;
         }
 
-        /* 表格头部悬停效果 */
         .content-section th:hover {
-            background-color: #e8e8e8;
+            background-color: transparent;
         }
 
-        /* Excel风格的表格滚动条 */
+        /* 表格滚动容器 */
         .table-container {
             overflow-x: auto;
             max-width: 100%;
-            margin-bottom: 1.5rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
+            margin-bottom: 1rem;
         }
 
         /* 操作列样式 */
@@ -2604,45 +2579,129 @@
             max-width: 80% !important;
         }
         
-        /* 容器状态标签样式 */
+        /* 容器状态徽章 - 现代精致风格 */
         .badge.status-running {
-            background-color: #28a745;
-            color: white;
-            padding: 5px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            min-width: 70px;
-            text-align: center;
+            background: #ecfdf5;
+            color: #059669;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        
+        .badge.status-running::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 4px rgba(16,185,129,0.5);
+        }
+
         .badge.status-stopped, .badge.status-exited {
-            background-color: #dc3545;
-            color: white;
-            padding: 5px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            min-width: 70px;
-            text-align: center;
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        
+        .badge.status-stopped::before, .badge.status-exited::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
         .badge.status-created {
-            background-color: #17a2b8;
-            color: white;
-            padding: 5px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            min-width: 70px;
-            text-align: center;
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
-        
-        .badge.status-unknown, .badge.status-paused {
-            background-color: #6c757d;
-            color: white;
-            padding: 5px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            min-width: 70px;
-            text-align: center;
+        .badge.status-created::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .badge.status-paused {
+            background: #fffbeb;
+            color: #d97706;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .badge.status-paused::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #f59e0b;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .badge.status-restarting {
+            background: #fef3c7;
+            color: #b45309;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .badge.status-restarting::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #f59e0b;
+            border-radius: 50%;
+            flex-shrink: 0;
+            animation: status-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes status-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        .badge.status-unknown {
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         
         /* 容器表格标题样式 */
@@ -2727,78 +2786,6 @@
             background-color: transparent !important;
             z-index: 10 !important;
             text-align: center !important;
-        }
-
-        #network-test .form-row {
-            display: flex;
-            flex-wrap: wrap; /* 允许换行到小屏幕 */
-            gap: 1.5rem; /* 各个元素之间的间距 */
-            margin-bottom: 1.5rem;
-            align-items: flex-end; /* 使得按钮和选择框底部对齐 */
-        }
-
-        #network-test .form-group {
-            flex: 1; /* 让表单组占据可用空间 */
-            min-width: 250px; /* 避免在小屏幕上过于挤压 */
-            background-color: transparent; /* 移除之前 #network-test .input-group 的背景色 */
-            padding: 0; /* 移除内边距 */
-            box-shadow: none; /* 移除阴影 */
-            border-radius: 0;
-        }
-
-        #network-test label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        #network-test .form-control,
-        #network-test .form-select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            background-color: var(--input-bg, var(--container-bg)); /* 允许自定义输入背景或使用容器背景 */
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            transition: all var(--transition-fast);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        #network-test .form-control:focus,
-        #network-test .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 61, 124, 244), 0.25); /* 使用RGB变量 */
-            outline: none;
-        }
-
-        #network-test .test-controls-container {
-            /* 这个容器包裹选择器和按钮 */
-            display: flex;
-            flex-wrap: wrap; /* 允许换行 */
-            gap: 1rem; /* 控件之间的间距 */
-            align-items: flex-end; /* 使得按钮和选择框底部对齐 */
-            margin-bottom: 1.5rem;
-        }
-
-        #network-test .test-controls-container .form-group {
-             flex-grow: 1;
-             flex-basis: 200px; /* 给每个控件一个基础宽度 */
-        }
-
-        #network-test .start-test-btn {
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            white-space: nowrap; /* 防止按钮文字换行 */
-            height: fit-content; /* 与调整后的 select 高度匹配 */
-            flex-shrink: 0; /* 防止按钮在 flex 布局中被压缩 */
-        }
-        
-        #network-test .start-test-btn i {
-            margin-right: 0.5rem;
         }
 
         .results-header {
@@ -3258,6 +3245,11 @@
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 1.5rem;
         }
+
+        /* 基本配置页：Logo 在上、Registry 在下，纵向堆叠 */
+        #basic-config .config-cards-grid {
+            grid-template-columns: 1fr;
+        }
         
         .monitoring-grid {
             display: grid;
@@ -3341,21 +3333,27 @@
             padding: 1.5rem;
         }
         
-        /* Registry 配置列表样式 */
+        /* Registry 配置列表样式 - 每行4个，自适应响应式 */
         .registry-config-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
             padding: 0;
         }
-        
+
         @media (max-width: 1200px) {
             .registry-config-list {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                grid-template-columns: repeat(3, 1fr);
             }
         }
-        
-        @media (max-width: 768px) {
+
+        @media (max-width: 900px) {
+            .registry-config-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
             .registry-config-list {
                 grid-template-columns: 1fr;
             }
@@ -3684,63 +3682,98 @@
             padding: 0;
         }
         
-        /* 现代表格样式 - 2024主流设计 */
-        .modern-table {
+        /* ===== 现代表格样式 - 精致 SaaS 风格 ===== */
+        table.modern-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
             border-spacing: 0;
+            margin: 0;
+            font-size: 0.875rem;
         }
-        
-        .modern-table thead {
-            background: transparent;
-        }
-        
-        .modern-table th {
-            padding: 14px 20px;
+
+        .modern-table thead th {
+            padding: 10px 20px;
             text-align: left;
             font-weight: 500;
             color: #6b7280;
-            font-size: 12px;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #f3f4f6;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid #eef2f6;
+            background: #fafbfc;
             white-space: nowrap;
         }
-        
-        .modern-table th:first-child {
+
+        .modern-table thead th:first-child {
             padding-left: 24px;
+            border-radius: 12px 0 0 0;
         }
-        
-        .modern-table th:last-child {
+
+        .modern-table thead th:last-child {
             padding-right: 24px;
+            border-radius: 0 12px 0 0;
         }
-        
-        .modern-table td {
-            padding: 16px 20px;
+
+        .modern-table tbody td {
+            padding: 14px 20px;
             vertical-align: middle;
-            color: #111827;
-            font-size: 14px;
-            border-bottom: 1px solid #f9fafb;
+            color: #1f2937;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.15s ease;
         }
-        
-        .modern-table td:first-child {
+
+        .modern-table tbody td:first-child {
             padding-left: 24px;
+            font-weight: 500;
+            color: #374151;
         }
-        
-        .modern-table td:last-child {
+
+        .modern-table tbody td:last-child {
             padding-right: 24px;
         }
-        
-        .modern-table tbody tr {
-            transition: background-color 0.1s ease;
+
+        .modern-table tbody tr:hover td {
+            background-color: #f8faff;
         }
-        
-        .modern-table tbody tr:hover {
-            background-color: #fafbfc;
-        }
-        
+
         .modern-table tbody tr:last-child td {
             border-bottom: none;
+        }
+
+        /* modern-table + excel-table 共存（Docker 服务状态表） */
+        .modern-table.excel-table {
+            font-size: 0.875rem;
+        }
+
+        .modern-table.excel-table th {
+            background: #fafbfc;
+            border-bottom: 1px solid #eef2f6;
+            padding: 10px 20px;
+            text-align: left;
+            position: static;
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .modern-table.excel-table td {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 14px 20px;
+            text-align: left;
+            background: #fff;
+            color: #1f2937;
+            font-size: 0.875rem;
+        }
+
+        .modern-table.excel-table tr:nth-child(even) td {
+            background-color: #fafbfc;
+        }
+
+        .modern-table.excel-table tr:hover td {
+            background-color: #f8faff;
         }
         
         /* 表格操作按钮样式 - 现代风格 */
@@ -4157,9 +4190,14 @@
         
         .test-controls-card .test-controls-container {
             display: grid;
-            grid-template-columns: 1fr 1fr auto;
+            grid-template-columns: 1fr 1fr minmax(120px, max-content);
             gap: 1rem;
             align-items: end;
+        }
+
+        /* 隐藏按钮组的占位 label，让按钮与左侧 select 输入框底部对齐 */
+        .test-controls-card .form-group.btn-group label {
+            display: none;
         }
         
         @media (max-width: 768px) {

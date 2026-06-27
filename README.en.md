@@ -164,9 +164,8 @@ Full usage and configuration examples are available in the docs: https://dqzboy.
 ## 💻 HubCMD‑UI
 > HubCMD‑UI manual installation: hubcmdui/README.md
 
-> HubCMD-UI 手动安装教程：[点击查看教程](hubcmdui/README.md)
+> HubCMD-UI Manual Installation Guide：[点击查看教程](hubcmdui/README.md)
 
-> HubCMD-UI 演示环境 [点击查看](https://ufxsgwxleywi.ap-southeast-1.clawcloudrun.com/)
 
 <br/>
 <table>

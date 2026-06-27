@@ -615,14 +615,15 @@ const dockerManager = {
         }
     },
     
-    // 获取容器状态对应的 CSS 类 - 保持
+    // 获取容器状态对应的 CSS 类
     getContainerStatusClass(state) {
         if (!state) return 'status-unknown';
         state = state.toLowerCase();
-        if (state.includes('running')) return 'status-running';
+        if (state.includes('running') || state.startsWith('up')) return 'status-running';
         if (state.includes('created')) return 'status-created';
-        if (state.includes('exited') || state.includes('stopped')) return 'status-stopped';
+        if (state.includes('exited') || state.includes('stopped') || state.includes('dead')) return 'status-stopped';
         if (state.includes('paused')) return 'status-paused';
+        if (state.includes('restarting')) return 'status-restarting';
         return 'status-unknown';
     },
     
@@ -1032,7 +1033,7 @@ const dockerManager = {
             });
         }
         
-        // 添加响应式样式
+        // 添加响应式样式 - 与 modern-table 风格协调
         const style = document.createElement('style');
         style.textContent = `
             #dockerStatusTable {
@@ -1042,14 +1043,27 @@ const dockerManager = {
             #dockerStatusTable th, #dockerStatusTable td {
                 text-align: center;
                 vertical-align: middle;
-                padding: 8px;
+                padding: 12px 16px;
+            }
+            #dockerStatusTable th {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: #6b7280;
+                letter-spacing: 0.06em;
+            }
+            #dockerStatusTable td:first-child {
+                font-weight: 500;
+                color: #374151;
             }
             #dockerStatusTable td.action-cell {
-                padding: 4px;
+                padding: 8px 16px;
             }
             @media (max-width: 768px) {
                 #dockerStatusTable {
                     table-layout: fixed;
+                }
+                #dockerStatusTable th, #dockerStatusTable td {
+                    padding: 10px 12px;
                 }
             }
         `;
