@@ -819,6 +819,110 @@
     transform: translateY(0); /* 覆盖默认的按钮hover效果 */
 }
 
+/* ===== 快捷执行卡片（一键复制 拉取→重命名→删除代理） ===== */
+.quick-exec-card {
+    background: var(--container-bg);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-light, #e5e7eb);
+    border-left: 3px solid var(--primary-color, #3b82f6);
+    box-shadow: var(--shadow-sm);
+}
+
+.quick-exec-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+}
+
+.quick-exec-header h3 {
+    color: var(--text-primary, #1f2937);
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-exec-header h3 i {
+    color: var(--primary-color, #3b82f6);
+    font-size: 0.95rem;
+}
+
+.quick-exec-desc {
+    color: var(--text-secondary, #6b7280);
+    font-size: 0.85rem;
+    margin: 0 0 0.85rem 0;
+    line-height: 1.55;
+}
+
+.quick-exec-desc code {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--primary-color, #2563eb);
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+}
+
+.platform-buttons {
+    display: flex;
+    gap: 0.65rem;
+}
+
+.platform-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.9rem;
+    background: #fff;
+    border: 1px solid var(--border-light, #e5e7eb);
+    border-radius: 8px;
+    color: var(--text-primary, #374151);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.platform-btn i {
+    font-size: 1rem;
+    color: var(--text-secondary, #9ca3af);
+    transition: color 0.18s ease;
+}
+
+.platform-btn:hover {
+    border-color: var(--primary-color, #3b82f6);
+    background: rgba(59, 130, 246, 0.03);
+    color: var(--primary-color, #2563eb);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.12);
+}
+
+.platform-btn:hover i {
+    color: var(--primary-color, #2563eb);
+}
+
+.platform-btn:active {
+    transform: scale(0.97);
+}
+
+.platform-btn.copied {
+    background: var(--primary-color, #3b82f6);
+    color: #fff;
+    border-color: var(--primary-color, #3b82f6);
+    box-shadow: none;
+}
+
+.platform-btn.copied i {
+    color: #fff;
+}
+
 /* ===== 标签展示区域 - 现代设计 ===== */
 #imageTagsView {
     width: 100%;
@@ -2228,44 +2332,51 @@
     color: var(--primary-color);
   }
 
-/* ===== 返回顶部按钮 ===== */
+/* ===== 返回顶部按钮 - 现代精致设计 ===== */
 .back-to-top-btn {
     position: fixed;
     bottom: 32px;
     right: 32px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #3b82f6;
-    color: white;
-    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.06),
+        0 4px 16px rgba(0, 0, 0, 0.04);
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(20px);
-    transition: all 0.3s ease;
+    transform: translateY(16px) scale(0.92);
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 15px;
 }
 
 .back-to-top-btn.visible {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
 .back-to-top-btn:hover {
-    background: #2563eb;
-    transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow:
+        0 4px 12px rgba(59, 130, 246, 0.28),
+        0 8px 24px rgba(59, 130, 246, 0.14);
+    transform: translateY(-3px) scale(1.04);
 }
 
 .back-to-top-btn:active {
-    transform: translateY(-2px);
+    transform: translateY(-1px) scale(0.98);
+    background: #2563eb;
 }
 
 /* 移动端优化 */
@@ -2273,9 +2384,10 @@
     .back-to-top-btn {
         bottom: 24px;
         right: 20px;
-        width: 44px;
-        height: 44px;
-        font-size: 16px;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        font-size: 13px;
     }
 }
   

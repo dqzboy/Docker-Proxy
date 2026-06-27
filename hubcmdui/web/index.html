@@ -233,7 +233,7 @@
         window.escapeHtml = escapeHtml;
         
         // ========================================
-        // === 文档加载相关函数 (移到此处) ===
+        // === 文档加载相关函数
         // ========================================
         let documentationLoaded = false;
         async function loadAndDisplayDocumentation() {
@@ -1174,6 +1174,8 @@
             return num.toString();
         }
 
+        let currentQuickCommands = [];
+
         // 生成加速命令 - 支持多 Registry 镜像格式
         function generateCommands(imageNameInput) {
             let currentImageName = imageNameInput;
@@ -1266,6 +1268,9 @@
                 { title: "删除代理镜像", cmd: `docker rmi ${proxyImage}` }
             ];
             
+            // 保存快捷执行命令（第 1、3、4 条：代理拉取 → 重命名 → 删除代理）
+            currentQuickCommands = [commands[0].cmd, commands[2].cmd, commands[3].cmd];
+            
             const resultDiv = document.getElementById('result');
             const container = document.getElementById('commandsContainer');
             container.innerHTML = '';
@@ -1303,6 +1308,30 @@
                 `;
                 container.appendChild(cmdDiv);
             });
+
+            // 快捷执行卡片：一键复制 代理拉取 → 重命名 → 删除代理 三条命令
+            const quickExecDiv = document.createElement('div');
+            quickExecDiv.className = 'quick-exec-card';
+            quickExecDiv.innerHTML = `
+                <div class="quick-exec-header">
+                    <h3><i class="fas fa-bolt"></i> 快捷执行</h3>
+                </div>
+                <p class="quick-exec-desc">
+                    一键复制 <code>代理拉取</code> → <code>重命名</code> → <code>删除代理</code> 三条命令，依次执行即可拉取并重命名为原始镜像名。
+                </p>
+                <div class="platform-buttons">
+                    <button class="platform-btn" onclick="copyQuickCommands('linux', this)">
+                        <i class="fab fa-linux"></i> Linux
+                    </button>
+                    <button class="platform-btn" onclick="copyQuickCommands('windows', this)">
+                        <i class="fab fa-windows"></i> Windows
+                    </button>
+                    <button class="platform-btn" onclick="copyQuickCommands('mac', this)">
+                        <i class="fab fa-apple"></i> Mac
+                    </button>
+                </div>
+            `;
+            container.appendChild(quickExecDiv);
 
             // 显示结果并隐藏其他内容
             if (resultDiv) {
@@ -1345,6 +1374,29 @@
             }
         }
         window.copyToClipboard = copyToClipboard;
+
+        // 一键复制快捷执行命令（代理拉取 → 重命名 → 删除代理）
+        function copyQuickCommands(platform, element) {
+            if (!currentQuickCommands || !currentQuickCommands.length) {
+                showToastNotification('暂无可复制的命令', 'warning');
+                return;
+            }
+            // 按平台选择换行符：Windows 使用 CRLF，Linux/Mac 使用 LF
+            const separator = platform === 'windows' ? '\r\n' : '\n';
+            const text = currentQuickCommands.join(separator);
+            copyToClipboard(text, element);
+            // 按钮反馈
+            if (element) {
+                const originalHTML = element.innerHTML;
+                element.classList.add('copied');
+                element.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                setTimeout(() => {
+                    element.classList.remove('copied');
+                    element.innerHTML = originalHTML;
+                }, 1500);
+            }
+        }
+        window.copyQuickCommands = copyQuickCommands;
 
         // 改进的API请求函数，支持自动重试
         async function fetchWithRetry(url, options = {}, retries = 3, retryDelay = 1000) {
