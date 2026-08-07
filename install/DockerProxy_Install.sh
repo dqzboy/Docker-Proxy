@@ -2994,12 +2994,125 @@ function IP_BLACKWHITE_LIST() {
 }
 
 
+# 重置 Hubcmd-UI 管理面板用户密码（应急恢复，需 root，不走 Web 端）
+# 安全说明：
+#  - 必须 root 且能登录服务器才能执行，密码重置能力不暴露于公网，比 Web 找回密码更安全。
+#  - 复用容器内 bcrypt(cost=10) 生成哈希，与程序自身登录校验完全一致，不降低加密强度。
+#  - 密码不回显、不写入命令行参数（通过标准输入传入容器，避开特殊字符转义与进程参数泄露）；
+#    重置后清除该用户会话，强制使用新密码重新登录。
+function RESET_USER_PASSWORD() {
+    CHECK_COMPOSE_CMD
+    local db_host="${PROXY_DIR}/data/hubcmd-ui/app.db"
+
+    if [[ ! -f "$db_host" ]]; then
+        ERROR "未找到数据库文件: ${LIGHT_BLUE}$db_host${RESET}"
+        ERROR "请确认已部署 Hubcmd-UI 且至少成功启动过一次（数据库已初始化）。"
+        return 1
+    fi
+
+    WARN "此操作将${LIGHT_RED}直接修改数据库${RESET}中指定用户的登录密码，仅作为${BOLD}忘记密码时的应急恢复${RESET}手段。"
+    WARN "执行后该用户的${LIGHT_YELLOW}所有已登录会话会被强制注销${RESET}，需用新密码重新登录。"
+
+    read -e -p "$(INFO "请输入要重置密码的用户名: ")" ru_user
+    while [[ -z "$ru_user" ]]; do
+        WARN "用户名不能为空"
+        read -e -p "$(INFO "请输入要重置密码的用户名: ")" ru_user
+    done
+
+    local ru_pw ru_pw2
+    while true; do
+        read -s -p "$(INFO "请输入新密码(8-16位,需含字母+数字+特殊字符): ")" ru_pw
+        echo
+        read -s -p "$(INFO "请再次输入新密码确认: ")" ru_pw2
+        echo
+        if [[ -z "$ru_pw" ]]; then
+            ERROR "密码不能为空，请重新输入。"
+            continue
+        fi
+        if [[ "$ru_pw" != "$ru_pw2" ]]; then
+            ERROR "两次输入的密码不一致，请重新输入。"
+            continue
+        fi
+        break
+    done
+
+    read -e -p "$(WARN "确认将用户 ${LIGHT_CYAN}${ru_user}${RESET} 的密码重置? 操作不可撤销 ${PROMPT_YES_NO}")" ru_confirm
+    case "$ru_confirm" in
+        y|Y ) ;;
+        * ) WARN "已取消操作。"; return ;;
+    esac
+
+    # 容器内执行的 Node 脚本：用户名从环境变量读取，密码从标准输入读取
+    # （标准输入传密码可彻底避开双引号/美元符等特殊字符导致的 shell 转义与进程参数泄露）
+    local tmpjs
+    tmpjs="$(mktemp /tmp/ru_reset.XXXXXX.js)"
+    cat > "$tmpjs" <<'RU_EOF'
+const bcrypt = require("bcrypt");
+const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
+const username = process.env.RU;
+const pw = fs.readFileSync(0, "utf8").trim();
+if (!username || !pw) { console.error("缺少用户名或密码参数"); process.exit(1); }
+const sq = String.fromCharCode(39);
+const dq = String.fromCharCode(34);
+const special = ".,\\-_+=()[\\]{}|\\;:" + sq + dq + "<>?/@$!%*#&";
+const re = new RegExp("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[" + special + "])[A-Za-z\\d" + special + "]{8,16}$");
+if (!re.test(pw)) { console.error("密码不符合复杂度要求（8-16位，需同时包含字母、数字、特殊字符）"); process.exit(3); }
+const db = new sqlite3.Database("/app/data/app.db");
+db.get("SELECT id FROM users WHERE username = ?", [username], function(err, row) {
+  if (err) { console.error("查询用户失败: " + err.message); process.exit(1); }
+  if (!row) { console.error("用户不存在: " + username); process.exit(2); }
+  bcrypt.hash(pw, 10).then(function(hash) {
+    db.run("UPDATE users SET password = ?, updated_at = ? WHERE username = ?", [hash, new Date().toISOString(), username], function(e2) {
+      if (e2) { console.error("更新密码失败: " + e2.message); process.exit(1); }
+      const pat = "%" + dq + "username" + dq + ":" + dq + username + dq + "%";
+      db.run("DELETE FROM sessions WHERE sess LIKE ?", [pat], function() {
+        console.log("OK: 用户 " + username + " 密码已重置，请使用新密码重新登录（旧会话已失效）");
+        db.close();
+      });
+    });
+  }).catch(function(e) { console.error("生成密码哈希失败: " + e.message); process.exit(1); });
+});
+RU_EOF
+
+    local ru_out rc
+    local running
+    running=$($DOCKER_COMPOSE_CMD ps -q hubcmd-ui 2>/dev/null)
+    if [[ -z "$running" ]]; then
+        WARN "hubcmd-ui 容器未运行，尝试启动服务以执行重置..."
+        $DOCKER_COMPOSE_CMD up -d hubcmd-ui >/dev/null 2>&1
+        running=$($DOCKER_COMPOSE_CMD ps -q hubcmd-ui 2>/dev/null)
+        if [[ -z "$running" ]]; then
+            ERROR "无法启动 hubcmd-ui 容器，重置中止。"
+            rm -f "$tmpjs"
+            return 1
+        fi
+    fi
+
+    # 脚本通过 docker cp 传入容器，密码通过标准输入传入，均不进入命令行参数
+    docker cp "$tmpjs" hubcmd-ui:/tmp/ru_reset.js >/dev/null 2>&1
+    ru_out=$(printf '%s' "$ru_pw" | $DOCKER_COMPOSE_CMD exec -T -e RU="$ru_user" hubcmd-ui node /tmp/ru_reset.js 2>&1)
+    rc=$?
+    # 清理容器内临时脚本（尽力而为）
+    $DOCKER_COMPOSE_CMD exec -T hubcmd-ui rm -f /tmp/ru_reset.js >/dev/null 2>&1
+    rm -f "$tmpjs"
+
+    if [[ $rc -eq 0 ]]; then
+        INFO "${ru_out}"
+    else
+        ERROR "重置失败（退出码 $rc）：${ru_out}"
+        return 1
+    fi
+}
+
+
 # 其他工具
 function OtherTools() {
 SEPARATOR "其他工具"
 echo -e "1) 设置${BOLD}${YELLOW}系统命令${RESET}"
 echo -e "2) 配置${BOLD}${LIGHT_MAGENTA}IP黑白名单${RESET}"
-echo -e "3) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
+echo -e "3) 重置${BOLD}${LIGHT_GREEN}管理面板用户密码${RESET}"
+echo -e "4) ${BOLD}返回${LIGHT_RED}主菜单${RESET}"
 echo -e "0) ${BOLD}退出脚本${RESET}"
 echo "---------------------------------------------------------------"
 read -e -p "$(INFO "输入${LIGHT_CYAN}对应数字${RESET}并按${LIGHT_GREEN}Enter${RESET}键 > ")" main_choice
@@ -3012,14 +3125,18 @@ case $main_choice in
         IP_BLACKWHITE_LIST
         ;;
     3)
+        RESET_USER_PASSWORD
+        OtherTools
+        ;;
+    4)
         main_menu
         ;;
     0)
         exit 1
         ;;
     *)
-        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-3${RESET}的选项."
-        sleep 2; main_menu
+        WARN "输入了无效的选择。请重新${LIGHT_GREEN}选择0-4${RESET}的选项."
+        sleep 2; OtherTools
         ;;
 esac
 }
