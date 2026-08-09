@@ -150,6 +150,16 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
   <tbody>
     <tr>
       <td width="50%" align="left">
+        <a href="https://aihub.top/register?aff=RXYDWRNDZ4AU" target="_blank">AIHUB中转，聚合十几家源头持续监控。让大家用上便宜且相对稳定的 Token。</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://aihub.top/register?aff=RXYDWRNDZ4AU" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/AIHUB.png?raw=true" alt="CloudCone" width="200" height="150">
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" align="left">
         <a href="https://www.krill-ai.net/register?invite=LV6LTOYQFV" target="_blank">Krill AI 模型聚合中继平台，低成本、稳定可用，适合个人开发者、小团队和企业接入。不售假、不掺假、守护您的安全隐私</a>
       </td>
       <td width="50%" align="center">
