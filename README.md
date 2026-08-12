@@ -160,16 +160,6 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
     </tr>
     <tr>
       <td width="50%" align="left">
-        <a href="https://www.krill-ai.net/register?invite=LV6LTOYQFV" target="_blank">Krill AI 模型聚合中继平台，低成本、稳定可用，适合个人开发者、小团队和企业接入。不售假、不掺假、守护您的安全隐私</a>
-      </td>
-      <td width="50%" align="center">
-        <a href="https://www.krill-ai.net/register?invite=LV6LTOYQFV" target="_blank">
-          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/krill-ai.png?raw=true" alt="CloudCone" width="200" height="150">
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%" align="left">
         <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">提供高性价比的海外VPS，支持多种操作系统，适合搭建Docker代理服务。</a>
       </td>
       <td width="50%" align="center">

@@ -160,16 +160,6 @@ The config file is mounted on the host at `./config/go-proxy/` (inside the conta
     </tr>
     <tr>
       <td width="50%" align="left">
-        <a href="https://www.krill-ai.net/register?invite=LV6LTOYQFV" target="_blank">Krill AI: a model aggregation and relay platform—low-cost, stable, and accessible for individual developers, small teams, and enterprises. We don’t sell fakes or adulterate models, safeguarding your security and privacy.</a>
-      </td>
-      <td width="50%" align="center">
-        <a href="https://www.krill-ai.net/register?invite=LV6LTOYQFV" target="_blank">
-          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/krill-ai.png?raw=true" alt="CloudCone" width="200" height="150">
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%" align="left">
         <a href="https://dqzboy.github.io/proxyui/racknerd" target="_blank">Provides cost-effective overseas VPS with support for multiple operating systems, suitable for building Docker proxy services.</a>
       </td>
       <td width="50%" align="center">
