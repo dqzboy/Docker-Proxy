@@ -158,6 +158,26 @@ The config file is mounted on the host at `./config/go-proxy/` (inside the conta
         </a>
       </td>
     </tr>
+    <tr>
+      <td width="50%" align="left">
+        <a href="https://docker-proxy-desc.vercel.app/racknerd.html" target="_blank">Multiple data centers are available in the United States, suitable for deploying Docker-Proxy, personal projects, and lightweight production services.</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://docker-proxy-desc.vercel.app/racknerd.html" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Image_2025-07-07_16-14-49.png?raw=true" alt="RackNerd" width="200" height="150">
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" align="left">
+        <a href="https://docker-proxy-desc.vercel.app/cloudcone.html" target="_blank">CloudCone provides flexible cloud server plans with pay-as-you-go billing, suitable for both individual and enterprise users.</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://docker-proxy-desc.vercel.app/cloudcone.html" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" alt="CloudCone" width="200" height="150">
+        </a>
+      </td>
+    </tr>
   </tbody>
 </table>
 
