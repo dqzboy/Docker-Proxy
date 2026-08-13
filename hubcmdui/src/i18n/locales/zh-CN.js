@@ -83,6 +83,7 @@ export default {
     "pleaseFill": "请填写完整信息",
     "loginSuccess": "登录成功",
     "loginFailed": "登录失败",
+    "sessionVerifyFailed": "登录凭据正确，但会话校验失败。请检查 Cookie、访问协议或反向代理配置后重试。",
     "encryptedHint": "连接已加密 · 仅授权用户可访问",
     "securityTitle": "安全警告",
     "securitySub": "检测到您正在使用系统默认密码登录",

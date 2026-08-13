@@ -10,7 +10,9 @@ const logger = require('../logger');
 function isRouteModule(file) {
     return file.endsWith('.js') && 
            file !== 'index.js' && 
-           file !== 'routeLoader.js' && 
+           file !== 'routeLoader.js' &&
+           // login.js 是旧的文件用户认证实现；当前统一由 auth.js 提供登录和验证码接口。
+           file !== 'login.js' &&
            !file.startsWith('_');
 }
 
@@ -34,12 +36,12 @@ function registerRoutes(app) {
                     const routeExport = require(routePath); // 加载导出的模块
 
                     // 根级路由模块：其内部路径已定义为 /api 根级
-                    // （如 auth.js 的 /login、/change-username，login.js 的 /login、/captcha），
-                    // 不应再叠加文件名前缀，否则会变成 /api/auth/change-username，
+                    // （如 auth.js 的 /login、/change-username），不应再叠加文件名前缀，
+                    // 否则会变成 /api/auth/change-username，
                     // 而前端只请求 /api/change-username → 404。
                     // 资源型模块（config/menu/docker/registry…）内部路径相对资源名，
                     // 需保留 /api/<文件名> 前缀才能与前端保持一致，故不在此列。
-                    const rootLevelRouters = new Set(['auth', 'login']);
+                    const rootLevelRouters = new Set(['auth']);
                     const mountBase = rootLevelRouters.has(routeName) ? '/api' : `/api/${routeName}`;
 
                     // 优先处理 { router: routerInstance, ... } 格式

@@ -12,19 +12,9 @@ const networkTestService = require('./services/networkTestService');
 const systemService = require('./services/systemService');
 const trafficService = require('./services/trafficService');
 const configServiceDB = require('./services/configServiceDB');
-const { generateCaptchaCode, verifyCaptcha, storeCaptcha, consumeCaptcha } = require('./lib/captcha');
 
 module.exports = function(app) {
   logger.info('加载API兼容层...');
-  
-  // 会话检查接口
-  app.get('/api/check-session', (req, res) => {
-    if (req.session && req.session.user) {
-      res.json({ authenticated: true, user: req.session.user });
-    } else {
-      res.json({ authenticated: false });
-    }
-  });
   
   // 添加Docker状态检查接口，并使用 requireLogin 中间件
   app.get('/api/docker/status', requireLogin, async (req, res) => {
@@ -35,18 +25,6 @@ module.exports = function(app) {
     } catch (error) {
       logger.error('检查Docker状态失败:', error);
       res.status(500).json({ error: '检查Docker状态失败', details: error.message });
-    }
-  });
-  
-  // 验证码接口（随机字母/数字，大小写不敏感）
-  app.get('/api/captcha', (req, res) => {
-    try {
-      const captcha = generateCaptchaCode(4);
-      const captchaId = storeCaptcha(captcha); // 与 session 解耦存储
-      res.json({ captcha, captchaId });
-    } catch (error) {
-      logger.error('生成验证码失败:', error);
-      res.status(500).json({ error: '生成验证码失败' });
     }
   });
   
@@ -505,44 +483,6 @@ module.exports = function(app) {
     } catch (error) {
       logger.error(`删除容器失败:`, error);
       res.status(500).json({ error: '删除容器失败', details: error.message });
-    }
-  });
-  
-  // 登录接口 (兼容层备份)
-  app.post('/api/login', async (req, res) => {
-    try {
-      const { username, password, captcha, captchaId } = req.body;
-      
-      if (!verifyCaptcha(consumeCaptcha(captchaId), captcha)) {
-        logger.warn(`Captcha verification failed for user: ${username}`);
-        return res.status(401).json({ error: '验证码错误' });
-      }
-
-      const userServiceDB = require('./services/userServiceDB');
-      const user = await userServiceDB.validateUser(username, password);
-      
-      if (!user) {
-        logger.warn(`User ${username} not found`);
-        return res.status(401).json({ error: '用户名或密码错误' });
-      }
-
-      // 判断是否仍使用系统默认密码（admin@123），用于前端登录后安全提醒
-      let requireChangePassword = false;
-      try {
-        const bcrypt = require('bcrypt');
-        requireChangePassword = await bcrypt.compare('admin@123', user.password);
-      } catch (_) { /* 判断失败则按非默认处理，避免阻断登录 */ }
-
-      req.session.user = { username: user.username };
-      
-      // 更新用户登录信息
-      await userServiceDB.updateUserLoginInfo(username);
-      
-      logger.info(`User ${username} logged in successfully`);
-      res.json({ success: true, requireChangePassword });
-    } catch (error) {
-      logger.error('登录失败:', error);
-      res.status(500).json({ error: '登录处理失败', details: error.message });
     }
   });
   

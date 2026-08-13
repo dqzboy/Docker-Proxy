@@ -83,6 +83,7 @@ export default {
     "pleaseFill": "請填寫完整資訊",
     "loginSuccess": "登錄成功",
     "loginFailed": "登錄失敗",
+    "sessionVerifyFailed": "登入憑證正確，但工作階段驗證失敗。請檢查 Cookie、存取協定或反向代理設定後重試。",
     "encryptedHint": "連線已加密 · 僅授權用戶可存取",
     "securityTitle": "安全警告",
     "securitySub": "偵測到您正在使用系統預設密碼登入",

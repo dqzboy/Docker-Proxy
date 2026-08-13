@@ -4,32 +4,51 @@ import { checkSession } from '../services'
 // 全局共享的登录态（单例）：AdminShell 与 Login 共用。
 // - authed：是否已登录
 // - ready：是否已完成首次会话检查（用于避免刷新 /admin 时闪现登录页）
-// 登录成功后 Login 调用 refresh() 即可让 AdminShell 立即切换到后台布局。
 const authed = ref(false)
 const ready = ref(false)
-let checking = false
 let pendingPromise = null
 
-async function refresh() {
-  // 同一时刻只允许一个检查在跑；并发调用直接复用同一次结果，避免重复请求
-  if (pendingPromise) return pendingPromise
-  pendingPromise = (async () => {
-    checking = true
+function isAuthenticated(res) {
+  // 兼容旧版兼容层的 { authenticated }，新接口统一使用 { success }。
+  return !!(res && (res.success === true || res.authenticated === true))
+}
+
+async function startRefresh() {
+  try {
+    const res = await checkSession()
+    authed.value = isAuthenticated(res)
+  } catch (_) {
+    authed.value = false
+  } finally {
+    ready.value = true
+  }
+  return authed.value
+}
+
+async function refresh(options = {}) {
+  const force = options && options.force === true
+
+  // 普通检查复用正在执行的请求，避免组件间重复请求。
+  if (!force && pendingPromise) return pendingPromise
+
+  // 登录成功后的强制检查必须等登录前的旧检查结束，再发起一轮全新的请求。
+  // 否则会复用旧的 401 结果，导致接口提示登录成功但页面仍停留在登录表单。
+  if (force && pendingPromise) {
     try {
-      const res = await checkSession()
-      // 后端 /api/check-session 实际返回 { success: true|false, ... },这里以前误读为 res.authenticated
-      // 字段不存在导致 authed 永远是 false,登录后 AdminShell 无法切到 AdminLayout
-      authed.value = !!(res && res.success)
-    } catch (e) {
-      authed.value = false
-    } finally {
-      checking = false
-      ready.value = true
-      pendingPromise = null
-    }
-    return authed.value
-  })()
-  return pendingPromise
+      await pendingPromise
+    } catch (_) {}
+  }
+
+  // 等待期间可能已有另一个强制刷新启动，直接复用它即可。
+  if (pendingPromise) return pendingPromise
+
+  const currentPromise = startRefresh()
+  pendingPromise = currentPromise
+  try {
+    return await currentPromise
+  } finally {
+    if (pendingPromise === currentPromise) pendingPromise = null
+  }
 }
 
 export function useAuth() {

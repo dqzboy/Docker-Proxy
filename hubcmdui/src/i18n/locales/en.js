@@ -83,6 +83,7 @@ export default {
     "pleaseFill": "Please fill in all fields",
     "loginSuccess": "Login successful",
     "loginFailed": "Login failed",
+    "sessionVerifyFailed": "Credentials were accepted, but the session could not be verified. Check the cookie, access protocol, or reverse proxy settings and try again.",
     "encryptedHint": "Connection secured · authorized users only",
     "securityTitle": "Security Warning",
     "securitySub": "You are signing in with the system default password",

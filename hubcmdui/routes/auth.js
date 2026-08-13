@@ -33,17 +33,27 @@ router.post('/login', async (req, res) => {
     await userServiceDB.updateUserLoginInfo(username);
     logger.info(`用户 ${username} 登录成功`);
 
-    // 设置会话
+    // 登录成功后更换 Session ID，避免固定会话攻击，也隔离登录前仍在执行的旧请求。
+    await new Promise((resolve, reject) => {
+      req.session.regenerate(err => err ? reject(err) : resolve());
+    });
     req.session.user = { username: user.username };
-    
+
     // 确保服务器启动时间已设置
     if (!global.serverStartTime) {
       global.serverStartTime = Date.now();
       logger.warn(`登录时设置服务器启动时间: ${global.serverStartTime}`);
     }
-    
-    res.json({ 
+
+    // 明确等待 Session 持久化后再向前端报告成功，保证随后的会话检查可见登录态。
+    await new Promise((resolve, reject) => {
+      req.session.save(err => err ? reject(err) : resolve());
+    });
+
+    res.json({
       success: true,
+      authenticated: true,
+      requireChangePassword: isDefaultPassword(password),
       serverStartTime: global.serverStartTime
     });
   } catch (error) {
@@ -171,6 +181,9 @@ router.get('/captcha', (req, res) => {
 
 // 检查会话状态
 router.get('/check-session', (req, res) => {
+  // 会话状态不能被浏览器或反向代理缓存，否则登录后可能读到旧的未登录结果。
+  res.set('Cache-Control', 'no-store');
+
   // 如果global.serverStartTime不存在，创建一个
   if (!global.serverStartTime) {
     global.serverStartTime = Date.now();
@@ -180,6 +193,7 @@ router.get('/check-session', (req, res) => {
   if (req.session && req.session.user) {
     return res.json({
       success: true,
+      authenticated: true,
       user: {
         username: req.session.user.username,
         role: req.session.user.role,
@@ -187,8 +201,9 @@ router.get('/check-session', (req, res) => {
       serverStartTime: global.serverStartTime // 返回服务器启动时间
     });
   }
-  return res.status(401).json({ 
-    success: false, 
+  return res.status(401).json({
+    success: false,
+    authenticated: false,
     message: '未登录',
     serverStartTime: global.serverStartTime // 即使未登录也返回服务器时间
   });

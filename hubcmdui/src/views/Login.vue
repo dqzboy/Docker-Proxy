@@ -85,7 +85,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { User, Lock, Key, Loading, Warning } from '@element-plus/icons-vue'
-import { getCaptcha, login, checkSession } from '../services'
+import { getCaptcha, login } from '../services'
 import { useAuth } from '../composables/useAuth'
 import LangSwitch from '../components/LangSwitch.vue'
 
@@ -136,11 +136,15 @@ async function onSubmit() {
   try {
     const data = await login(form.value)
     if (data && data.success) {
+      // 登录后必须强制发起一轮新的会话检查，不能复用登录前尚未结束的 401 请求。
+      const authenticated = await refresh({ force: true })
+      if (!authenticated) {
+        ElMessage.error(t('login.sessionVerifyFailed'))
+        loadCaptcha()
+        return
+      }
+
       ElMessage.success(t('login.loginSuccess'))
-      // 关键：先把全局 authed 同步为 true，AdminShell 才会从 Login 切到 AdminLayout
-      // 这里不能依赖 router.replace('/admin') —— 当用户已经在 /admin 时
-      // replace 同一路径不会触发任何变化，Login 会一直停留在屏幕。
-      await refresh()
 
       // 使用默认密码登录：弹出安全警告，引导用户尽快修改
       if (data.requireChangePassword) {
@@ -203,14 +207,16 @@ async function onSubmit() {
 
 onMounted(async () => {
   loadCaptcha()
-  // 已登录用户直接进后台，避免停留在登录页
-  try {
-    const res = await checkSession()
-    if (res && res.success) {
+
+  // /admin 下的登录组件由 AdminShell 统一检查会话，避免重复请求。
+  // 只有兼容入口 /admin/login 独立渲染 Login 时才主动检查。
+  if (route.name === 'admin-login') {
+    const authenticated = await refresh()
+    if (authenticated) {
       const target = props.redirect || route.query.redirect || '/admin'
       router.replace(target)
     }
-  } catch (_) {}
+  }
 })
 </script>
 

@@ -45,8 +45,10 @@ app.use(express.static(path.join(__dirname, 'web', 'dist')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
   secret: config.sessionSecret || 'OhTq3faqSKoxbV%NJV',
-  resave: true,
-  saveUninitialized: true,
+  // 未修改的请求不回写 Session，避免登录前的并发检查覆盖登录态。
+  resave: false,
+  // 未登录请求不创建空 Session/Cookie，减少并发响应抢写 connect.sid。
+  saveUninitialized: false,
   cookie: {
     // Secure 仅在 HTTPS 下才应开启；明文访问(如 http://IP:30080)必须关闭，
     // 否则浏览器拒绝保存 cookie，导致会话丢失、验证码永远报错。
