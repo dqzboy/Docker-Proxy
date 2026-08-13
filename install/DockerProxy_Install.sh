@@ -3002,13 +3002,6 @@ function IP_BLACKWHITE_LIST() {
 #    重置后清除该用户会话，强制使用新密码重新登录。
 function RESET_USER_PASSWORD() {
     CHECK_COMPOSE_CMD
-    local db_host="${PROXY_DIR}/data/hubcmd-ui/app.db"
-
-    if [[ ! -f "$db_host" ]]; then
-        ERROR "未找到数据库文件: ${LIGHT_BLUE}$db_host${RESET}"
-        ERROR "请确认已部署 Hubcmd-UI 且至少成功启动过一次（数据库已初始化）。"
-        return 1
-    fi
 
     WARN "此操作将${LIGHT_RED}直接修改数据库${RESET}中指定用户的登录密码，仅作为${BOLD}忘记密码时的应急恢复${RESET}手段。"
     WARN "执行后该用户的${LIGHT_YELLOW}所有已登录会话会被强制注销${RESET}，需用新密码重新登录。"
@@ -3042,14 +3035,26 @@ function RESET_USER_PASSWORD() {
         * ) WARN "已取消操作。"; return ;;
     esac
 
-    # 容器内执行的 Node 脚本：用户名从环境变量读取，密码从标准输入读取
+    # 容器内执行的 Node 脚本：用户名从环境变量读取，密码从标准输入读取。
+    # 临时脚本位于 /tmp，不能直接 require("bcrypt")，否则 Node 会从 /tmp 向上查找依赖；
+    # 使用 createRequire 显式以 /app/package.json 为基准加载容器内的生产依赖。
     # （标准输入传密码可彻底避开双引号/美元符等特殊字符导致的 shell 转义与进程参数泄露）
-    local tmpjs
+    local tmpjs container_tmpjs
     tmpjs="$(mktemp /tmp/ru_reset.XXXXXX.js)"
+    container_tmpjs="/tmp/ru_reset.$$.js"
     cat > "$tmpjs" <<'RU_EOF'
-const bcrypt = require("bcrypt");
-const sqlite3 = require("sqlite3").verbose();
+const { createRequire } = require("module");
 const fs = require("fs");
+const appRequire = createRequire("/app/package.json");
+let bcrypt;
+let sqlite3;
+try {
+  bcrypt = appRequire("bcrypt");
+  sqlite3 = appRequire("sqlite3").verbose();
+} catch (err) {
+  console.error("无法加载 Hubcmd-UI 容器依赖 bcrypt/sqlite3: " + err.message);
+  process.exit(4);
+}
 const username = process.env.RU;
 const pw = fs.readFileSync(0, "utf8").trim();
 if (!username || !pw) { console.error("缺少用户名或密码参数"); process.exit(1); }
@@ -3059,19 +3064,45 @@ const special = ".,\\-_+=()[\\]{}|\\;:" + sq + dq + "<>?/@$!%*#&";
 const re = new RegExp("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[" + special + "])[A-Za-z\\d" + special + "]{8,16}$");
 if (!re.test(pw)) { console.error("密码不符合复杂度要求（8-16位，需同时包含字母、数字、特殊字符）"); process.exit(3); }
 const db = new sqlite3.Database("/app/data/app.db");
+function fail(message, code) {
+  console.error(message);
+  db.close(function() { process.exit(code || 1); });
+}
+function success() {
+  db.close(function(err) {
+    if (err) { console.error("关闭数据库失败: " + err.message); process.exit(1); }
+    console.log("OK: 用户 " + username + " 密码已重置，请使用新密码重新登录（旧会话已失效）");
+  });
+}
 db.get("SELECT id FROM users WHERE username = ?", [username], function(err, row) {
-  if (err) { console.error("查询用户失败: " + err.message); process.exit(1); }
-  if (!row) { console.error("用户不存在: " + username); process.exit(2); }
+  if (err) { fail("查询用户失败: " + err.message, 1); return; }
+  if (!row) { fail("用户不存在: " + username, 2); return; }
   bcrypt.hash(pw, 10).then(function(hash) {
     db.run("UPDATE users SET password = ?, updated_at = ? WHERE username = ?", [hash, new Date().toISOString(), username], function(e2) {
-      if (e2) { console.error("更新密码失败: " + e2.message); process.exit(1); }
-      const pat = "%" + dq + "username" + dq + ":" + dq + username + dq + "%";
-      db.run("DELETE FROM sessions WHERE sess LIKE ?", [pat], function() {
-        console.log("OK: 用户 " + username + " 密码已重置，请使用新密码重新登录（旧会话已失效）");
-        db.close();
+      if (e2) { fail("更新密码失败: " + e2.message, 1); return; }
+      if (this.changes !== 1) { fail("更新密码失败: 用户记录未被更新", 1); return; }
+
+      // 精确解析 Session JSON 后按 sid 删除，避免用户名中的 _/% 被 SQL LIKE 当作通配符。
+      db.all("SELECT sid, sess FROM sessions", [], function(e3, sessions) {
+        if (e3) { fail("查询用户会话失败: " + e3.message, 1); return; }
+        const sessionIds = sessions.filter(function(session) {
+          try {
+            const data = JSON.parse(session.sess);
+            return data && data.user && data.user.username === username;
+          } catch (_) {
+            return false;
+          }
+        }).map(function(session) { return session.sid; });
+
+        if (sessionIds.length === 0) { success(); return; }
+        const placeholders = sessionIds.map(function() { return "?"; }).join(",");
+        db.run("DELETE FROM sessions WHERE sid IN (" + placeholders + ")", sessionIds, function(e4) {
+          if (e4) { fail("清除用户会话失败: " + e4.message, 1); return; }
+          success();
+        });
       });
     });
-  }).catch(function(e) { console.error("生成密码哈希失败: " + e.message); process.exit(1); });
+  }).catch(function(e) { fail("生成密码哈希失败: " + e.message, 1); });
 });
 RU_EOF
 
@@ -3089,13 +3120,30 @@ RU_EOF
         fi
     fi
 
-    # 脚本通过 docker cp 传入容器，密码通过标准输入传入，均不进入命令行参数
-    docker cp "$tmpjs" hubcmd-ui:/tmp/ru_reset.js >/dev/null 2>&1
-    ru_out=$(printf '%s' "$ru_pw" | $DOCKER_COMPOSE_CMD exec -T -e RU="$ru_user" hubcmd-ui node /tmp/ru_reset.js 2>&1)
+    # 从容器内检查数据库，兼容自定义挂载、命名卷和源码构建版 Compose，
+    # 不再依赖宿主机固定路径 ${PROXY_DIR}/data/hubcmd-ui/app.db。
+    if ! $DOCKER_COMPOSE_CMD exec -T hubcmd-ui test -f /app/data/app.db >/dev/null 2>&1; then
+        ERROR "hubcmd-ui 容器内未找到数据库文件: ${LIGHT_BLUE}/app/data/app.db${RESET}"
+        ERROR "请确认 Hubcmd-UI 已成功初始化数据库，并检查 /app/data 的卷挂载配置。"
+        rm -f "$tmpjs"
+        unset ru_pw ru_pw2
+        return 1
+    fi
+
+    # 使用容器 ID 和唯一临时文件名，避免自定义容器名或上次失败残留文件造成误执行。
+    if ! docker cp "$tmpjs" "${running}:${container_tmpjs}" >/dev/null 2>&1; then
+        ERROR "无法将密码重置程序复制到 hubcmd-ui 容器，重置中止。"
+        rm -f "$tmpjs"
+        unset ru_pw ru_pw2
+        return 1
+    fi
+
+    ru_out=$(printf '%s' "$ru_pw" | $DOCKER_COMPOSE_CMD exec -T -e RU="$ru_user" hubcmd-ui node "$container_tmpjs" 2>&1)
     rc=$?
     # 清理容器内临时脚本（尽力而为）
-    $DOCKER_COMPOSE_CMD exec -T hubcmd-ui rm -f /tmp/ru_reset.js >/dev/null 2>&1
+    $DOCKER_COMPOSE_CMD exec -T hubcmd-ui rm -f "$container_tmpjs" >/dev/null 2>&1
     rm -f "$tmpjs"
+    unset ru_pw ru_pw2
 
     if [[ $rc -eq 0 ]]; then
         INFO "${ru_out}"

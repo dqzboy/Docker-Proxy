@@ -43,7 +43,7 @@ app.use(express.json());
 // 托管 Vue 构建产物（npm run build 输出到 web/dist），用于生产环境提供新前端
 app.use(express.static(path.join(__dirname, 'web', 'dist')));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({
+const sessionMiddleware = session({
   secret: config.sessionSecret || 'OhTq3faqSKoxbV%NJV',
   // 未修改的请求不回写 Session，避免登录前的并发检查覆盖登录态。
   resave: false,
@@ -61,7 +61,8 @@ app.use(session({
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7天(一周)
   }
-}));
+});
+app.use(sessionMiddleware);
 
 // 自定义中间件
 app.use(sessionActivity);
@@ -242,7 +243,7 @@ async function startServer() {
       try {
         const dockerRouter = require('./routes/docker');
         if (typeof dockerRouter.setupLogWebsocket === 'function') {
-          dockerRouter.setupLogWebsocket(server);
+          dockerRouter.setupLogWebsocket(server, sessionMiddleware);
           logger.success('WebSocket服务已启动');
         }
       } catch (wsError) {

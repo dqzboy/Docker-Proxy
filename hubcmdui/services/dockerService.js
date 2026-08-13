@@ -3,6 +3,7 @@
  */
 const Docker = require('dockerode');
 const logger = require('../logger');
+const { decodeDockerLogBuffer, createDockerLogDemuxStream } = require('../lib/dockerLogs');
 
 let docker = null;
 
@@ -358,84 +359,57 @@ async function getContainerLogs(id, options = {}) {
   logger.info(`Attempting to get logs for container ${id} with options:`, options);
   const docker = await getDockerConnection();
   if (!docker) {
-     logger.error(`[getContainerLogs ${id}] Cannot connect to Docker daemon.`);
+    logger.error(`[getContainerLogs ${id}] Cannot connect to Docker daemon.`);
     throw new Error('无法连接到 Docker 守护进程');
   }
-  
+
   try {
     const container = docker.getContainer(id);
+    // TTY=true 时 Docker 返回原始字节；TTY=false 时 stdout/stderr 使用 8 字节帧头复用。
+    const containerInfo = await container.inspect();
+    const tty = !!(containerInfo && containerInfo.Config && containerInfo.Config.Tty);
+    const follow = options.follow === true;
     const logOptions = {
       stdout: true,
       stderr: true,
-      tail: options.tail || 100,
-      follow: options.follow || false
+      tail: Number.isInteger(options.tail) ? options.tail : 100,
+      follow
     };
-    
-    // 修复日志获取方式
-    if (!options.follow) {
-      // 对于非流式日志，直接等待返回
-      try {
-        const logs = await container.logs(logOptions);
-        
-        // 如果logs是Buffer或字符串，直接处理
-        if (Buffer.isBuffer(logs) || typeof logs === 'string') {
-          // 清理ANSI转义码
-          const cleanedLogs = logs.toString('utf8').replace(/\x1B\[[0-9;]*[JKmsu]/g, '');
-          logger.success(`Successfully retrieved logs for container ${id}`);
-          return cleanedLogs;
-        } 
-        // 如果logs是流，转换为字符串
-        else if (typeof logs === 'object' && logs !== null) {
-          return new Promise((resolve, reject) => {
-            let allLogs = '';
-            
-            // 处理数据事件
-            if (typeof logs.on === 'function') {
-              logs.on('data', chunk => {
-                allLogs += chunk.toString('utf8');
-              });
-              
-              logs.on('end', () => {
-                const cleanedLogs = allLogs.replace(/\x1B\[[0-9;]*[JKmsu]/g, '');
-                logger.success(`Successfully retrieved logs for container ${id}`);
-                resolve(cleanedLogs);
-              });
-              
-              logs.on('error', err => {
-                logger.error(`[getContainerLogs ${id}] Error reading log stream:`, err.message || err);
-                reject(new Error(`读取日志流失败: ${err.message}`));
-              });
-            } else {
-              // 如果不是标准流但返回了对象，尝试转换为字符串
-              logger.warn(`[getContainerLogs ${id}] Logs object does not have stream methods, trying to convert`);
-              try {
-                const logStr = logs.toString();
-                const cleanedLogs = logStr.replace(/\x1B\[[0-9;]*[JKmsu]/g, '');
-                resolve(cleanedLogs);
-              } catch (convErr) {
-                logger.error(`[getContainerLogs ${id}] Failed to convert logs to string:`, convErr);
-                reject(new Error('日志格式转换失败'));
-              }
-            }
-          });
-        } else {
-          logger.error(`[getContainerLogs ${id}] Unexpected logs response type:`, typeof logs);
-          throw new Error('日志响应格式错误');
-        }
-      } catch (logError) {
-        logger.error(`[getContainerLogs ${id}] Error getting logs:`, logError);
-        throw logError;
+
+    const logs = await container.logs(logOptions);
+
+    if (!follow) {
+      if (Buffer.isBuffer(logs)) {
+        const decoded = decodeDockerLogBuffer(logs, { tty });
+        logger.success(`Successfully retrieved logs for container ${id}`);
+        return decoded;
       }
-    } else {
-      // 对于流式日志，调整方式
-      logger.info(`[getContainerLogs ${id}] Returning log stream for follow=true`);
-      const stream = await container.logs(logOptions);
-      return stream; // 直接返回流对象
+
+      if (typeof logs === 'string') {
+        // 字符串说明调用方或兼容实现已经完成解码，按纯文本清理即可。
+        const decoded = decodeDockerLogBuffer(Buffer.from(logs), { tty: true });
+        logger.success(`Successfully retrieved logs for container ${id}`);
+        return decoded;
+      }
+
+      throw new Error(`日志响应格式错误: ${typeof logs}`);
     }
+
+    if (!logs || typeof logs.pipe !== 'function') {
+      throw new Error('Docker 实时日志响应不是可读流');
+    }
+
+    const demuxedStream = createDockerLogDemuxStream({ tty });
+    logs.on('error', error => demuxedStream.destroy(error));
+    demuxedStream.once('close', () => {
+      if (typeof logs.destroy === 'function' && !logs.destroyed) logs.destroy();
+    });
+    logs.pipe(demuxedStream);
+    return demuxedStream;
   } catch (error) {
     logger.error(`[getContainerLogs ${id}] Error getting container logs:`, error.message || error);
     if (error.statusCode === 404) {
-        throw new Error(`容器 ${id} 不存在`);
+      throw new Error(`容器 ${id} 不存在`);
     }
     throw new Error(`获取日志失败: ${error.message}`);
   }
