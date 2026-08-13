@@ -32,7 +32,8 @@ services:
       # HTTP代理配置（按需开启）
       # - HTTP_PROXY=http://proxy.example.com:8080
       # - HTTPS_PROXY=https://proxy.example.com:8080
-      # - NO_PROXY=localhost,127.0.0.1,.local
+      # Docker 内部服务名必须绕过出口代理，否则 hubcmd-ui 访问 go-proxy 管理端口可能被误转发。
+      # - NO_PROXY=localhost,127.0.0.1,::1,go-proxy,reg-go-proxy,hubcmd-ui,.local
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # SQLite 数据库等运行时数据

@@ -21,6 +21,12 @@ const ADMIN_BASE = resolveAdminBase();
 // 管理接口鉴权令牌（与 Go 端 GO_PROXY_ADMIN_TOKEN 保持一致）
 const ADMIN_TOKEN = process.env.GO_PROXY_ADMIN_TOKEN || '';
 
+// 这是 Docker 网络内的服务间通信，必须直连，不能受 HTTP_PROXY/HTTPS_PROXY 影响。
+// NO_PROXY 仍应正确配置，但这里显式禁用代理可避免用户漏配时管理接口不可用。
+function adminRequestOptions(options = {}) {
+  return { ...options, proxy: false };
+}
+
 function adminHeaders() {
   const h = { 'Content-Type': 'application/json' };
   if (ADMIN_TOKEN) {
@@ -34,10 +40,10 @@ class GoProxyService {
    * 获取当前代理配置（密码已被 Go 端脱敏为 ********）
    */
   async getConfig() {
-    const { data } = await axios.get(`${ADMIN_BASE}/-/config`, {
+    const { data } = await axios.get(`${ADMIN_BASE}/-/config`, adminRequestOptions({
       headers: adminHeaders(),
       timeout: 8000
-    });
+    }));
     return data;
   }
 
@@ -45,10 +51,10 @@ class GoProxyService {
    * 全量替换代理配置（写盘 + 热重载）
    */
   async putConfig(cfg) {
-    const { data } = await axios.put(`${ADMIN_BASE}/-/config`, cfg, {
+    const { data } = await axios.put(`${ADMIN_BASE}/-/config`, cfg, adminRequestOptions({
       headers: adminHeaders(),
       timeout: 8000
-    });
+    }));
     return data;
   }
 
@@ -56,10 +62,10 @@ class GoProxyService {
    * 从磁盘重新加载配置
    */
   async reload() {
-    const { data } = await axios.post(`${ADMIN_BASE}/-/reload`, {}, {
+    const { data } = await axios.post(`${ADMIN_BASE}/-/reload`, {}, adminRequestOptions({
       headers: adminHeaders(),
       timeout: 8000
-    });
+    }));
     return data;
   }
 
@@ -68,7 +74,7 @@ class GoProxyService {
    */
   async status() {
     try {
-      const r = await axios.get(`${ADMIN_BASE}/-/healthz`, { timeout: 5000 });
+      const r = await axios.get(`${ADMIN_BASE}/-/healthz`, adminRequestOptions({ timeout: 5000 }));
       return { reachable: r.status === 200 };
     } catch (e) {
       return { reachable: false, error: e.message };
@@ -80,10 +86,10 @@ class GoProxyService {
    * 返回 { clients: [{ ip, bytesTotal, requests, lastSeen, byRegistry }] }
    */
   async getStats() {
-    const { data } = await axios.get(`${ADMIN_BASE}/-/stats`, {
+    const { data } = await axios.get(`${ADMIN_BASE}/-/stats`, adminRequestOptions({
       headers: adminHeaders(),
       timeout: 8000
-    });
+    }));
     return data;
   }
 }
