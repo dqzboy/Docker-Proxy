@@ -160,6 +160,16 @@ The config file is mounted on the host at `./config/go-proxy/` (inside the conta
     </tr>
     <tr>
       <td width="50%" align="left">
+        <a href="https://docker-proxy-desc.vercel.app/dedirock.html" target="_blank">DediRock offers annual‑plan VPS servers in Los Angeles and New York, featuring budget‑friendly deals, storage‑optimized options, and high‑performance NVMe solutions—ideal for Docker containers, website hosting, development and testing, as well as backup nodes.</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://docker-proxy-desc.vercel.app/dedirock.html" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/DediRock.png?raw=true" alt="RackNerd" width="200" height="150">
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" align="left">
         <a href="https://docker-proxy-desc.vercel.app/racknerd.html" target="_blank">Multiple data centers are available in the United States, suitable for deploying Docker-Proxy, personal projects, and lightweight production services.</a>
       </td>
       <td width="50%" align="center">

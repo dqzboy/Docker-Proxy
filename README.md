@@ -160,6 +160,16 @@ bash -c "$(curl -fsSL https://ghp.ci/https://raw.githubusercontent.com/dqzboy/Do
     </tr>
     <tr>
       <td width="50%" align="left">
+        <a href="https://docker-proxy-desc.vercel.app/dedirock.html" target="_blank">DediRock 美国洛杉矶与纽约机房年付 VPS，覆盖低价特惠、存储型与高性能 NVMe 方案，适合 Docker、建站、开发测试与备份节点。</a>
+      </td>
+      <td width="50%" align="center">
+        <a href="https://docker-proxy-desc.vercel.app/dedirock.html" target="_blank">
+          <img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/DediRock.png?raw=true" alt="RackNerd" width="200" height="150">
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%" align="left">
         <a href="https://docker-proxy-desc.vercel.app/racknerd.html" target="_blank">提供高性价比的海外VPS，支持多种操作系统，适合搭建Docker代理服务。</a>
       </td>
       <td width="50%" align="center">
