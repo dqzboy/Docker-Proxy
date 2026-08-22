@@ -37,6 +37,8 @@ const { executeOnce } = require('./lib/initScheduler');
 const app = express();
 const server = http.createServer(app);
 
+app.set('trust proxy', 1);
+
 // 配置中间件
 app.use(cors());
 app.use(express.json());
@@ -52,10 +54,10 @@ const sessionMiddleware = session({
   cookie: {
     // Secure 仅在 HTTPS 下才应开启；明文访问(如 http://IP:30080)必须关闭，
     // 否则浏览器拒绝保存 cookie，导致会话丢失、验证码永远报错。
-    // 优先级：环境变量 SECURE_COOKIE(true/false) > 配置文件中的 secureSession。
+    // 优先级：环境变量 SECURE_COOKIE(true/false) > 自动检测（基于 req.secure，由下方中间件实现）。
     secure: process.env.SECURE_COOKIE === 'true' ? true
           : process.env.SECURE_COOKIE === 'false' ? false
-          : (config.secureSession || false),
+          : undefined, // 未显式设置时交给下方 autoSecureCookie 中间件按真实协议判断
     sameSite: 'lax',
     httpOnly: true,
     path: '/',
@@ -63,6 +65,17 @@ const sessionMiddleware = session({
   }
 });
 app.use(sessionMiddleware);
+
+// 根据真实协议自动设置 session cookie 的 Secure 标志（仅当 SECURE_COOKIE 未显式设置时生效）。
+// 必须在 session 中间件之后，确保 req.session.cookie 已存在；
+// 在响应结束前执行，使后续 req.session.save() / 自动保存使用正确的 Secure 标志。
+app.use((req, res, next) => {
+  if (process.env.SECURE_COOKIE === undefined && req.session && req.session.cookie) {
+    // req.secure 在已设置 trust proxy 的情况下会反映原始协议（HTTPS 经 Cloudflare 时为 true）。
+    req.session.cookie.secure = !!req.secure;
+  }
+  next();
+});
 
 // 自定义中间件
 app.use(sessionActivity);
