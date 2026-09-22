@@ -181,7 +181,7 @@ npm install
 npm run dev
 ```
 
-服务默认监听 `:3000`，管理入口 `http://localhost:3000/admin`，默认账号 `root / admin@123`（**首次登录强制改密**）
+服务默认监听 `:3000`，管理入口 `http://localhost:3000/admin`，默认账号 `root / admin@123`（**首次登录弹窗提醒改密**）
 
 ---
 

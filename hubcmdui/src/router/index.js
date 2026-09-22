@@ -32,6 +32,7 @@ const routes = [
       },
       { path: 'docker', name: 'docker', component: () => import('../views/Docker.vue') },
       { path: 'goproxy', name: 'goproxy', component: () => import('../views/GoProxy.vue') },
+      { path: 'cache', name: 'cache', component: () => import('../views/CacheManagement.vue') },
       { path: 'ipaccess', name: 'ipaccess', component: () => import('../views/IpAccess.vue') },
       { path: 'documents', name: 'documents', component: () => import('../views/Documents.vue') },
       { path: 'menu', name: 'menu', component: () => import('../views/Menu.vue') },

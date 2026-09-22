@@ -89,3 +89,16 @@ registries:
     upstream: "https://nvcr.io"
     auth:
       type: token
+
+# ============ 镜像缓存（pull-through cache）============
+# 默认关闭，保持向后兼容（纯转发）。开启后首次拉取的 blob/manifest 会落盘，
+# 后续相同拉取直接由本服务返回，不再转发上游，节省带宽。
+# 注意：必须挂载持久卷到 dir（docker-compose 已映射 ./data/go-proxy-cache:/app/cache）。
+cache:
+  enabled: false
+  backend: disk            # MVP 仅支持 disk
+  dir: /app/cache          # 磁盘缓存根目录（需持久卷）
+  max_size_gb: 50          # 配额，超出触发 LRU 回收；0 = 不限
+  blob_ttl: 0              # blob 永久缓存（内容寻址不可变），0 = 永久
+  manifest_ttl: 3600       # tag 寻址的 manifest 默认 1h 后重新校验上游
+  tags_ttl: 300            # tags/list TTL，低频价值

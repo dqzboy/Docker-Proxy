@@ -111,6 +111,9 @@ func main() {
 			"clients": proxy.snapshotStats(),
 		})
 	})
+	adminMux.HandleFunc("/-/cache", func(w http.ResponseWriter, r *http.Request) {
+		handleAdminCache(w, r, proxy, configPath, adminToken)
+	})
 
 	adminHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// /-/healthz is a public liveness probe (no token required).
@@ -287,12 +290,84 @@ func handleAdminReload(w http.ResponseWriter, r *http.Request, proxy *Proxy, con
 	writeJSON(w, http.StatusOK, map[string]interface{}{"success": true, "registries": len(cfg.Registries)})
 }
 
+// handleAdminCache implements GET (return current cache config + live stats),
+// PUT (replace cache config, validate, persist, hot-reload) and POST ?clear=1
+// (wipe the on-disk cache and reset counters).
+func handleAdminCache(w http.ResponseWriter, r *http.Request, proxy *Proxy, configPath, adminToken string) {
+	switch r.Method {
+	case http.MethodGet:
+		proxy.routeMux.RLock()
+		cfg := proxy.cfg.Cache
+		// secret_key 属于敏感凭据，GET 一律脱敏，前端拿到 ******** 后若未改动则不覆盖原值。
+		if cfg.SecretKey != "" {
+			cfg.SecretKey = adminPasswordSentinel
+		}
+		proxy.routeMux.RUnlock()
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"config": cfg,
+			"stats":  proxy.snapshotCacheStats(),
+		})
+
+	case http.MethodPut:
+		var incoming CacheConfig
+		if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
+			writeJSONError(w, http.StatusBadRequest, "无效的 JSON: "+err.Error())
+			return
+		}
+		proxy.routeMux.RLock()
+		current := proxy.cfg
+		proxy.routeMux.RUnlock()
+		// 前端若未改动密钥，会原样回传脱敏哨兵值；这里还原为磁盘上的真实密钥。
+		if incoming.SecretKey == adminPasswordSentinel {
+			incoming.SecretKey = current.Cache.SecretKey
+		}
+		merged := *current
+		merged.Cache = incoming
+		normalizeConfig(&merged)
+		if err := validateCache(&merged.Cache); err != nil {
+			writeJSONError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		if err := saveConfig(configPath, &merged); err != nil {
+			writeJSONError(w, http.StatusInternalServerError, "保存配置失败: "+err.Error())
+			return
+		}
+		proxy.reload(&merged)
+		log.Printf("cache config updated via management API")
+		writeJSON(w, http.StatusOK, map[string]interface{}{"success": true, "config": merged.Cache})
+
+	case http.MethodPost:
+		if r.URL.Query().Get("clear") == "1" {
+			proxy.routeMux.RLock()
+			c := proxy.cache
+			proxy.routeMux.RUnlock()
+			if c != nil {
+				c.Clear()
+			}
+			proxy.cacheStats.mu.Lock()
+			proxy.cacheStats.Hits = 0
+			proxy.cacheStats.Misses = 0
+			proxy.cacheStats.BytesServed = 0
+			proxy.cacheStats.mu.Unlock()
+			writeJSON(w, http.StatusOK, map[string]interface{}{"success": true, "cleared": true})
+			return
+		}
+		writeJSONError(w, http.StatusBadRequest, "不支持的操作")
+
+	default:
+		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
 // validateConfig performs basic sanity checks on a config submitted via the UI.
 func validateConfig(cfg *Config) error {
 	if len(cfg.Registries) == 0 {
 		return fmt.Errorf("至少需要配置一个 registry")
 	}
 	if err := validateAccessControl(&cfg.AccessControl); err != nil {
+		return err
+	}
+	if err := validateCache(&cfg.Cache); err != nil {
 		return err
 	}
 	names := make(map[string]bool)
@@ -318,6 +393,40 @@ func validateConfig(cfg *Config) error {
 		default:
 			return fmt.Errorf("registry %s 的 auth.type 非法: %s", r.Name, r.Auth.Type)
 		}
+	}
+	return nil
+}
+
+// validateCache checks the optional cache block. When disabled it is a no-op;
+// when enabled, backend must be "disk" (needs a local volume) or "s3" (any
+// S3-compatible service: MinIO/Ceph or 阿里云 OSS / 腾讯云 COS / 华为云 OBS).
+func validateCache(c *CacheConfig) error {
+	if !c.Enabled {
+		return nil
+	}
+	switch c.Backend {
+	case "disk":
+		if c.Dir == "" {
+			return fmt.Errorf("cache.enabled=true 且 backend=disk 时必须配置 cache.dir")
+		}
+	case "s3":
+		if c.Endpoint == "" {
+			return fmt.Errorf("cache.enabled=true 且 backend=s3 时必须配置 cache.endpoint")
+		}
+		if c.Bucket == "" {
+			return fmt.Errorf("cache.enabled=true 且 backend=s3 时必须配置 cache.bucket")
+		}
+		if c.AccessKey == "" || c.SecretKey == "" {
+			return fmt.Errorf("cache.enabled=true 且 backend=s3 时必须配置 cache.access_key / cache.secret_key")
+		}
+		if _, ok := s3VendorPresets[c.Provider]; !ok && c.Provider != "" {
+			return fmt.Errorf("cache.provider 非法: %q（应为 minio/ceph/aliyun/tencent/huawei/custom）", c.Provider)
+		}
+	default:
+		return fmt.Errorf("cache.backend 非法: %q（应为 disk 或 s3）", c.Backend)
+	}
+	if c.ManifestTTL < 0 || c.BlobTTL < 0 || c.TagsTTL < 0 {
+		return fmt.Errorf("cache TTL 不能为负数")
 	}
 	return nil
 }

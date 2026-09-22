@@ -178,7 +178,7 @@ npm install
 npm run dev
 ```
 
-Service listens on `:3000` by default; admin entry at `http://localhost:3000/admin`; default account `root / admin@123` (**forced password change on first login**)
+Service listens on `:3000` by default; admin entry at `http://localhost:3000/admin`; default account `root / admin@123` (**Password change reminder on the first login pop-up**)
 
 ---
 

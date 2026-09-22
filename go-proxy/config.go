@@ -71,6 +71,35 @@ const (
 	ACLModeBlacklist AccessControlMode = "blacklist"
 )
 
+// CacheConfig controls the pull-through blob/manifest cache. Cached objects are
+// content-addressed (by digest) so blobs are stored once and served directly on
+// subsequent pulls without hitting the upstream.
+//
+// Backend "disk" stores objects on a local volume (needs a mounted volume).
+// Backend "s3" stores objects in any S3-compatible service — MinIO / Ceph and
+// the domestic clouds' S3 layers (阿里云 OSS / 腾讯云 COS / 华为云 OBS) — via a
+// single minio-go client (see s3cache.go).
+type CacheConfig struct {
+	Enabled     bool   `yaml:"enabled" json:"enabled"`               // master switch; default false (backward compatible)
+	Backend     string `yaml:"backend" json:"backend"`               // "disk" | "s3"
+	Dir         string `yaml:"dir" json:"dir"`                       // disk cache root (backend=disk)
+	MaxSizeGB   int    `yaml:"max_size_gb" json:"max_size_gb"`       // disk quota; 0 = unlimited (backend=disk)
+	BlobTTL     int    `yaml:"blob_ttl" json:"blob_ttl"`             // seconds; 0 = permanent (immutable)
+	ManifestTTL int    `yaml:"manifest_ttl" json:"manifest_ttl"`     // tag-addressed manifest TTL; 0 -> default 1h
+	TagsTTL     int    `yaml:"tags_ttl" json:"tags_ttl"`             // tags/list TTL; 0 -> default 5m
+
+	// --- S3 兼容后端配置（backend=s3 时生效）---
+	// Provider selects a vendor preset that pre-fills path-style / secure /
+	// region hints: minio | ceph | aliyun | tencent | huawei | custom.
+	Provider  string `yaml:"provider" json:"provider"`
+	Endpoint  string `yaml:"endpoint" json:"endpoint"`   // S3 服务域名，如 oss-cn-hangzhou.aliyuncs.com
+	Region    string `yaml:"region" json:"region"`       // 区域，如 cn-hangzhou
+	Bucket    string `yaml:"bucket" json:"bucket"`       // 桶名
+	AccessKey string `yaml:"access_key" json:"access_key"` // AK
+	SecretKey string `yaml:"secret_key" json:"secret_key"` // SK（GET 返回时脱敏为 ********）
+	PathStyle bool   `yaml:"path_style" json:"path_style"` // 路径风格寻址（MinIO/Ceph 自托管默认开启；云厂商虚拟主机风格关闭）
+}
+
 // AccessControl configures per-request IP allow/deny at the proxy layer.
 // It only affects the PUBLIC registry proxy (Proxy.ServeHTTP); the management
 // API port (:5001) is deliberately NOT gated so the list can always be edited
@@ -88,6 +117,7 @@ type Config struct {
 	Default       string            `yaml:"default" json:"default"`               // registry name used when Host does not match
 	LogLevel      string            `yaml:"log_level" json:"log_level"`           // quiet | normal (default) | debug
 	AccessControl AccessControl     `yaml:"access_control" json:"access_control"` // IP 黑白名单（代理层）
+	Cache         CacheConfig       `yaml:"cache" json:"cache"`                   // pull-through cache
 	Registries    []RegistryConfig  `yaml:"registries" json:"registries"`
 }
 
@@ -122,6 +152,29 @@ func normalizeConfig(cfg *Config) {
 	}
 	if cfg.AccessControl.Mode == "" {
 		cfg.AccessControl.Mode = ACLModeOff
+	}
+
+	// Normalize cache defaults.
+	switch cfg.Cache.Backend {
+	case "", "disk":
+		cfg.Cache.Backend = "disk"
+	case "s3":
+		// s3 后端无需本地目录；若未指定 provider 默认 custom。
+		if cfg.Cache.Provider == "" {
+			cfg.Cache.Provider = "custom"
+		}
+	default:
+		log.Printf("[WARN] cache.backend %q 非法，已重置为 disk", cfg.Cache.Backend)
+		cfg.Cache.Backend = "disk"
+	}
+	if cfg.Cache.Dir == "" {
+		cfg.Cache.Dir = "/app/cache"
+	}
+	if cfg.Cache.ManifestTTL == 0 {
+		cfg.Cache.ManifestTTL = 3600
+	}
+	if cfg.Cache.TagsTTL == 0 {
+		cfg.Cache.TagsTTL = 300
 	}
 }
 

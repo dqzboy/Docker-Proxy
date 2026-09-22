@@ -89,3 +89,35 @@ registries:
     upstream: "https://nvcr.io"
     auth:
       type: token
+
+# ============ 镜像缓存（pull-through cache）============
+# 默认关闭，保持向后兼容（纯转发）。开启后首次拉取的 blob/manifest 会落盘/落桶，
+# 后续相同拉取直接由本服务返回，不再转发上游，节省带宽。
+#
+# backend 两种选择：
+#   disk  —— 本地磁盘（单机部署），需挂载持久卷到 dir（docker-compose 已映射 ./data/go-proxy-cache:/app/cache）
+#   s3    —— S3 兼容对象存储：MinIO / Ceph，以及国内云厂商的 S3 层
+#            （阿里云 OSS / 腾讯云 COS / 华为云 OBS）。无需本地持久卷，跨实例共享缓存。
+cache:
+  enabled: false
+  backend: disk            # disk | s3
+  dir: /app/cache          # 仅 disk 后端使用：磁盘缓存根目录（需持久卷）
+  max_size_gb: 50          # 仅 disk 后端使用：配额，超出触发 LRU 回收；0 = 不限
+  blob_ttl: 0              # blob 永久缓存（内容寻址不可变），0 = 永久
+  manifest_ttl: 3600       # tag 寻址的 manifest 默认 1h 后重新校验上游
+  tags_ttl: 300            # tags/list TTL，低频价值
+
+  # ---- S3 兼容后端（backend: s3 时生效）----
+  # provider: 选择厂商预设以自动套用寻址风格，可选
+  #   minio | ceph | aliyun | tencent | huawei | custom
+  #   其中 aliyun/tencent/huawei 为国内云厂商的 S3 兼容层。
+  # path_style: MinIO/Ceph 等自托管服务设为 true；阿里云 OSS / 腾讯云 COS / 华为云 OBS 等云厂商保持 false（虚拟主机风格）。
+  # endpoint 不含 http:// 前缀；云厂商示例：oss-cn-hangzhou.aliyuncs.com
+  #provider: aliyun
+  #endpoint: "oss-cn-hangzhou.aliyuncs.com"
+  #region: "cn-hangzhou"
+  #bucket: "docker-proxy-cache"
+  #access_key: "YOUR_ALIYUN_ACCESS_KEY"
+  #secret_key: "YOUR_ALIYUN_SECRET_KEY"
+  #path_style: false
+

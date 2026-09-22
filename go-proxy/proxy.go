@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"sort"
 	"strings"
 	"sync"
@@ -63,6 +64,22 @@ type Proxy struct {
 	// Guarded by routeMux; a single pointer swap is safe to read without the
 	// lock, exactly like cfg itself.
 	acl *aclMatcher
+
+	// cache is the pull-through blob/manifest store (diskCache or s3Cache).
+	// nil when disabled. The proxy depends only on the blobStore interface.
+	cache     blobStore
+	cacheSig  string
+	cacheGroup *singleflight
+	cacheStats *cacheStats
+}
+
+// cacheStats tracks cache effectiveness so the admin UI can show hit rate and
+// upstream bandwidth saved. Guarded by mu.
+type cacheStats struct {
+	mu          sync.Mutex
+	Hits        int64
+	Misses      int64
+	BytesServed int64
 }
 
 // clientStat holds cumulative traffic for a single client IP.
@@ -119,6 +136,9 @@ func NewProxy(cfg *Config) *Proxy {
 	p.acl = buildACL(&cfg.AccessControl)
 	p.applyStatsConfig(cfg)
 	p.startStatsJanitor()
+	p.cacheGroup = &singleflight{}
+	p.cacheStats = &cacheStats{}
+	p.initCache(cfg)
 	return p
 }
 
@@ -234,10 +254,114 @@ func (p *Proxy) reload(cfg *Config) {
 	p.cacheMux.Lock()
 	p.tokenCache = make(map[string]tokenEntry)
 	p.cacheMux.Unlock()
+	// Rebuild the cache only when its signature (enabled/backend/dir) changed;
+	// otherwise just refresh the in-place quota.
+		newSig := cacheSig(cp)
+	if newSig != p.cacheSig {
+		// initCache owns tearing down the previous cache, so we never stop it
+		// here — doing both used to double-close the same cancel channel and
+		// panic ("close of closed channel").
+		p.initCache(cp)
+	} else if p.cache != nil {
+		p.cache.setMaxBytes(int64(cp.Cache.MaxSizeGB) * 1024 * 1024 * 1024)
+	}
 	// Re-apply stats idle/interval in case the operator tuned them in the new
 	// config, then restart the janitor to pick up the new sweep cadence.
 	p.applyStatsConfig(cp)
 	p.startStatsJanitor()
+}
+
+// cacheSig is a stable identifier for the cache configuration that requires a
+// full rebuild (backend / directory / S3 connection change), so reload can avoid
+// re-walking the store on unrelated config edits. Secrets are deliberately NOT
+// included — only the connection identity (endpoint/bucket/region/provider/AK).
+func cacheSig(cfg *Config) string {
+	c := cfg.Cache
+	if c.Backend == "disk" {
+		return fmt.Sprintf("disk|%t|%s", c.Enabled, c.Dir)
+	}
+	// s3: any connection change must rebuild the client.
+	return fmt.Sprintf("s3|%t|%s|%s|%s|%s|%s", c.Enabled, c.Provider, c.Endpoint, c.Bucket, c.Region, c.AccessKey)
+}
+
+// initCache (re)builds the active cache from cfg. It stops and drops any
+// previously running cache first, so the caller never has to — and the previous
+// cache object is stopped exactly once (its janitor goroutine exits cleanly).
+// Tearing down here, rather than in reload, removes the double-stop that used to
+// panic with "close of closed channel".
+func (p *Proxy) initCache(cfg *Config) {
+	if p.cache != nil {
+		p.cache.stop()
+		p.cache = nil
+	}
+	if !cfg.Cache.Enabled {
+		p.cacheSig = cacheSig(cfg)
+		return
+	}
+	switch cfg.Cache.Backend {
+	case "s3":
+		c, err := newS3Cache(&cfg.Cache)
+		if err != nil {
+			log.Printf("[cache] S3 缓存初始化失败，已禁用缓存: %v", err)
+			p.cacheSig = cacheSig(cfg)
+			return
+		}
+		p.cache = c
+	default: // disk
+		p.cache = newDiskCache(cfg.Cache.Dir, cfg.Cache.MaxSizeGB)
+	}
+	p.cacheSig = cacheSig(cfg)
+}
+
+// activeCache returns the live cache together with whether caching is on. It is
+// read under the route lock to avoid a race with reload swapping the pointer.
+func (p *Proxy) activeCache() (blobStore, bool) {
+	p.routeMux.RLock()
+	defer p.routeMux.RUnlock()
+	return p.cache, p.cfg.Cache.Enabled && p.cache != nil
+}
+
+func (p *Proxy) manifestTTL() time.Duration {
+	p.routeMux.RLock()
+	defer p.routeMux.RUnlock()
+	return time.Duration(p.cfg.Cache.ManifestTTL) * time.Second
+}
+
+func (p *Proxy) recordCacheHit(size int64) {
+	p.cacheStats.mu.Lock()
+	p.cacheStats.Hits++
+	p.cacheStats.BytesServed += size
+	p.cacheStats.mu.Unlock()
+}
+
+func (p *Proxy) recordCacheMiss() {
+	p.cacheStats.mu.Lock()
+	p.cacheStats.Misses++
+	p.cacheStats.mu.Unlock()
+}
+
+// snapshotCacheStats returns cache effectiveness counters for the admin API.
+func (p *Proxy) snapshotCacheStats() map[string]interface{} {
+	p.cacheStats.mu.Lock()
+	defer p.cacheStats.mu.Unlock()
+	count, bytes := int64(0), int64(0)
+	if p.cache != nil {
+		count, bytes = p.cache.Stat()
+	}
+	var rate float64
+	total := p.cacheStats.Hits + p.cacheStats.Misses
+	if total > 0 {
+		rate = float64(p.cacheStats.Hits) / float64(total) * 100
+	}
+	return map[string]interface{}{
+		"hits":        p.cacheStats.Hits,
+		"misses":      p.cacheStats.Misses,
+		"hitRate":     rate,
+		"bytesServed": p.cacheStats.BytesServed,
+		"entries":     count,
+		"sizeBytes":   bytes,
+		"enabled":     p.cache != nil,
+	}
 }
 
 // resolveRegistry picks an upstream based on the request Host (or X-Forwarded-Host
@@ -438,55 +562,105 @@ func (p *Proxy) proxyRequest(w http.ResponseWriter, r *http.Request, reg *Regist
 	target.RawQuery = r.URL.RawQuery
 
 	repo := extractRepo(r.URL.Path)
-	scope := ""
-	if repo != "" {
-		scope = "repository:" + repo + ":pull"
+	cacheKey, kind, isDigest, _, cacheable := p.classifyCache(r.URL.Path, reg.Name, repo)
+
+	if cacheable {
+		if c, ok := p.activeCache(); ok {
+			if obj, hit := c.Open(cacheKey, p.manifestTTL()); hit {
+				p.recordCacheHit(obj.Size)
+				return p.serveFromCache(w, r, obj)
+			}
+			p.recordCacheMiss()
+
+			var leaderWritten int64
+			_, ferr, shared := p.cacheGroup.Do(cacheKey, func() (interface{}, error) {
+				n, e := p.fetchAndStore(w, r, client, reg, target, c, cacheKey, kind, isDigest)
+				leaderWritten = n
+				return nil, e
+			})
+			if !shared {
+				if ferr == nil || leaderWritten > 0 {
+					return leaderWritten
+				}
+			} else if ferr == nil {
+				if obj, hit := c.Open(cacheKey, p.manifestTTL()); hit {
+					return p.serveFromCache(w, r, obj)
+				}
+			}
+		}
 	}
 
-	resp, err := p.doUpstream(client, r, target.String(), "")
+	resp, err := p.getUpstreamResponse(client, r, reg, target.String())
 	if err != nil {
 		log.Printf("[ERR] upstream %s: %v", reg.Name, err)
 		http.Error(w, "upstream error: "+err.Error(), http.StatusBadGateway)
 		return
 	}
+	defer resp.Body.Close()
+	return p.streamResponse(w, r, resp)
+}
 
-	// Token challenge: upstream rejected us with 401. Obtain a bearer token and retry.
+// classifyCache maps a Registry V2 path to a cache key + kind. Blob and
+// digest-addressed manifest objects are immutable (isDigest=true); tag-addressed
+// manifests carry a TTL and need revalidation (handled in fetchAndStore).
+func (p *Proxy) classifyCache(path, registry, repo string) (key, kind string, isDigest bool, digest string, cacheable bool) {
+	if repo == "" {
+		return "", "", false, "", false
+	}
+	if m := blobRe.FindStringSubmatch(path); m != nil {
+		d := m[2]
+		return "b/" + registry + "/" + repo + "/" + d, "blob", true, d, true
+	}
+	if m := manifestRe.FindStringSubmatch(path); m != nil {
+		ref := m[2]
+		if strings.Contains(ref, ":") {
+			return "m/" + registry + "/" + repo + "/" + ref, "manifest", true, ref, true
+		}
+		return "t/" + registry + "/" + repo + "/" + ref, "manifest", false, "", true
+	}
+	return "", "", false, "", false
+}
+
+// getUpstreamResponse issues the request and transparently handles the upstream
+// bearer-token 401 challenge, mirroring the previous inline logic.
+func (p *Proxy) getUpstreamResponse(client *http.Client, r *http.Request, reg *RegistryConfig, target string) (*http.Response, error) {
+	resp, err := p.doUpstream(client, r, target, "")
+	if err != nil {
+		return nil, err
+	}
 	if resp.StatusCode == http.StatusUnauthorized && reg.Auth.Type != AuthAnonymous {
 		challenge := resp.Header.Get("WWW-Authenticate")
 		realm, service, _ := parseBearerChallenge(challenge)
 		resp.Body.Close()
 		if realm != "" {
+			repo := extractRepo(r.URL.Path)
+			scope := ""
+			if repo != "" {
+				scope = "repository:" + repo + ":pull"
+			}
 			token, terr := p.getToken(client, realm, service, scope, reg)
 			if terr != nil {
-				log.Printf("[ERR] token %s scope=%q: %v", reg.Name, scope, terr)
-				http.Error(w, "token error: "+terr.Error(), http.StatusBadGateway)
-				return
+				return nil, terr
 			}
 			if token != "" {
-				resp2, rerr := p.doUpstream(client, r, target.String(), token)
-				if rerr != nil {
-					log.Printf("[ERR] upstream %s (retry): %v", reg.Name, rerr)
-					http.Error(w, "upstream error: "+rerr.Error(), http.StatusBadGateway)
-					return
-				}
-				resp = resp2
+				return p.doUpstream(client, r, target, token)
 			}
 		}
 	}
+	return resp, nil
+}
 
-	defer resp.Body.Close()
+// streamResponse proxies an upstream response to the client with the standard
+// header adjustments. Used for non-cached responses and cache misses that fall
+// back to plain proxying.
+func (p *Proxy) streamResponse(w http.ResponseWriter, r *http.Request, resp *http.Response) (written int64) {
 	copyHeaders(w.Header(), resp.Header)
-	// Drop the upstream auth challenge so the client does not try to reach the
-	// upstream auth server directly (it may be unreachable from the client).
 	w.Header().Del("WWW-Authenticate")
 	w.Header().Set("Docker-Distribution-Api-Version", "registry/2.0")
 	w.WriteHeader(resp.StatusCode)
-
 	if r.Method == http.MethodHead {
 		return
 	}
-
-	// Stream the body back without buffering it in memory or on disk.
 	buf := make([]byte, 32*1024)
 	flusher, _ := w.(http.Flusher)
 	for {
@@ -507,7 +681,130 @@ func (p *Proxy) proxyRequest(w http.ResponseWriter, r *http.Request, reg *Regist
 			return
 		}
 	}
+	return
+}
+
+// serveFromCache replays a cached object's stored headers and streams its bytes
+// to the client, bypassing the upstream entirely.
+func (p *Proxy) serveFromCache(w http.ResponseWriter, r *http.Request, obj *cacheObject) (written int64) {
+	for k, vv := range obj.Header {
+		for _, v := range vv {
+			w.Header().Add(k, v)
+		}
+	}
+	w.Header().Del("WWW-Authenticate")
+	w.Header().Del("Transfer-Encoding")
+	w.Header().Set("Docker-Distribution-Api-Version", "registry/2.0")
+	w.Header().Set("Content-Length", strconv.FormatInt(obj.Size, 10))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		obj.Reader.Close()
+		return 0
+	}
+	buf := make([]byte, 32*1024)
+	flusher, _ := w.(http.Flusher)
+	for {
+		n, rerr := obj.Reader.Read(buf)
+		if n > 0 {
+			if _, werr := w.Write(buf[:n]); werr != nil {
+				obj.Reader.Close()
+				return written
+			}
+			written += int64(n)
+			if flusher != nil {
+				flusher.Flush()
+			}
+		}
+		if rerr == io.EOF {
+			break
+		}
+		if rerr != nil {
+			break
+		}
+	}
+	obj.Reader.Close()
 	return written
+}
+
+// fetchAndStore is the singleflight leader path: it fetches from upstream and, on
+// a 200, streams the body to the client while writing it through to the cache.
+// Non-200 responses are proxied without caching. The returned byte count is what
+// was sent to the client (used by the leader's own request).
+func (p *Proxy) fetchAndStore(w http.ResponseWriter, r *http.Request, client *http.Client, reg *RegistryConfig, target *url.URL, c blobStore, key, kind string, isDigest bool) (int64, error) {
+	resp, err := p.getUpstreamResponse(client, r, reg, target.String())
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return p.streamResponse(w, r, resp), nil
+	}
+	digest := ""
+	if isDigest {
+		_, _, _, digest, _ = p.classifyCache(r.URL.Path, reg.Name, extractRepo(r.URL.Path))
+	} else {
+		digest = resp.Header.Get("Docker-Content-Digest")
+		if digest == "" {
+			digest = resp.Header.Get("ETag")
+		}
+	}
+	var ttl time.Duration
+	if kind == "manifest" && !isDigest {
+		ttl = p.manifestTTL()
+	}
+	wtr, werr := c.Writer(key, cleanCacheHeaders(resp.Header), digest, kind, ttl)
+	if werr != nil {
+		return p.streamResponse(w, r, resp), nil
+	}
+	copyHeaders(w.Header(), resp.Header)
+	w.Header().Del("WWW-Authenticate")
+	w.Header().Set("Docker-Distribution-Api-Version", "registry/2.0")
+	w.WriteHeader(resp.StatusCode)
+	if r.Method == http.MethodHead {
+		wtr.Close()
+		return 0, nil
+	}
+	buf := make([]byte, 32*1024)
+	flusher, _ := w.(http.Flusher)
+	tee := io.TeeReader(resp.Body, wtr)
+	var written int64
+	for {
+		n, rerr := tee.Read(buf)
+		if n > 0 {
+			if _, werr := w.Write(buf[:n]); werr != nil {
+				wtr.Abort()
+				return written, werr
+			}
+			written += int64(n)
+			if flusher != nil {
+				flusher.Flush()
+			}
+		}
+		if rerr == io.EOF {
+			break
+		}
+		if rerr != nil {
+			wtr.Abort()
+			return written, rerr
+		}
+	}
+	if cerr := wtr.Close(); cerr != nil {
+		wtr.Abort()
+		return written, cerr
+	}
+	return written, nil
+}
+
+// cleanCacheHeaders keeps the response headers worth replaying and drops the
+// hop-by-hop / auth / transfer-encoding headers that must not be cached.
+func cleanCacheHeaders(h http.Header) http.Header {
+	clone := h.Clone()
+	for _, k := range hopHeaders {
+		clone.Del(k)
+	}
+	clone.Del("WWW-Authenticate")
+	clone.Del("Transfer-Encoding")
+	return clone
 }
 
 // doUpstream issues a request to the upstream. When token != "" it is sent as a

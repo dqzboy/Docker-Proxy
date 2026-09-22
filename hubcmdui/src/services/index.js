@@ -190,6 +190,11 @@ export const saveGoConfig = (cfg) => api.put('/goProxy/config', cfg).then(r => r
 export const reloadGoProxy = () => api.post('/goProxy/reload').then(r => r.data)
 export const goProxyStatus = () => api.get('/goProxy/status').then(r => r.data)
 
+// ============ 缓存管理（go-proxy 磁盘缓存） ============
+export const getCacheConfig = () => api.get('/cache').then(r => r.data)
+export const saveCacheConfig = (cfg) => api.put('/cache', cfg).then(r => r.data)
+export const clearCache = () => api.post('/cache/clear').then(r => r.data)
+
 // ============ IP 访问控制（代理层） ============
 export const getIpAccess = () => api.get('/ipAccess').then(r => r.data)
 export const saveIpAccess = (cfg) => api.put('/ipAccess', cfg).then(r => r.data)

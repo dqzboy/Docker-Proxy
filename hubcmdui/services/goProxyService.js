@@ -146,6 +146,40 @@ class GoProxyService {
     }));
     return data;
   }
+
+  /**
+   * 获取缓存配置与实时统计（缓存开关 / TTL / 配额 / LRU-GC + 命中率 / 已省带宽）。
+   * 返回 { config: CacheConfig, stats: { hits, misses, hitRate, bytesServed, entries, sizeBytes, enabled } }
+   */
+  async getCache() {
+    const { data } = await axios.get(`${ADMIN_BASE}/-/cache`, adminRequestOptions({
+      headers: adminHeaders(),
+      timeout: 8000
+    }));
+    return data;
+  }
+
+  /**
+   * 替换缓存配置（写盘 + 热重载）。body 即 CacheConfig。
+   */
+  async putCache(cacheCfg) {
+    const { data } = await axios.put(`${ADMIN_BASE}/-/cache`, cacheCfg, adminRequestOptions({
+      headers: adminHeaders(),
+      timeout: 8000
+    }));
+    return data;
+  }
+
+  /**
+   * 清空磁盘缓存并重置命中计数器。
+   */
+  async clearCache() {
+    const { data } = await axios.post(`${ADMIN_BASE}/-/cache?clear=1`, {}, adminRequestOptions({
+      headers: adminHeaders(),
+      timeout: 15000
+    }));
+    return data;
+  }
 }
 
 function decryptCredentialSyncPayload(response) {
