@@ -25,8 +25,8 @@ func TestDiskCachePutAndOpen(t *testing.T) {
 	dir := tempCacheDir(t)
 	c := &diskCache{root: dir, index: map[string]*cacheEntry{}, cancel: make(chan struct{})}
 	hdr := http.Header{
-		"Content-Type":           []string{"application/octet-stream"},
-		"Docker-Content-Digest":  []string{"sha256:abc"},
+		"Content-Type":          []string{"application/octet-stream"},
+		"Docker-Content-Digest": []string{"sha256:abc"},
 	}
 	wtr, err := c.Writer("b/reg/lib/nginx/sha256:abc", hdr, "sha256:abc", "blob", 0)
 	if err != nil {
@@ -117,6 +117,26 @@ func TestDiskCacheQuotaEviction(t *testing.T) {
 	if bytesTotal > 100 {
 		t.Fatalf("quota not enforced: total = %d, want <= 100", bytesTotal)
 	}
+}
+
+func TestDiskCacheQuotaKeepsJustWrittenEntry(t *testing.T) {
+	c := &diskCache{root: tempCacheDir(t), maxBytes: 10, index: map[string]*cacheEntry{}}
+	key := "b/reg/repo/new"
+	w, err := c.Writer(key, http.Header{}, "sha256:new", "blob", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Write(bytes.Repeat([]byte("x"), 11)); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
+	obj, ok := c.Open(key, 0)
+	if !ok {
+		t.Fatal("new oversized entry evicted immediately")
+	}
+	obj.Reader.Close()
 }
 
 func TestDiskCachePathSafety(t *testing.T) {

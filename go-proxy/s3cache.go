@@ -7,9 +7,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -76,13 +78,22 @@ func newS3Cache(c *CacheConfig) (*s3Cache, error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("cache.s3.endpoint 不能为空")
 	}
+	secure := preset.Secure
+	if strings.Contains(endpoint, "://") {
+		u, err := url.Parse(endpoint)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || u.Path != "" || u.RawQuery != "" || u.Fragment != "" || u.User != nil {
+			return nil, fmt.Errorf("cache.s3.endpoint 必须是主机名或 http(s)://主机名")
+		}
+		secure = u.Scheme == "https"
+		endpoint = u.Host
+	}
 	bucketLookup := minio.BucketLookupAuto
-	if preset.PathStyle {
+	if c.PathStyle {
 		bucketLookup = minio.BucketLookupPath
 	}
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds:        credentials.NewStaticV4(c.AccessKey, c.SecretKey, ""),
-		Secure:       preset.Secure,
+		Secure:       secure,
 		Region:       c.Region,
 		BucketLookup: bucketLookup,
 	})
@@ -120,25 +131,19 @@ func (s *s3Cache) bucketKey(key string) string {
 }
 
 // readMeta extracts our per-object metadata from a minio ObjectInfo. minio-go
-// exposes user metadata either in ObjectInfo.UserMetadata (prefix already
-// stripped, lower-cased) or in the full Metadata map under "x-amz-meta-*".
+// exposes user metadata with the prefix stripped and MIME-canonicalized keys.
 func (s *s3Cache) readMeta(info minio.ObjectInfo) cacheMeta {
 	m := cacheMeta{Header: map[string][]string{}}
 	get := func(k string) string {
-		if v, ok := info.UserMetadata[k]; ok && v != "" {
-			return v
+		for key, v := range info.UserMetadata {
+			if strings.EqualFold(strings.TrimPrefix(strings.ToLower(key), "x-amz-meta-"), k) && v != "" {
+				return v
+			}
 		}
-		if v, ok := info.UserMetadata["x-amz-meta-"+k]; ok && v != "" {
-			return v
-		}
-		if vv, ok := info.Metadata[k]; ok && len(vv) > 0 {
-			return vv[0]
-		}
-		if vv, ok := info.Metadata["X-Amz-Meta-"+k]; ok && len(vv) > 0 {
-			return vv[0]
-		}
-		if vv, ok := info.Metadata["x-amz-meta-"+k]; ok && len(vv) > 0 {
-			return vv[0]
+		for key, vv := range info.Metadata {
+			if strings.EqualFold(strings.TrimPrefix(strings.ToLower(key), "x-amz-meta-"), k) && len(vv) > 0 {
+				return vv[0]
+			}
 		}
 		return ""
 	}
@@ -176,6 +181,10 @@ func (s *s3Cache) Open(key string, ttl time.Duration) (*cacheObject, bool) {
 		obj.Close()
 		return nil, false
 	}
+	if info.Size <= 0 {
+		obj.Close()
+		return nil, false
+	}
 	meta := s.readMeta(info)
 	if meta.TTL > 0 && time.Since(meta.StoredAt) > meta.TTL {
 		obj.Close()
@@ -184,9 +193,11 @@ func (s *s3Cache) Open(key string, ttl time.Duration) (*cacheObject, bool) {
 	}
 	s.mu.Lock()
 	if e, ok := s.index[key]; ok {
-		e.atime = time.Now()
+		if e.ttl == 0 {
+			e.atime = time.Now()
+		}
 	} else {
-		s.index[key] = &cacheEntry{size: info.Size, atime: time.Now(), kind: meta.Kind, ttl: meta.TTL}
+		s.index[key] = &cacheEntry{size: info.Size, atime: meta.StoredAt, kind: meta.Kind, ttl: meta.TTL}
 		s.totalBytes += info.Size
 	}
 	s.mu.Unlock()
@@ -278,15 +289,36 @@ func (s *s3Cache) warmIndex(timeout time.Duration) {
 		if obj.Err != nil {
 			continue
 		}
-		s.mu.Lock()
-		if _, ok := s.index[obj.Key]; !ok {
-			s.index[obj.Key] = &cacheEntry{size: obj.Size, atime: obj.LastModified, kind: "blob"}
-			s.totalBytes += obj.Size
+		key := strings.TrimPrefix(obj.Key, s.prefix)
+		if key == obj.Key || key == "" {
+			continue
 		}
-		s.mu.Unlock()
+		entry := &cacheEntry{size: obj.Size, atime: obj.LastModified, kind: "blob"}
+		if strings.HasPrefix(key, "t/") {
+			info, err := s.client.StatObject(ctx, s.bucket, obj.Key, minio.StatObjectOptions{})
+			if err != nil {
+				continue
+			}
+			meta := s.readMeta(info)
+			entry.size, entry.kind, entry.ttl = info.Size, "manifest", meta.TTL
+			entry.atime = meta.StoredAt
+			if entry.atime.IsZero() {
+				entry.atime = info.LastModified
+			}
+		}
+		s.addIndexEntry(key, entry)
 		n++
 	}
 	log.Printf("[cache] S3 索引预热完成，载入 %d 个对象", n)
+}
+
+func (s *s3Cache) addIndexEntry(key string, entry *cacheEntry) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.index[key]; !ok {
+		s.index[key] = entry
+		s.totalBytes += entry.size
+	}
 }
 
 func (s *s3Cache) janitor(interval time.Duration) {

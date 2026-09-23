@@ -154,7 +154,7 @@
           <!-- s3 后端：兼容 MinIO / Ceph / 阿里云 OSS / 腾讯云 COS / 华为云 OBS -->
           <template v-else-if="form.backend === 's3'">
             <el-form-item :label="t('cache.provider')" required>
-              <el-select v-model="form.provider" style="width: 100%">
+              <el-select v-model="form.provider" style="width: 100%" @change="onProviderChange">
                 <el-option v-for="p in s3Providers" :key="p.value" :label="p.label" :value="p.value" />
               </el-select>
               <div class="hint">{{ t('cache.providerHint') }}</div>
@@ -259,6 +259,10 @@ const s3Providers = computed(() => [
   { value: 'huawei', label: t('cache.providerHuawei') },
   { value: 'custom', label: t('cache.providerCustom') }
 ])
+
+function onProviderChange(provider) {
+  form.pathStyle = ['minio', 'ceph', 'custom'].includes(provider)
+}
 
 function parseConfig(c) {
   if (!c) return

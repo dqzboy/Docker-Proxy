@@ -88,10 +88,10 @@ type diskCache struct {
 func newDiskCache(root string, maxGB int) *diskCache {
 	root = resolveCacheDir(root)
 	c := &diskCache{
-		root:      root,
-		maxBytes:  int64(maxGB) * 1024 * 1024 * 1024,
-		index:     map[string]*cacheEntry{},
-		cancel:    make(chan struct{}),
+		root:     root,
+		maxBytes: int64(maxGB) * 1024 * 1024 * 1024,
+		index:    map[string]*cacheEntry{},
+		cancel:   make(chan struct{}),
 	}
 	c.loadIndex()
 	go c.janitor(5 * time.Minute)
@@ -207,6 +207,12 @@ func (c *diskCache) Open(key string, ttl time.Duration) (*cacheObject, bool) {
 		f.Close()
 		return nil, false
 	}
+	// Older versions could persist a HEAD response as an empty blob/manifest.
+	// Treat it as a miss so the next GET can replace it with real content.
+	if m.Size <= 0 {
+		f.Close()
+		return nil, false
+	}
 	if m.TTL > 0 && time.Since(m.StoredAt) > m.TTL {
 		f.Close()
 		return nil, false
@@ -309,7 +315,7 @@ func (w *cacheWriter) Close() error {
 		w.c.totalBytes += info.Size()
 	}
 	w.c.mu.Unlock()
-	w.c.maybeEvict(w.p)
+	w.c.maybeEvict(w.key)
 	return nil
 }
 

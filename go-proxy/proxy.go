@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -11,8 +12,8 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"strconv"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -67,8 +68,8 @@ type Proxy struct {
 
 	// cache is the pull-through blob/manifest store (diskCache or s3Cache).
 	// nil when disabled. The proxy depends only on the blobStore interface.
-	cache     blobStore
-	cacheSig  string
+	cache      blobStore
+	cacheSig   string
 	cacheGroup *singleflight
 	cacheStats *cacheStats
 }
@@ -92,11 +93,11 @@ type clientStat struct {
 
 // statEntry is the JSON shape returned by the /-/stats endpoint.
 type statEntry struct {
-	IP         string            `json:"ip"`
-	BytesTotal int64             `json:"bytesTotal"`
-	Requests   int64             `json:"requests"`
-	LastSeen   time.Time         `json:"lastSeen"`
-	ByRegistry map[string]int64  `json:"byRegistry"`
+	IP         string           `json:"ip"`
+	BytesTotal int64            `json:"bytesTotal"`
+	Requests   int64            `json:"requests"`
+	LastSeen   time.Time        `json:"lastSeen"`
+	ByRegistry map[string]int64 `json:"byRegistry"`
 }
 
 // buildRoutes computes the Host->registry index and the default registry from cfg.
@@ -124,10 +125,10 @@ func buildRoutes(cfg *Config) (map[string]*RegistryConfig, *RegistryConfig) {
 
 func NewProxy(cfg *Config) *Proxy {
 	p := &Proxy{
-		cfg:        cfg,
-		hostIndex:  make(map[string]*RegistryConfig),
-		clients:    make(map[string]*http.Client),
-		tokenCache: make(map[string]tokenEntry),
+		cfg:         cfg,
+		hostIndex:   make(map[string]*RegistryConfig),
+		clients:     make(map[string]*http.Client),
+		tokenCache:  make(map[string]tokenEntry),
 		clientStats: make(map[string]*clientStat),
 	}
 	idx, def := buildRoutes(cfg)
@@ -256,7 +257,7 @@ func (p *Proxy) reload(cfg *Config) {
 	p.cacheMux.Unlock()
 	// Rebuild the cache only when its signature (enabled/backend/dir) changed;
 	// otherwise just refresh the in-place quota.
-		newSig := cacheSig(cp)
+	newSig := cacheSig(cp)
 	if newSig != p.cacheSig {
 		// initCache owns tearing down the previous cache, so we never stop it
 		// here — doing both used to double-close the same cancel channel and
@@ -273,15 +274,15 @@ func (p *Proxy) reload(cfg *Config) {
 
 // cacheSig is a stable identifier for the cache configuration that requires a
 // full rebuild (backend / directory / S3 connection change), so reload can avoid
-// re-walking the store on unrelated config edits. Secrets are deliberately NOT
-// included — only the connection identity (endpoint/bucket/region/provider/AK).
+// re-walking the store on unrelated config edits. Hash the secret so credential
+// rotation rebuilds the client without retaining the secret in the signature.
 func cacheSig(cfg *Config) string {
 	c := cfg.Cache
 	if c.Backend == "disk" {
 		return fmt.Sprintf("disk|%t|%s", c.Enabled, c.Dir)
 	}
 	// s3: any connection change must rebuild the client.
-	return fmt.Sprintf("s3|%t|%s|%s|%s|%s|%s", c.Enabled, c.Provider, c.Endpoint, c.Bucket, c.Region, c.AccessKey)
+	return fmt.Sprintf("s3|%t|%s|%s|%s|%s|%s|%t|%x", c.Enabled, c.Provider, c.Endpoint, c.Bucket, c.Region, c.AccessKey, c.PathStyle, sha256.Sum256([]byte(c.SecretKey)))
 }
 
 // initCache (re)builds the active cache from cfg. It stops and drops any
@@ -564,27 +565,30 @@ func (p *Proxy) proxyRequest(w http.ResponseWriter, r *http.Request, reg *Regist
 	repo := extractRepo(r.URL.Path)
 	cacheKey, kind, isDigest, _, cacheable := p.classifyCache(r.URL.Path, reg.Name, repo)
 
-	if cacheable {
+	// Only full GET responses have a body that can be cached. HEAD may read a
+	// populated entry, but a cache miss must never store its empty response.
+	if cacheable && (r.Method == http.MethodGet || r.Method == http.MethodHead) && r.Header.Get("Range") == "" {
 		if c, ok := p.activeCache(); ok {
 			if obj, hit := c.Open(cacheKey, p.manifestTTL()); hit {
 				p.recordCacheHit(obj.Size)
 				return p.serveFromCache(w, r, obj)
 			}
 			p.recordCacheMiss()
-
-			var leaderWritten int64
-			_, ferr, shared := p.cacheGroup.Do(cacheKey, func() (interface{}, error) {
-				n, e := p.fetchAndStore(w, r, client, reg, target, c, cacheKey, kind, isDigest)
-				leaderWritten = n
-				return nil, e
-			})
-			if !shared {
-				if ferr == nil || leaderWritten > 0 {
-					return leaderWritten
-				}
-			} else if ferr == nil {
-				if obj, hit := c.Open(cacheKey, p.manifestTTL()); hit {
-					return p.serveFromCache(w, r, obj)
+			if r.Method == http.MethodGet {
+				var leaderWritten int64
+				_, ferr, shared := p.cacheGroup.Do(cacheKey, func() (interface{}, error) {
+					n, e := p.fetchAndStore(w, r, client, reg, target, c, cacheKey, kind, isDigest)
+					leaderWritten = n
+					return nil, e
+				})
+				if !shared {
+					if ferr == nil || leaderWritten > 0 {
+						return leaderWritten
+					}
+				} else if ferr == nil {
+					if obj, hit := c.Open(cacheKey, p.manifestTTL()); hit {
+						return p.serveFromCache(w, r, obj)
+					}
 				}
 			}
 		}
@@ -792,6 +796,10 @@ func (p *Proxy) fetchAndStore(w http.ResponseWriter, r *http.Request, client *ht
 			wtr.Abort()
 			return written, rerr
 		}
+	}
+	if written == 0 {
+		wtr.Abort()
+		return 0, nil
 	}
 	if cerr := wtr.Close(); cerr != nil {
 		wtr.Abort()
@@ -1033,10 +1041,10 @@ func singleJoiningSlash(a, b string) string {
 // addresses and CIDR networks for both IPv4 and IPv6; invalid entries are
 // dropped and reported via Invalid so the operator can fix them.
 type aclMatcher struct {
-	mode    AccessControlMode
+	mode      AccessControlMode
 	whitelist []*net.IPNet
 	blacklist []*net.IPNet
-	Invalid  []string
+	Invalid   []string
 }
 
 // buildACL compiles an AccessControl into a matcher. An unknown/empty mode

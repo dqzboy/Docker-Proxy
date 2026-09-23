@@ -89,15 +89,14 @@ type CacheConfig struct {
 	TagsTTL     int    `yaml:"tags_ttl" json:"tags_ttl"`             // tags/list TTL; 0 -> default 5m
 
 	// --- S3 兼容后端配置（backend=s3 时生效）---
-	// Provider selects a vendor preset that pre-fills path-style / secure /
-	// region hints: minio | ceph | aliyun | tencent | huawei | custom.
+	// Provider selects a vendor preset for the UI; endpoint scheme overrides HTTPS.
 	Provider  string `yaml:"provider" json:"provider"`
 	Endpoint  string `yaml:"endpoint" json:"endpoint"`   // S3 服务域名，如 oss-cn-hangzhou.aliyuncs.com
 	Region    string `yaml:"region" json:"region"`       // 区域，如 cn-hangzhou
 	Bucket    string `yaml:"bucket" json:"bucket"`       // 桶名
 	AccessKey string `yaml:"access_key" json:"access_key"` // AK
 	SecretKey string `yaml:"secret_key" json:"secret_key"` // SK（GET 返回时脱敏为 ********）
-	PathStyle bool   `yaml:"path_style" json:"path_style"` // 路径风格寻址（MinIO/Ceph 自托管默认开启；云厂商虚拟主机风格关闭）
+	PathStyle bool   `yaml:"path_style" json:"path_style"` // true: 路径风格寻址；false: SDK 自动寻址
 }
 
 // AccessControl configures per-request IP allow/deny at the proxy layer.
