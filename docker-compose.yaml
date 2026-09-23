@@ -14,7 +14,7 @@ services:
     # 配置持久化：挂载宿主机目录，容器内配置写在 /app/config.d/config.yaml。
     volumes:
       - ./config/go-proxy:/app/config.d
-      # 镜像缓存（开启缓存后落盘于此；默认配置 cache.enabled=false 时不写入）。
+      # 镜像缓存（开启缓存后落盘于此；默认配置 cache.enabled=false 时不写入）
       - ./data/go-proxy-cache:/app/cache
     ports:
       - 50000:5000
