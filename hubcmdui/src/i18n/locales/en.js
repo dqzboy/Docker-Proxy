@@ -481,6 +481,8 @@ export default {
     "viewTags": "View Tags",
     "noMatch": "No image matching \"{kw}\" found",
     "enterKeywordToSearch": "Enter keywords to start searching",
+    "noResultTipTitle": "Search tip",
+    "noResultTip": "Registries such as GHCR, GCR, K8s, MCR, Elastic and NVCR do not offer full-text package search — only exact path matching. If you know the owner, search the full \"owner/package\" path instead, for example: immich-app/immich-server.",
     "quickSearch": "Quick Search",
     "quickSearchDesc": "Easily search all available images on Docker Hub",
     "versionMgmt": "Version Management",

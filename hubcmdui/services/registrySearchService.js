@@ -1146,7 +1146,7 @@ async function tryK8sReleaseFallback(imageName, page, pageSize, context) {
   }
 }
 
-async function probeImageTags(registryId, imageName) {
+async function probeImageTags(registryId, imageName, requestOptions = {}) {
   if (registryId === 'quay') {
     const { normalized, data } = await fetchQuayActiveTagPage(imageName, 1, 1);
     const tags = data.tags || [];
@@ -1159,7 +1159,7 @@ async function probeImageTags(registryId, imageName) {
   }
 
   const url = withQueryParam(buildRegistryTagsUrl(registryId, imageName), 'n', 1);
-  const response = await fetchWithRegistryAuth(url, registryId, imageName);
+  const response = await fetchWithRegistryAuth(url, registryId, imageName, requestOptions);
   const tags = response.data?.tags || [];
   return {
     registry: registryId,
@@ -1169,12 +1169,12 @@ async function probeImageTags(registryId, imageName) {
   };
 }
 
-async function searchExactImage(registryId, term) {
+async function searchExactImage(registryId, term, requestOptions = {}) {
   const normalized = normalizeRegistrySearchTerm(registryId, term);
   if (!shouldAttemptExactLookup(registryId, normalized)) return null;
 
   try {
-    await probeImageTags(registryId, normalized.imageName);
+    await probeImageTags(registryId, normalized.imageName, requestOptions);
     return makeRegistrySearchItem(registryId, normalized.imageName, {
       isExactMatch: true,
       description: `${REGISTRY_CONFIGS[registryId].name} 精确匹配镜像`
@@ -1648,6 +1648,19 @@ async function enrichGHCRRepositoryResults(items, query) {
     packages: await getGitHubContainerPackages(owner)
   }));
   const packageMap = new Map(ownerPackages.map(entry => [entry.owner.toLowerCase(), entry.packages]));
+  // GitHub repository search is not a GHCR package search. Without a PAT the
+  // Packages API may be unavailable, so verify owner/<searched package> via
+  // the public OCI endpoint rather than guessing the repository's package name.
+  const exactPackage = /^[a-z0-9][a-z0-9._-]*$/i.test(query) ? query : '';
+  const verifiedPackages = new Map();
+  if (exactPackage) {
+    await mapLimit(owners.slice(0, 8), 3, async owner => {
+      const known = packageMap.get(owner.toLowerCase()) || [];
+      if (known.some(pkg => pkg.name.toLowerCase() === exactPackage.toLowerCase())) return;
+      const item = await searchExactImage('ghcr', `${owner}/${exactPackage}`, { timeout: 5000 });
+      if (item) verifiedPackages.set(owner.toLowerCase(), item);
+    });
+  }
   const enriched = [];
 
   for (const repositoryItem of repositories) {
@@ -1657,6 +1670,9 @@ async function enrichGHCRRepositoryResults(items, query) {
     const matchedPackages = packages
       .map(pkg => pkg.name)
       .filter(name => packageNameMatchesRepository(name, repoName, query));
+    if (verifiedPackages.has(owner) && !matchedPackages.some(name => name.toLowerCase() === exactPackage.toLowerCase())) {
+      matchedPackages.unshift(exactPackage);
+    }
 
     if (matchedPackages.length) {
       for (const packageName of matchedPackages) {

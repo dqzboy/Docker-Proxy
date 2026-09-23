@@ -481,6 +481,8 @@ export default {
     "viewTags": "查看标签",
     "noMatch": "没有找到匹配 \"{kw}\" 的镜像",
     "enterKeywordToSearch": "输入关键词开始搜索",
+    "noResultTipTitle": "搜索提示",
+    "noResultTip": "GHCR、GCR、K8s、MCR、Elastic、NVCR 等平台没有提供全量关键词搜索，仅支持按精确路径匹配。若已知镜像归属，请改用「组织名/包名」的完整路径搜索，例如：immich-app/immich-server。",
     "quickSearch": "快速搜索",
     "quickSearchDesc": "便捷地搜索 Docker Hub 上的所有可用镜像",
     "versionMgmt": "版本管理",

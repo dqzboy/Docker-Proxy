@@ -445,8 +445,8 @@
               </div>
               <!-- 镜像名（原版默认地址，参考老版呈现） -->
               <div class="result-pull-command">
-                <code>{{ r.fullName || r.name }}</code>
-                <button class="copy-small-btn" @click="copyCmd(r.fullName || r.name)" :title="t('landing.copyImageNameTitle')"><i class="fas fa-copy"></i></button>
+                <code>{{ upstreamRefFor(r) }}</code>
+                <button class="copy-small-btn" @click="copyCmd(upstreamRefFor(r))" :title="t('landing.copyImageNameTitle')"><i class="fas fa-copy"></i></button>
               </div>
               <div class="result-actions">
                 <button class="action-btn primary" @click="useImage(r)">
@@ -461,6 +461,13 @@
           <div v-else-if="searchInput" class="empty">
             <i class="fas fa-search"></i>
             <p>{{ t('landing.noMatch', { kw: searchInput }) }}</p>
+            <div v-if="showNoResultTip" class="no-result-tip">
+              <i class="fas fa-lightbulb"></i>
+              <div class="no-result-tip-body">
+                <strong>{{ t('landing.noResultTipTitle') }}</strong>
+                <p>{{ t('landing.noResultTip') }}</p>
+              </div>
+            </div>
           </div>
           <div v-else class="empty">
             <i class="fas fa-search"></i>
@@ -820,6 +827,24 @@ function resolveProxyPull(registryId, imagePath) {
   return { image: `${up.prefix}/${up.path}`, name: up.name, color: up.color, badge: '#fff' }
 }
 
+function resolveUpstreamPull(registryId, imagePath, pullCommand) {
+  if (pullCommand) return pullCommand
+  const reg = registries.value.find(r => r.id === registryId)
+  const defaultHosts = {
+    ghcr: 'ghcr.io', quay: 'quay.io', gcr: 'gcr.io', k8s: 'registry.k8s.io',
+    mcr: 'mcr.microsoft.com', elastic: 'docker.elastic.co', nvcr: 'nvcr.io'
+  }
+  if (registryId === 'docker-hub') return imagePath
+  const prefix = defaultHosts[registryId] || normalizeProxyHost(reg?.prefix)
+  if (prefix && imagePath.startsWith(`${prefix}/`)) return imagePath
+  return prefix ? `${prefix}/${imagePath}` : imagePath
+}
+
+function upstreamRefFor(r) {
+  const id = r.registryId || searchScope.value
+  return resolveUpstreamPull(id, r.fullName || r.name, r.pullCommand)
+}
+
 function getProxyDomain() {
   // 优先取配置里的 proxyDomain
   return cfg.value?.proxyDomain || window.location.host || 'your-proxy-domain.com'
@@ -980,6 +1005,15 @@ const searchPlaceholder = computed(() => {
   return t('landing.searchPlaceholderScope', { reg: registryAbbr(currentReg.value) || '' })
 })
 
+const EXACT_MATCH_REGISTRIES = ['ghcr', 'gcr', 'k8s', 'mcr', 'elastic', 'nvcr']
+
+const showNoResultTip = computed(() => {
+  if (searching.value || searchResults.value.length) return false
+  if (!(searchInput.value || '').trim()) return false
+  if (searchScope.value === 'all') return true
+  return EXACT_MATCH_REGISTRIES.includes(searchScope.value)
+})
+
 async function searchImages(page = 1) {
   const kw = (searchInput.value || '').trim()
   if (!kw) {
@@ -1110,17 +1144,19 @@ async function goSearchPage(p) {
 // （docker-hub / quay 走专用接口；ghcr/gcr/k8s/mcr/elastic/nvcr 走统一的 OCI tags 接口，含 Bearer Token 挑战）
 function canViewTags(r) {
   const id = r.registryId || searchScope.value
-  return r.tagsAvailable !== false &&
-    ['docker-hub', 'quay', 'ghcr', 'gcr', 'k8s', 'mcr', 'elastic', 'nvcr'].includes(id)
+  const ociRegistries = ['ghcr', 'gcr', 'k8s', 'mcr', 'elastic', 'nvcr']
+  if (ociRegistries.includes(id)) return true
+  return r.tagsAvailable !== false && ['docker-hub', 'quay'].includes(id)
 }
 
 // 使用此镜像：跳到镜像加速页，直接按后台代理地址生成加速命令（不再回环解析）
 function useImage(r) {
   const id = r.registryId || currentReg.value?.id || 'docker-hub'
   const full = r.fullName || r.name
-  imageInput.value = full
+  const originalImage = resolveUpstreamPull(id, full, r.pullCommand)
+  imageInput.value = originalImage
   tab.value = 'accelerate'
-  setAccel(id, full, full)
+  setAccel(id, full, originalImage)
   ElMessage.success(t('landing.selectedImage', { name: full }))
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -1281,9 +1317,11 @@ function toggleArch(t) {
 function useTag(tag) {
   const name = tagNameOf(tag)
   const full = `${tagView.value.imageName}:${name}`
-  imageInput.value = full
+  const id = tagView.value.registryId
+  const originalImage = resolveUpstreamPull(id, full)
+  imageInput.value = originalImage
   tab.value = 'accelerate'
-  setAccel(tagView.value.registryId, full, full)
+  setAccel(id, full, originalImage)
   ElMessage.success(t('landing.selectedImage', { name: full }))
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -2020,6 +2058,24 @@ onUnmounted(() => {
   color: #8896ab;
 }
 .empty-hint i { font-size: 32px; color: #c8d4e8; display: block; margin-bottom: 8px; }
+
+.no-result-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 620px;
+  margin: 18px auto 0;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #edf1f7;
+  border-left: 3px solid #2496ed;
+  border-radius: 10px;
+  text-align: left;
+}
+.no-result-tip > i { color: #2496ed; font-size: 16px; margin-top: 2px; flex-shrink: 0; }
+.no-result-tip-body { flex: 1; min-width: 0; }
+.no-result-tip-body strong { display: block; font-size: 13px; color: #2a3749; margin-bottom: 4px; }
+.no-result-tip-body p { margin: 0; font-size: 13px; line-height: 1.6; color: #6b7a90; }
 
 /* ============== 特性卡 ============== */
 .features {

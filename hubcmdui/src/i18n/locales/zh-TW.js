@@ -481,6 +481,8 @@ export default {
     "viewTags": "查看標籤",
     "noMatch": "沒有找到符合 \"{kw}\" 的映像",
     "enterKeywordToSearch": "輸入關鍵字開始搜尋",
+    "noResultTipTitle": "搜尋提示",
+    "noResultTip": "GHCR、GCR、K8s、MCR、Elastic、NVCR 等平台未提供全量關鍵詞搜尋，僅支援精確路徑比對。若已知映像歸屬，請改用「組織名/套件名」的完整路徑搜尋，例如：immich-app/immich-server。",
     "quickSearch": "快速搜尋",
     "quickSearchDesc": "便捷地搜尋 Docker Hub 上的所有可用映像",
     "versionMgmt": "版本管理",

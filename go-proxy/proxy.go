@@ -630,12 +630,16 @@ func (p *Proxy) getUpstreamResponse(client *http.Client, r *http.Request, reg *R
 	}
 	if resp.StatusCode == http.StatusUnauthorized && reg.Auth.Type != AuthAnonymous {
 		challenge := resp.Header.Get("WWW-Authenticate")
-		realm, service, _ := parseBearerChallenge(challenge)
-		resp.Body.Close()
+		realm, service, challengedScope := parseBearerChallenge(challenge)
 		if realm != "" {
+			// A registry alias (e.g. lscr.io) may redirect to another host
+			// (ghcr.io). Retry the URL that actually issued the challenge:
+			// Go intentionally drops Authorization on cross-host redirects.
+			retryURL := resp.Request.URL.String()
+			resp.Body.Close()
 			repo := extractRepo(r.URL.Path)
-			scope := ""
-			if repo != "" {
+			scope := challengedScope
+			if scope == "" && repo != "" {
 				scope = "repository:" + repo + ":pull"
 			}
 			token, terr := p.getToken(client, realm, service, scope, reg)
@@ -643,8 +647,9 @@ func (p *Proxy) getUpstreamResponse(client *http.Client, r *http.Request, reg *R
 				return nil, terr
 			}
 			if token != "" {
-				return p.doUpstream(client, r, target, token)
+				return p.doUpstream(client, r, retryURL, token)
 			}
+			return nil, fmt.Errorf("empty token from %s", realm)
 		}
 	}
 	return resp, nil

@@ -128,6 +128,35 @@ test('GHCR 精确镜像输入先通过 tags/list 验证，GitHub 搜索不再强
   assert.doesNotMatch(githubSearchUrl, /topic%3Acontainer|topic:container/);
 });
 
+test('GHCR 关键词搜索可发现 GitHub 仓库名不同的公开容器包', async () => {
+  const urls = [];
+  const service = loadServiceWithAxios({
+    async get(url) {
+      urls.push(url);
+      if (String(url).startsWith('https://api.github.com/search/repositories?')) {
+        return { data: { items: [{
+          name: 'immich', owner: { login: 'immich-app', type: 'Organization' },
+          description: 'Self-hosted photos', stargazers_count: 42
+        }] } };
+      }
+      if (String(url).startsWith('https://ghcr.io/token?')) {
+        return { data: { token: 'public-token', expires_in: 300 } };
+      }
+      if (url === 'https://ghcr.io/v2/immich-app/immich-server/tags/list?n=1') {
+        return { data: { name: 'immich-app/immich-server', tags: ['v3.2.2'] } };
+      }
+      throw new Error(`unexpected url: ${url}`);
+    }
+  });
+
+  const result = await service.searchGHCR('immich-server', 1, 10);
+  const item = result.results.find(entry => entry.fullName === 'immich-app/immich-server');
+  assert.ok(item, '应返回验证过的 GHCR 容器包，而不是仅猜测 GitHub 仓库名');
+  assert.equal(item.pullCommand, 'ghcr.io/immich-app/immich-server');
+  assert.equal(item.tagsAvailable, true);
+  assert.ok(urls.includes('https://ghcr.io/v2/immich-app/immich-server/tags/list?n=1'));
+});
+
 test('多级 OCI 镜像路径按完整 repo 构造 tags/list URL', async () => {
   const requestedUrls = [];
   const service = loadServiceWithAxios({
