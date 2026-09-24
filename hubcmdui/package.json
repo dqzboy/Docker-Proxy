@@ -30,9 +30,12 @@
     "editor.md": "^1.5.0",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "http-proxy-agent": "4.0.1",
+    "https-proxy-agent": "5.0.1",
     "node-cache": "^5.1.2",
     "p-limit": "^4.0.0",
     "sqlite3": "^5.1.7",
+    "socks-proxy-agent": "6.2.1",
     "systeminformation": "^5.25.11",
     "validator": "^13.7.0",
     "ws": "^8.8.1"

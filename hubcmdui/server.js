@@ -2,6 +2,7 @@
  * Docker 镜像代理加速系统 - 服务器入口点
  */
 const express = require('express');
+require('./lib/outboundProxy').installOutboundProxy();
 const fs = require('fs').promises;
 const path = require('path');
 const bodyParser = require('body-parser');

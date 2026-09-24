@@ -6,10 +6,8 @@ const axios = require('axios');
 const logger = require('../logger');
 const crypto = require('crypto');
 
-// HTTP 请求配置
-// 不要在这里设置 proxy:false。Node.js 下的 Axios 会根据
-// HTTP_PROXY / HTTPS_PROXY / NO_PROXY 环境变量决定是否走出口代理；
-// 强制关闭代理会导致受限网络中的 Docker Hub/Registry 搜索直接超时。
+// HTTP 请求配置。出站代理由 server.js 的 Axios 请求拦截器统一处理，
+// HTTPS 经 HTTP 代理时通过 CONNECT 隧道，NO_PROXY 目标直连。
 const httpOptions = {
   timeout: 15000,
   headers: {

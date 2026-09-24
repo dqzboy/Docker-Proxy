@@ -39,8 +39,11 @@ services:
       - GO_PROXY_ADMIN_TOKEN=${GO_PROXY_ADMIN_TOKEN:-change-me-to-a-strong-random-token}
       # 会话签名密钥。生成：openssl rand -hex 32
       - SESSION_SECRET=${SESSION_SECRET:-}
-      # 前台镜像搜索会直接访问 Docker Hub、GitHub、Quay 等外部 API。
-      # 一键安装脚本配置上游代理时会与 go-proxy 同步启用以下三项；默认关闭。
+      # 镜像搜索由 hubcmd-ui 服务端访问 Docker Hub、GitHub、Quay 等外部 API。
+      # 默认不注入代理变量；extra_hosts + DNS/SNI 直连时保持下面三行注释。
+      # 使用 HTTP(S) 上游代理时才取消注释；HTTPS 目标会由 UI 建立 CONNECT 隧道。
+      # 若同时使用代理和 DNS/SNI，给 NO_PROXY 增加需要经 extra_hosts 直连的域名。
+      # 一键安装脚本选择上游代理后会自动启用这三行，可按需单独关闭 UI 的代理。
       # - HTTP_PROXY=http://host:port
       # - HTTPS_PROXY=http://host:port
       # - NO_PROXY=localhost,127.0.0.1,::1,go-proxy,reg-go-proxy,hubcmd-ui,.local

@@ -30,7 +30,7 @@ function loadServiceWithAxios(axiosStub) {
   }
 }
 
-test('Docker Hub 搜索不禁用 Axios 的环境代理支持', async () => {
+test('Docker Hub 搜索交给服务端统一出站代理拦截器处理', async () => {
   let requestOptions;
   const service = loadServiceWithAxios({
     async get(url, options) {
@@ -45,7 +45,7 @@ test('Docker Hub 搜索不禁用 Axios 的环境代理支持', async () => {
   assert.equal(
     Object.prototype.hasOwnProperty.call(requestOptions, 'proxy'),
     false,
-    'proxy 配置应留给 Axios 根据 HTTP_PROXY/HTTPS_PROXY/NO_PROXY 环境变量解析'
+    '服务端的统一拦截器负责按目标地址处理代理和 NO_PROXY'
   );
 });
 

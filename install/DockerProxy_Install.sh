@@ -1640,19 +1640,23 @@ COMPOSE_PROXY_NO_PROXY="localhost,127.0.0.1,::1,go-proxy,reg-go-proxy,hubcmd-ui,
 function SET_COMPOSE_PROXY_ENV() {
     local compose_file="$1"
     local proxy_address="$2"
-    proxy_address="${proxy_address#http://}"
-    proxy_address="${proxy_address#https://}"
+    [[ "$proxy_address" == *://* ]] || proxy_address="http://$proxy_address"
+    # Go's net/http ProxyFromEnvironment accepts HTTP(S) upstream proxies, not SOCKS.
+    if [[ ! "$proxy_address" =~ ^https?://[^/[:space:]#]+$ ]]; then
+        ERROR "上游代理须为 host:port、http://host:port 或 https://host:port；Go 不支持 SOCKS 出口代理"
+        return 1
+    fi
 
     [[ -f "$compose_file" ]] || return 1
     awk -v px="$proxy_address" -v no_proxy="$COMPOSE_PROXY_NO_PROXY" '
         /^  (go-proxy|hubcmd-ui):[[:space:]]*$/ { in_proxy_service=1; print; next }
         /^  [a-zA-Z0-9_-]+:/ { in_proxy_service=0 }
         in_proxy_service && /^[[:space:]]*#?[[:space:]]*-[[:space:]]*HTTP_PROXY=/ {
-            print "      - HTTP_PROXY=http://" px
+            print "      - HTTP_PROXY=" px
             next
         }
         in_proxy_service && /^[[:space:]]*#?[[:space:]]*-[[:space:]]*HTTPS_PROXY=/ {
-            print "      - HTTPS_PROXY=http://" px
+            print "      - HTTPS_PROXY=" px
             next
         }
         in_proxy_service && /^[[:space:]]*#?[[:space:]]*-[[:space:]]*NO_PROXY=/ {
@@ -1719,17 +1723,16 @@ case $modify_config in
         read -e -p "$(INFO "输入代理地址(科学上网) ${LIGHT_MAGENTA}(eg: host:port)${RESET}: ")" url
       fi
     done
-    url="${url#http://}"
-    url="${url#https://}"
+    [[ "$url" == *://* ]] || url="http://$url"
     if ! SET_COMPOSE_PROXY_ENV "${PROXY_DIR}/${DOCKER_COMPOSE_FILE}" "$url"; then
       ERROR "写入 compose 代理配置失败"
       return 1
     fi
 
     if [[ "$SCRIPT_LANG" == "en" ]]; then
-      INFO "Upstream proxy configured for go-proxy and hubcmd-ui: ${CYAN}http://${url}${RESET}"
+      INFO "Upstream proxy configured for go-proxy and hubcmd-ui: ${CYAN}${url}${RESET}"
     else
-      INFO "已为 go-proxy 与 hubcmd-ui 配置上游代理: ${CYAN}http://${url}${RESET}"
+      INFO "已为 go-proxy 与 hubcmd-ui 配置上游代理: ${CYAN}${url}${RESET}"
     fi
     ;;
   [Nn]* )
@@ -2096,13 +2099,12 @@ function SET_UPSTREAM_PROXY() {
                 WARN "代理地址不能为空"
                 read -e -p "$(INFO "输入代理地址: ")" px
             done
-            px="${px#http://}"
-            px="${px#https://}"
+            [[ "$px" == *://* ]] || px="http://$px"
             SET_COMPOSE_PROXY_ENV "$COMPOSE_FILE" "$px" || {
                 ERROR "写入 compose 代理配置失败"
                 return 1
             }
-            INFO "已为 go-proxy 与 hubcmd-ui 设置出口代理: ${LIGHT_CYAN}http://${px}${RESET}（需 up -d 生效）"
+            INFO "已为 go-proxy 与 hubcmd-ui 设置出口代理: ${LIGHT_CYAN}${px}${RESET}（需 up -d 生效）"
             ;;
         2)
             CLEAR_COMPOSE_PROXY_ENV "$COMPOSE_FILE" || {
