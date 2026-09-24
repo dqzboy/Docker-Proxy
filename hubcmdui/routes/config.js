@@ -6,6 +6,8 @@ const router = express.Router();
 const logger = require('../logger');
 const { requireLogin } = require('../middleware/auth');
 const configServiceDB = require('../services/configServiceDB');
+const { saveBasicRegistryConfigs } = require('../services/basicRegistrySyncService');
+const { upstreamError } = require('../services/goProxyService');
 
 // 过滤掉锁定（_lock_ 前缀）的配置键，避免将加密密文随公开配置下发
 function stripLocked(config) {
@@ -168,11 +170,12 @@ router.put('/registry-configs/:registryId', requireLogin, async (req, res) => {
             });
         }
         
-        await configServiceDB.updateRegistryConfig(registryId, config);
+        await saveBasicRegistryConfigs([{ ...config, registryId }]);
         res.json({ success: true, message: `Registry ${registryId} 配置已更新` });
     } catch (error) {
         logger.error('更新 Registry 配置失败:', error);
-        res.status(500).json({ error: '更新 Registry 配置失败', details: error.message });
+        const upstream = error.isGoProxyError ? upstreamError(error) : null;
+        res.status(error.status || upstream?.status || 500).json(upstream?.body || { error: error.message });
     }
 });
 
@@ -188,11 +191,12 @@ router.post('/registry-configs', requireLogin, async (req, res) => {
             });
         }
         
-        await configServiceDB.updateRegistryConfigs(configs);
+        await saveBasicRegistryConfigs(configs);
         res.json({ success: true, message: 'Registry 配置已保存' });
     } catch (error) {
         logger.error('保存 Registry 配置失败:', error);
-        res.status(500).json({ error: '保存 Registry 配置失败', details: error.message });
+        const upstream = error.isGoProxyError ? upstreamError(error) : null;
+        res.status(error.status || upstream?.status || 500).json(upstream?.body || { error: error.message });
     }
 });
 
