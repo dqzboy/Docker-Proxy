@@ -40,20 +40,6 @@ gcr.your_domain_name {
     }
 }
 
-k8s-gcr.your_domain_name {
-    # 拒绝访问 Go 代理管理 API（/-/ 路径）；管理端口仅内网 5001 提供，此处二次防护
-    @admin path /-/*
-    respond @admin 404
-
-    reverse_proxy localhost:50000 {
-        header_up Host k8s.gcr.io
-        header_up X-Forwarded-Host {host}
-        header_up X-Forwarded-Proto {scheme}
-        header_up X-Real-IP {remote_addr}
-        header_up X-Forwarded-For {remote_addr}
-    }
-}
-
 k8s.your_domain_name {
     # 拒绝访问 Go 代理管理 API（/-/ 路径）；管理端口仅内网 5001 提供，此处二次防护
     @admin path /-/*

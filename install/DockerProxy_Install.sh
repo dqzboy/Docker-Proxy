@@ -281,8 +281,8 @@ UI_IMAGE_NAME="dqzboy/hubcmd-ui"
 DOCKER_COMPOSE_FILE="docker-compose.yaml"
 
 # Registry Domain prefix
-REGISTRY_SLD="ui、hub、gcr、ghcr、k8sgcr、k8s、quay、mcr、elastic、nvcr"
-RECORDS=("ui" "hub" "gcr" "ghcr" "k8sgcr" "k8s" "quay" "mcr" "elastic" "nvcr")
+REGISTRY_SLD="ui、hub、gcr、ghcr、k8s、quay、mcr、elastic、nvcr"
+RECORDS=("ui" "hub" "gcr" "ghcr" "k8s" "quay" "mcr" "elastic" "nvcr")
 
 attempts=0
 maxAttempts=3
@@ -782,14 +782,6 @@ while true; do
         header_up X-Nginx-Proxy true
     }
 }"
-            record_templates[k8sgcr]="k8sgcr.$caddy_domain {
-    reverse_proxy localhost:50000 {
-        header_up Host {host}
-        header_up X-Real-IP {remote_addr}
-        header_up X-Forwarded-For {remote_addr}
-        header_up X-Nginx-Proxy true
-    }
-}"
             record_templates[k8s]="k8s.$caddy_domain {
     reverse_proxy localhost:50000 {
         header_up Host {host}
@@ -1092,33 +1084,6 @@ while true; do
     listen       80;
     #listen       443 ssl;
     server_name  gcr.$nginx_domain;
-    #ssl_certificate /path/to/your_domain_name.crt;
-    #ssl_certificate_key /path/to/your_domain_name.key;
-    #ssl_session_timeout 1d;
-    #ssl_session_cache   shared:SSL:50m;
-    #ssl_session_tickets off;
-    #ssl_protocols TLSv1.2 TLSv1.3;
-    #ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
-    #ssl_prefer_server_ciphers on;
-    #ssl_buffer_size 8k;
-    proxy_connect_timeout 600;
-    proxy_send_timeout    600;
-    proxy_read_timeout    600;
-    send_timeout          600;
-    location / {
-        proxy_pass   http://localhost:50000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;        
-        proxy_set_header X-Nginx-Proxy true;
-        proxy_buffering off;
-        proxy_redirect off;
-    }
-}"
-            record_templates[k8sgcr]="server {
-    listen       80;
-    #listen       443 ssl;
-    server_name  k8sgcr.$nginx_domain;
     #ssl_certificate /path/to/your_domain_name.crt;
     #ssl_certificate_key /path/to/your_domain_name.key;
     #ssl_session_timeout 1d;

@@ -42,14 +42,6 @@ registries:
     auth:
       type: token
 
-  # ============ k8s.gcr.io (旧) ============
-  - name: k8sgcr
-    hosts:
-      - "k8s-gcr.your_domain_name"
-    upstream: "https://k8s.gcr.io"
-    auth:
-      type: token
-
   # ============ registry.k8s.io ============
   - name: k8s
     hosts:
