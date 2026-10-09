@@ -19,7 +19,7 @@
 [![HitCount](https://views.whatilearened.today/views/github/dqzboy/Docker-Proxy.svg)](https://github.com/dqzboy/Docker-Proxy)
 [![GitHub license](https://img.shields.io/github/license/dqzboy/Docker-Proxy)](https://github.com/dqzboy/Docker-Proxy/blob/main/LICENSE)
 
-📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">Docker Proxy-TG交流群</a> 
+📢 <a href="https://t.me/+ghs_XDp1vwxkMGU9" style="font-size: 15px;">交流群</a>  | [交流社区](https://www.dqzboy.com/community/)
 
 </div>
 
