@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -291,5 +293,221 @@ func TestCacheSigS3(t *testing.T) {
 	d.Cache.PathStyle = true
 	if cacheSig(a) == cacheSig(&d) {
 		t.Error("changing path style must rebuild S3 client")
+	}
+}
+
+// TestSplitMetaValue 验证元数据分块：每块不超过上限、不切断 UTF-8 多字节字符，
+// 且拼接后与原文完全一致。
+func TestSplitMetaValue(t *testing.T) {
+	in := strings.Repeat("报文", 100) + "abc"
+	chunks := splitMetaValue(in, 7)
+	if strings.Join(chunks, "") != in {
+		t.Fatal("chunked metadata does not reassemble to the original value")
+	}
+	for _, c := range chunks {
+		if len(c) > 7 {
+			t.Fatalf("chunk %q is %d bytes, want <= 7", c, len(c))
+		}
+		if !utf8.ValidString(c) {
+			t.Fatalf("chunk %q splits a multi-byte rune", c)
+		}
+	}
+	if got := splitMetaValue("", 7); got != nil {
+		t.Fatalf("empty value should produce no chunks, got %v", got)
+	}
+}
+
+// TestS3MetaHeaderRoundTrip 验证分块后的 dp-header-<n> 能被 readMeta 完整还原，
+// 同时兼容旧版本写入的单个 dp-header。
+func TestS3MetaHeaderRoundTrip(t *testing.T) {
+	large := map[string][]string{
+		"Content-Type":                 {"application/vnd.oci.image.index.v1+json"},
+		"Docker-Content-Digest":        {"sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc"},
+		"Ratelimit-Limit":              {"100;w=3600"},
+		"Strict-Transport-Security":    {"max-age=31536000"},
+		"X-Ratelimit-Remaining":        {"99;w=3600"},
+		"X-Docker-Distribution-Header": {strings.Repeat("v", 400)},
+	}
+	raw, _ := json.Marshal(large)
+	chunks := splitMetaValue(string(raw), maxS3MetaValue)
+	if len(chunks) < 2 {
+		t.Fatalf("expected several chunks for %d bytes of header JSON, got %d", len(raw), len(chunks))
+	}
+	um := map[string]string{"dp-kind": "manifest"}
+	for i, c := range chunks {
+		um[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)] = c
+	}
+	m := (&s3Cache{}).readMeta(minio.ObjectInfo{Size: 42, UserMetadata: um})
+	for k, vv := range large {
+		if got := m.Header[k]; len(got) == 0 || got[0] != vv[0] {
+			t.Fatalf("header %s not restored: %v", k, got)
+		}
+	}
+	if m.Kind != "manifest" || m.Size != 42 {
+		t.Fatalf("metadata lost: kind=%q size=%d", m.Kind, m.Size)
+	}
+	// Legacy single-value format must keep working.
+	legacy := (&s3Cache{}).readMeta(minio.ObjectInfo{UserMetadata: map[string]string{
+		"dp-header": `{"Content-Type":["text/plain"]}`,
+	}})
+	if http.Header(legacy.Header).Get("Content-Type") != "text/plain" {
+		t.Fatalf("legacy dp-header not parsed: %v", legacy.Header)
+	}
+}
+
+// TestS3CacheLargeHeadersWithMetaLimit 复现真实故障：部分 S3 兼容服务（Ceph RGW +
+// nginx）会拒绝长度超过 256 字节的单条 x-amz-meta-* 值并返回 400 InvalidURI。
+// Docker Hub 的响应头 JSON 约 700 字节，修复前每次缓存写入都会失败，表现为
+// "缓存已启用但对象永远写不进去、命中率恒为 0"。
+func TestS3CacheLargeHeadersWithMetaLimit(t *testing.T) {
+	const key = "t/docker/library/nginx/latest"
+	var mu sync.Mutex
+	var body []byte
+	var metadata http.Header
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		if r.URL.Path != "/bucket/"+s3CachePrefix+key {
+			http.Error(w, "wrong key", http.StatusBadRequest)
+			return
+		}
+		switch r.Method {
+		case http.MethodPut:
+			for k, vv := range r.Header {
+				if !strings.HasPrefix(strings.ToLower(k), "x-amz-meta-") {
+					continue
+				}
+				for _, v := range vv {
+					if len(v) > 256 {
+						w.Header().Set("Content-Type", "text/xml")
+						w.WriteHeader(http.StatusBadRequest)
+						_, _ = io.WriteString(w, `<?xml version="1.0" encoding="UTF-8"?><Error><Code>InvalidURI</Code><Message>Could not parse the specified URI</Message></Error>`)
+						return
+					}
+				}
+			}
+			body, _ = io.ReadAll(r.Body)
+			metadata = r.Header.Clone()
+			w.Header().Set("ETag", `"abc"`)
+		case http.MethodGet, http.MethodHead:
+			if body == nil {
+				http.NotFound(w, r)
+				return
+			}
+			for k, vv := range metadata {
+				if strings.HasPrefix(strings.ToLower(k), "x-amz-meta-") {
+					w.Header()[k] = vv
+				}
+			}
+			w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+			w.Header().Set("Content-Length", fmt.Sprint(len(body)))
+			w.Header().Set("ETag", `"abc"`)
+			if r.Method == http.MethodGet {
+				_, _ = w.Write(body)
+			}
+		default:
+			http.Error(w, "unexpected method", http.StatusBadRequest)
+		}
+	}))
+	defer server.Close()
+	client, err := minio.New(strings.TrimPrefix(server.URL, "http://"), &minio.Options{Creds: credentials.NewStaticV4("ak", "sk", ""), Secure: false, Region: "us-east-1", BucketLookup: minio.BucketLookupPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &s3Cache{client: client, bucket: "bucket", prefix: s3CachePrefix, staging: t.TempDir(), index: map[string]*cacheEntry{}}
+	// Realistic Docker Hub manifest response headers (~700 bytes as JSON).
+	hdr := http.Header{
+		"Content-Length":                  {"9226"},
+		"Content-Type":                    {"application/vnd.oci.image.index.v1+json"},
+		"Date":                            {"Sat, 17 Oct 2026 17:52:37 GMT"},
+		"Docker-Content-Digest":           {"sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc"},
+		"Docker-Distribution-Api-Version": {"registry/2.0"},
+		"Docker-Ratelimit-Source":         {"211.75.210.66"},
+		"Etag":                            {`"sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc"`},
+		"Ratelimit-Limit":                 {"100;w=3600"},
+		"Ratelimit-Remaining":             {"99;w=3600"},
+		"Strict-Transport-Security":       {"max-age=31536000"},
+		"X-Ratelimit-Limit":               {"100;w=3600"},
+		"X-Ratelimit-Remaining":           {"99;w=3600"},
+	}
+	w, err := s.Writer(key, hdr, "sha256:abc", "manifest", time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := w.Write([]byte(`{"schemaVersion":2}`)); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Close(); err != nil {
+		t.Fatalf("cache upload rejected by provider metadata limit: %v", err)
+	}
+	var chunkCount int
+	for k, vv := range metadata {
+		lk := strings.ToLower(k)
+		if strings.HasPrefix(lk, "x-amz-meta-dp-header-") {
+			chunkCount++
+			if len(vv[0]) > maxS3MetaValue {
+				t.Fatalf("metadata chunk %s is %d bytes, limit %d", k, len(vv[0]), maxS3MetaValue)
+			}
+		}
+	}
+	if chunkCount < 2 {
+		t.Fatalf("expected chunked header metadata, got %d chunks", chunkCount)
+	}
+	obj, ok := s.Open(key, time.Hour)
+	if !ok {
+		t.Fatal("S3 cache miss after successful upload")
+	}
+	defer obj.Reader.Close()
+	if got := obj.Header.Get("Content-Type"); got != hdr.Get("Content-Type") {
+		t.Fatalf("replayed Content-Type = %q, want %q", got, hdr.Get("Content-Type"))
+	}
+	if got := obj.Header.Get("Docker-Content-Digest"); got != hdr.Get("Docker-Content-Digest") {
+		t.Fatalf("replayed Docker-Content-Digest = %q", got)
+	}
+}
+
+// TestListObjectKey 验证列表返回的 URL 编码 key 会被还原。部分 S3 兼容网关在
+// encoding-type=url 时编码对象名，却不在响应里回显 EncodingType，minio-go 因此
+// 无法自动解码；若不还原，warmIndex 会把同一个对象记成两条、Clear 也会删错对象。
+func TestListObjectKey(t *testing.T) {
+	cases := map[string]string{
+		"b/repo/sha256:abc":   "b/repo/sha256:abc",
+		"b/repo/sha256%3Aabc": "b/repo/sha256:abc",
+		"t/repo/latest":       "t/repo/latest",
+		"weird%nothex":        "weird%nothex",
+	}
+	for in, want := range cases {
+		if got := listObjectKey(in); got != want {
+			t.Errorf("listObjectKey(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+// TestS3CacheWarmIndexDecodesEncodedKeys 复现网关不回显 EncodingType 的情况：
+// 列表里的 key 是 "sha256%3A..."，预热后索引必须使用解码后的 key，否则后续
+// Open 会因为 key 不匹配而重复计数（entries/sizeBytes 翻倍）。
+func TestS3CacheWarmIndexDecodesEncodedKeys(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || !r.URL.Query().Has("list-type") {
+			http.Error(w, "unexpected request", http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/xml")
+		// 故意不带 <EncodingType>url</EncodingType>，模拟该网关的响应。
+		fmt.Fprintf(w, `<ListBucketResult><Name>bucket</Name><Prefix>%s</Prefix><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>%sb/dockerhub/library/alpine/sha256%%3Aabc</Key><LastModified>2026-10-17T00:00:00.000Z</LastModified><ETag>"abc"</ETag><Size>7</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>`, s3CachePrefix, s3CachePrefix)
+	}))
+	defer server.Close()
+	client, err := minio.New(strings.TrimPrefix(server.URL, "http://"), &minio.Options{Creds: credentials.NewStaticV4("ak", "sk", ""), Secure: false, Region: "us-east-1", BucketLookup: minio.BucketLookupPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &s3Cache{client: client, bucket: "bucket", prefix: s3CachePrefix, index: map[string]*cacheEntry{}}
+	s.warmIndex(5 * time.Second)
+	wantKey := "b/dockerhub/library/alpine/sha256:abc"
+	if _, ok := s.index[wantKey]; !ok {
+		t.Fatalf("warmIndex did not decode key, index=%v", s.index)
+	}
+	if count, size := s.Stat(); count != 1 || size != 7 {
+		t.Fatalf("warmIndex counted encoded/duplicate entries: count=%d size=%d", count, size)
 	}
 }

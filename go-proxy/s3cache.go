@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -22,6 +23,88 @@ import (
 // s3CachePrefix is prepended to every cache key so the proxy's objects live under
 // a dedicated namespace inside the bucket (safe to share a bucket with other data).
 const s3CachePrefix = "docker-proxy-cache/"
+
+// s3MetaHeaderKey is the user-metadata key holding the JSON-encoded upstream
+// response headers that must be replayed on a cache hit.
+//
+// S3-compatible providers limit the length of a single x-amz-meta-* value (a
+// Ceph RADOSGW bucket fronted by nginx, for instance, rejects values longer than
+// 256 bytes with a confusing "400 InvalidURI / Could not parse the specified
+// URI"). Docker Hub manifest responses carry ~700 bytes of headers, so keeping
+// the whole JSON blob in one metadata value made EVERY cache write fail while
+// plain pulls still succeeded — i.e. the cache looked "enabled" but never stored
+// anything. Large header sets are therefore split across dp-header-0..N values,
+// each at most maxS3MetaValue bytes, and rejoined by readMeta.
+const (
+	s3MetaHeaderKey = "dp-header"
+	maxS3MetaValue  = 200
+)
+
+// splitMetaValue splits s into chunks of at most max bytes without cutting a
+// multi-byte UTF-8 rune in half (header values may contain non-ASCII text, e.g.
+// a Content-Disposition filename). It returns nil for an empty string.
+func splitMetaValue(s string, max int) []string {
+	if s == "" {
+		return nil
+	}
+	if max <= 0 {
+		return []string{s}
+	}
+	var out []string
+	for len(s) > max {
+		cut := max
+		for cut > 0 && !utf8.RuneStart(s[cut]) {
+			cut--
+		}
+		if cut == 0 { // max is smaller than a single rune: hard cut
+			cut = max
+		}
+		out = append(out, s[:cut])
+		s = s[cut:]
+	}
+	return append(out, s)
+}
+
+// objectUserMeta flattens minio's user-metadata / response-metadata maps into a
+// single lower-case map with the x-amz-meta- prefix stripped so lookups are
+// uniform regardless of which map the SDK populated.
+func objectUserMeta(info minio.ObjectInfo) map[string]string {
+	norm := func(k string) string {
+		return strings.TrimPrefix(strings.ToLower(k), "x-amz-meta-")
+	}
+	out := make(map[string]string, len(info.UserMetadata)+len(info.Metadata))
+	for k, v := range info.UserMetadata {
+		if v != "" {
+			out[norm(k)] = v
+		}
+	}
+	for k, vv := range info.Metadata {
+		if len(vv) > 0 {
+			if _, ok := out[norm(k)]; !ok {
+				out[norm(k)] = vv[0]
+			}
+		}
+	}
+	return out
+}
+
+// cachedHeaderJSON returns the JSON-encoded cached response headers, rejoining
+// the chunked dp-header-<n> values. Objects written by older builds stored the
+// whole JSON in a single dp-header value, which is still accepted.
+func cachedHeaderJSON(meta map[string]string) string {
+	if v := meta[s3MetaHeaderKey]; v != "" {
+		return v
+	}
+	var b strings.Builder
+	for i := 0; ; i++ {
+		v, ok := meta[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)]
+		if !ok {
+			break
+		}
+		b.WriteString(v)
+	}
+	return b.String()
+}
 
 // s3VendorPreset captures the S3 addressing quirks of a known provider so the UI
 // only has to pick a name and fill in the obvious fields (endpoint / region /
@@ -134,18 +217,9 @@ func (s *s3Cache) bucketKey(key string) string {
 // exposes user metadata with the prefix stripped and MIME-canonicalized keys.
 func (s *s3Cache) readMeta(info minio.ObjectInfo) cacheMeta {
 	m := cacheMeta{Header: map[string][]string{}}
+	meta := objectUserMeta(info)
 	get := func(k string) string {
-		for key, v := range info.UserMetadata {
-			if strings.EqualFold(strings.TrimPrefix(strings.ToLower(key), "x-amz-meta-"), k) && v != "" {
-				return v
-			}
-		}
-		for key, vv := range info.Metadata {
-			if strings.EqualFold(strings.TrimPrefix(strings.ToLower(key), "x-amz-meta-"), k) && len(vv) > 0 {
-				return vv[0]
-			}
-		}
-		return ""
+		return meta[k]
 	}
 	if v := get("dp-stored-at"); v != "" {
 		if t, e := time.Parse(time.RFC3339, v); e == nil {
@@ -159,7 +233,7 @@ func (s *s3Cache) readMeta(info minio.ObjectInfo) cacheMeta {
 	}
 	m.Kind = get("dp-kind")
 	m.Digest = get("dp-digest")
-	if v := get("dp-header"); v != "" {
+	if v := cachedHeaderJSON(meta); v != "" {
 		var h map[string][]string
 		if json.Unmarshal([]byte(v), &h) == nil {
 			m.Header = h
@@ -243,6 +317,24 @@ func (s *s3Cache) Stat() (count, bytes int64) {
 	return int64(len(s.index)), s.totalBytes
 }
 
+// listObjectKey normalizes an object name returned by minio-go's ListObjects.
+// minio-go always requests encoding-type=url; a provider that URL-encodes the
+// names but omits <EncodingType>url</EncodingType> from the response leaves the
+// SDK unable to decode them, so listing yields "sha256%3A..." instead of
+// "sha256:...". Cache keys never contain '%', so unescaping here is safe; it
+// prevents duplicate index entries in warmIndex and makes Clear/sweep delete the
+// real object instead of a literal "%3A" name that silently NoSuchKeys.
+func listObjectKey(name string) string {
+	if !strings.Contains(name, "%") {
+		return name
+	}
+	decoded, err := url.PathUnescape(name)
+	if err != nil {
+		return name
+	}
+	return decoded
+}
+
 // Clear wipes every cached object in the bucket namespace and resets the index.
 func (s *s3Cache) Clear() {
 	ctx := context.Background()
@@ -253,6 +345,7 @@ func (s *s3Cache) Clear() {
 			if obj.Err != nil {
 				continue
 			}
+			obj.Key = listObjectKey(obj.Key)
 			ch <- obj
 		}
 	}()
@@ -286,16 +379,21 @@ func (s *s3Cache) warmIndex(timeout time.Duration) {
 	defer cancel()
 	n := 0
 	for obj := range s.client.ListObjects(ctx, s.bucket, minio.ListObjectsOptions{Prefix: s.prefix, Recursive: true}) {
-		if obj.Err != nil {
+		if obj.Err != nil || obj.Size <= 0 {
+			// Zero-byte objects are never valid cache entries (the proxy aborts
+			// empty bodies); they may be directory markers left by the S3
+			// provider after a failed upload. Skip them so the index/stats do
+			// not count garbage.
 			continue
 		}
-		key := strings.TrimPrefix(obj.Key, s.prefix)
-		if key == obj.Key || key == "" {
+		name := listObjectKey(obj.Key)
+		key := strings.TrimPrefix(name, s.prefix)
+		if key == name || key == "" {
 			continue
 		}
 		entry := &cacheEntry{size: obj.Size, atime: obj.LastModified, kind: "blob"}
 		if strings.HasPrefix(key, "t/") {
-			info, err := s.client.StatObject(ctx, s.bucket, obj.Key, minio.StatObjectOptions{})
+			info, err := s.client.StatObject(ctx, s.bucket, name, minio.StatObjectOptions{})
 			if err != nil {
 				continue
 			}
@@ -401,7 +499,11 @@ func (w *s3CacheWriter) Close() error {
 		"dp-ttl":       strconv.Itoa(int(w.ttl.Seconds())),
 		"dp-kind":      w.kind,
 		"dp-digest":    w.digest,
-		"dp-header":    string(hb),
+	}
+	// Split the header JSON so each metadata value stays under the provider's
+	// per-value limit (see maxS3MetaValue); a single value made uploads fail.
+	for i, chunk := range splitMetaValue(string(hb), maxS3MetaValue) {
+		userMeta[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)] = chunk
 	}
 	name := w.s.bucketKey(w.key)
 	if _, err := w.s.client.PutObject(context.Background(), w.s.bucket, name, w.tmp, size, minio.PutObjectOptions{
