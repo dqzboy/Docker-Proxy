@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"log"
 	"net/http"
@@ -36,8 +37,10 @@ const s3CachePrefix = "docker-proxy-cache/"
 // anything. Large header sets are therefore split across dp-header-0..N values,
 // each at most maxS3MetaValue bytes, and rejoined by readMeta.
 const (
-	s3MetaHeaderKey = "dp-header"
-	maxS3MetaValue  = 200
+	s3MetaHeaderKey   = "dp-header"
+	s3MetaHeaderCount = "dp-header-n"
+	s3MetaHeaderCRC   = "dp-header-crc"
+	maxS3MetaValue    = 200
 )
 
 // splitMetaValue splits s into chunks of at most max bytes without cutting a
@@ -91,10 +94,47 @@ func objectUserMeta(info minio.ObjectInfo) map[string]string {
 // cachedHeaderJSON returns the JSON-encoded cached response headers, rejoining
 // the chunked dp-header-<n> values. Objects written by older builds stored the
 // whole JSON in a single dp-header value, which is still accepted.
-func cachedHeaderJSON(meta map[string]string) string {
+//
+// It returns (value, ok). ok is false only when a chunked object carries an
+// explicit chunk count / checksum (written by builds that support integrity
+// checking) yet that count or checksum does not match — i.e. the metadata was
+// partially lost or corrupted in storage. The caller should then treat the entry
+// as a miss instead of replaying a headerless response, which Docker clients
+// reject. Objects written before integrity checking (no dp-header-n) still load
+// via best-effort concatenation.
+func cachedHeaderJSON(meta map[string]string) (string, bool) {
+	// Legacy single-value format.
 	if v := meta[s3MetaHeaderKey]; v != "" {
-		return v
+		return v, true
 	}
+	// Chunked format. Prefer strict reconstruction when the writer recorded a
+	// chunk count; otherwise fall back to best-effort concatenation so objects
+	// written before integrity checking still load.
+	if countStr, ok := meta[s3MetaHeaderCount]; ok {
+		n, err := strconv.Atoi(countStr)
+		if err != nil || n <= 0 {
+			return "", false
+		}
+		var b strings.Builder
+		for i := 0; i < n; i++ {
+			v, ok := meta[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)]
+			if !ok {
+				return "", false // chunk missing
+			}
+			b.WriteString(v)
+		}
+		raw := b.String()
+		if crcStr, ok := meta[s3MetaHeaderCRC]; ok {
+			var want uint32
+			if _, err := fmt.Sscanf(crcStr, "%08x", &want); err == nil {
+				if crc32.ChecksumIEEE([]byte(raw)) != want {
+					return "", false // checksum mismatch
+				}
+			}
+		}
+		return raw, true
+	}
+	// Best-effort: concatenate dp-header-0.. until a gap.
 	var b strings.Builder
 	for i := 0; ; i++ {
 		v, ok := meta[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)]
@@ -103,7 +143,7 @@ func cachedHeaderJSON(meta map[string]string) string {
 		}
 		b.WriteString(v)
 	}
-	return b.String()
+	return b.String(), true
 }
 
 // s3VendorPreset captures the S3 addressing quirks of a known provider so the UI
@@ -233,11 +273,20 @@ func (s *s3Cache) readMeta(info minio.ObjectInfo) cacheMeta {
 	}
 	m.Kind = get("dp-kind")
 	m.Digest = get("dp-digest")
-	if v := cachedHeaderJSON(meta); v != "" {
+	hstr, hok := cachedHeaderJSON(meta)
+	if hok && hstr != "" {
 		var h map[string][]string
-		if json.Unmarshal([]byte(v), &h) == nil {
+		if json.Unmarshal([]byte(hstr), &h) == nil {
 			m.Header = h
+		} else {
+			// The bytes passed the integrity check but are not valid JSON; this
+			// should not happen, but never replay a garbage header.
+			log.Printf("[cache] 缓存对象元数据头 JSON 解析失败（已通过完整性校验仍损坏）")
 		}
+	} else if !hok {
+		// Chunked header failed the integrity check (missing chunk or checksum
+		// mismatch). The caller treats this entry as a miss.
+		m.HeaderCorrupt = true
 	}
 	m.Size = info.Size
 	return m
@@ -260,6 +309,15 @@ func (s *s3Cache) Open(key string, ttl time.Duration) (*cacheObject, bool) {
 		return nil, false
 	}
 	meta := s.readMeta(info)
+	if meta.HeaderCorrupt {
+		// The header metadata was partially lost or corrupted; serving a
+		// headerless (or wrong-header) response would make Docker clients reject
+		// the manifest, so treat it as a miss and drop the broken object.
+		log.Printf("[cache] 缓存对象 %s 头分块损坏，视为未命中并清理", key)
+		obj.Close()
+		s.removeKey(key)
+		return nil, false
+	}
 	if meta.TTL > 0 && time.Since(meta.StoredAt) > meta.TTL {
 		obj.Close()
 		s.removeKey(key)
@@ -502,8 +560,17 @@ func (w *s3CacheWriter) Close() error {
 	}
 	// Split the header JSON so each metadata value stays under the provider's
 	// per-value limit (see maxS3MetaValue); a single value made uploads fail.
-	for i, chunk := range splitMetaValue(string(hb), maxS3MetaValue) {
+	// Record the chunk count and a CRC32 of the full JSON so a partially lost or
+	// corrupted header is detected on read instead of silently serving a
+	// headerless response (Docker clients reject manifests without
+	// Docker-Content-Digest).
+	chunks := splitMetaValue(string(hb), maxS3MetaValue)
+	for i, chunk := range chunks {
 		userMeta[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)] = chunk
+	}
+	if len(chunks) > 0 {
+		userMeta[s3MetaHeaderCount] = strconv.Itoa(len(chunks))
+		userMeta[s3MetaHeaderCRC] = fmt.Sprintf("%08x", crc32.ChecksumIEEE(hb))
 	}
 	name := w.s.bucketKey(w.key)
 	if _, err := w.s.client.PutObject(context.Background(), w.s.bucket, name, w.tmp, size, minio.PutObjectOptions{

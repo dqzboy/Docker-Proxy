@@ -32,6 +32,11 @@ type cacheMeta struct {
 	Digest   string              `json:"digest"`
 	Kind     string              `json:"kind"`
 	TTL      time.Duration       `json:"ttl"`
+	// HeaderCorrupt is set when the chunked response-header metadata failed its
+	// integrity check (missing chunk or CRC mismatch) on read. The caller should
+	// treat the cache entry as a miss and re-fetch from upstream rather than
+	// replaying a headerless response, which Docker clients reject.
+	HeaderCorrupt bool `json:"-"`
 }
 
 // cacheObject is returned by diskCache.Open and handed to the proxy so it can

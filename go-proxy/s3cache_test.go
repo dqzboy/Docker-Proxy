@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -355,6 +356,70 @@ func TestS3MetaHeaderRoundTrip(t *testing.T) {
 	}
 }
 
+// TestS3CacheHeaderIntegrity 验证分块头部写入了块数与 CRC 校验和，且读取端能在
+// 分块缺失 / 校验和不符时判定为损坏（而非静默回放无头响应）；同时验证无块数标记
+// 的老对象（PR#108 写入格式）仍能 best-effort 还原、不误判损坏。
+func TestS3CacheHeaderIntegrity(t *testing.T) {
+	large := map[string][]string{
+		"Content-Type":          {"application/vnd.oci.image.index.v1+json"},
+		"Docker-Content-Digest": {"sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc"},
+		"X-Ratelimit-Remaining": {"99;w=3600"},
+	}
+	raw, _ := json.Marshal(large)
+	chunks := splitMetaValue(string(raw), maxS3MetaValue)
+
+	// build 构造一个分块对象；dropChunk 故意少写一个分块，corruptCRC 翻转校验和。
+	build := func(dropChunk, corruptCRC bool) minio.ObjectInfo {
+		um := map[string]string{"dp-kind": "manifest"}
+		n := len(chunks)
+		if dropChunk {
+			n--
+		}
+		for i := 0; i < n; i++ {
+			um[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)] = chunks[i]
+		}
+		um[s3MetaHeaderCount] = strconv.Itoa(len(chunks))
+		crc := crc32.ChecksumIEEE(raw)
+		if corruptCRC {
+			crc ^= 0xffffffff
+		}
+		um[s3MetaHeaderCRC] = fmt.Sprintf("%08x", crc)
+		return minio.ObjectInfo{Size: 42, UserMetadata: um}
+	}
+
+	// 1) 完整且校验通过 → 头被还原，无损坏标记。
+	ok := (&s3Cache{}).readMeta(build(false, false))
+	if ok.HeaderCorrupt {
+		t.Fatal("完整分块不应被判为损坏")
+	}
+	if got := http.Header(ok.Header).Get("Docker-Content-Digest"); got != large["Docker-Content-Digest"][0] {
+		t.Fatalf("头未还原: %v", ok.Header)
+	}
+
+	// 2) 分块缺失 → 判为损坏。
+	if !(&s3Cache{}).readMeta(build(true, false)).HeaderCorrupt {
+		t.Fatal("缺失分块应判为损坏")
+	}
+
+	// 3) 校验和不匹配 → 判为损坏。
+	if !(&s3Cache{}).readMeta(build(false, true)).HeaderCorrupt {
+		t.Fatal("CRC 不匹配应判为损坏")
+	}
+
+	// 4) 无 dp-header-n 的老对象（PR#108 写入格式）→ best-effort 还原，不判损坏。
+	legacy := map[string]string{"dp-kind": "manifest"}
+	for i, c := range chunks {
+		legacy[fmt.Sprintf("%s-%d", s3MetaHeaderKey, i)] = c
+	}
+	lg := (&s3Cache{}).readMeta(minio.ObjectInfo{UserMetadata: legacy})
+	if lg.HeaderCorrupt {
+		t.Fatal("无块数标记的老分块对象不应判为损坏")
+	}
+	if got := http.Header(lg.Header).Get("Content-Type"); got != large["Content-Type"][0] {
+		t.Fatalf("老分块对象头未还原: %v", lg.Header)
+	}
+}
+
 // TestS3CacheLargeHeadersWithMetaLimit 复现真实故障：部分 S3 兼容服务（Ceph RGW +
 // nginx）会拒绝长度超过 256 字节的单条 x-amz-meta-* 值并返回 400 InvalidURI。
 // Docker Hub 的响应头 JSON 约 700 字节，修复前每次缓存写入都会失败，表现为
@@ -443,6 +508,10 @@ func TestS3CacheLargeHeadersWithMetaLimit(t *testing.T) {
 	var chunkCount int
 	for k, vv := range metadata {
 		lk := strings.ToLower(k)
+		// Skip the integrity-control keys added alongside the data chunks.
+		if lk == "x-amz-meta-dp-header-n" || lk == "x-amz-meta-dp-header-crc" {
+			continue
+		}
 		if strings.HasPrefix(lk, "x-amz-meta-dp-header-") {
 			chunkCount++
 			if len(vv[0]) > maxS3MetaValue {
