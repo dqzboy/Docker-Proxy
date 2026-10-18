@@ -763,6 +763,9 @@ func (p *Proxy) fetchAndStore(w http.ResponseWriter, r *http.Request, client *ht
 	}
 	wtr, werr := c.Writer(key, cleanCacheHeaders(resp.Header), digest, kind, ttl)
 	if werr != nil {
+		// Never fail the client because the cache could not be written; just
+		// make the failure visible instead of silently degrading to no-cache.
+		log.Printf("[cache] 创建缓存写入失败 key=%s: %v（本次响应仍正常回源返回）", key, werr)
 		return p.streamResponse(w, r, resp), nil
 	}
 	copyHeaders(w.Header(), resp.Header)
@@ -802,6 +805,11 @@ func (p *Proxy) fetchAndStore(w http.ResponseWriter, r *http.Request, client *ht
 		return 0, nil
 	}
 	if cerr := wtr.Close(); cerr != nil {
+		// The body has already been streamed to the client at this point, so the
+		// pull itself succeeds; log loudly because the cache will keep missing
+		// (this is how a provider rejecting large x-amz-meta-* values looked
+		// like "S3 缓存不生效" with no errors anywhere).
+		log.Printf("[cache] 写入缓存失败 key=%s（%d 字节）: %v（本次响应已正常返回客户端）", key, written, cerr)
 		wtr.Abort()
 		return written, cerr
 	}
