@@ -187,8 +187,8 @@ Service listens on `:3000` by default; admin entry at `http://localhost:3000/adm
 <table>
   <tr>
     <td width="33.33%" align="center">
-      <a href="https://aihub.top/register?aff=RXYDWRNDZ4AU"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/AIHUB.png?raw=true" alt="AIHUB" width="280" height="158"><br><strong>AIHUB</strong></a><br>
-      <sub>Reliable and affordable AI API relay service</sub>
+      <a href="https://docker-proxy-desc.vercel.app/cloudcone.html"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" alt="CloudCone" width="280" height="158"><br><strong>CloudCone</strong></a><br>
+      <sub>Flexible pay-as-you-go cloud servers</sub>
     </td>
     <td width="33.33%" align="center">
       <a href="https://docker-proxy-desc.vercel.app/dedione.html"><img src=https://cdn.jsdelivr.net/gh/dqzboy/Images/picture/dedione-vps.png?raw=true" alt="DediOne" width="280" height="158"><br><strong>DediOne</strong></a><br>
@@ -203,10 +203,6 @@ Service listens on `:3000` by default; admin entry at `http://localhost:3000/adm
     <td width="33.33%" align="center">
       <a href="https://docker-proxy-desc.vercel.app/racknerd.html"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/Image_2025-07-07_16-14-49.png?raw=true" alt="RackNerd" width="280" height="158"><br><strong>RackNerd</strong></a><br>
       <sub>Overseas VPS for websites and Docker services</sub>
-    </td>
-    <td width="33.33%" align="center">
-      <a href="https://docker-proxy-desc.vercel.app/cloudcone.html"><img src="https://cdn.jsdelivr.net/gh/dqzboy/Images/dqzboy-proxy/111.png?raw=true" alt="CloudCone" width="280" height="158"><br><strong>CloudCone</strong></a><br>
-      <sub>Flexible pay-as-you-go cloud servers</sub>
     </td>
     <td width="33.33%"><!-- New promotion slot --></td>
   </tr>
