@@ -13,18 +13,18 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "axios": "^1.7.2",
+    "axios": "^1.20.0",
     "echarts": "^5.6.0",
     "element-plus": "^2.7.6",
     "marked": "^14.1.4",
-    "md-editor-v3": "^4.21.3",
-    "vue": "^3.4.31",
+    "md-editor-v3": "^7.1.0",
+    "vue": "^3.5.44",
     "vue-i18n": "^9.14.5",
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
-    "concurrently": "^9.1.0",
+    "concurrently": "^10.0.6",
     "vite": "^5.3.3"
   }
 }

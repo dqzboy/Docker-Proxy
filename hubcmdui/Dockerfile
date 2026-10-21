@@ -1,4 +1,6 @@
-FROM node:20-alpine AS build
+# Node 20 已于 2026-04 EOL，不再接收安全补丁（含 2026-10 的 HIGH 级修复）。
+# 22.x 为维护期 LTS，仍在官方安全发布线内，故统一升到 22。
+FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install --omit=dev
@@ -11,7 +13,7 @@ COPY config/ ./config/
 RUN echo "$CACHEBUST" >/dev/null && cd src && npm run build
 
 
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 ENV NODE_ENV=production
