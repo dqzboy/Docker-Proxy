@@ -20,31 +20,46 @@ function stripLocked(config) {
   return out;
 }
 
+// 匿名用户（如公共落地页）可读的配置白名单。
+// 落地页仅需要 logo / proxyDomain 等非敏感字段；monitoringConfig 里的
+// webhookUrl / telegramToken 等凭据绝不能在未登录时下发。
+const PUBLIC_CONFIG_KEYS = ['theme', 'language', 'logo', 'proxyDomain'];
+
+function publicConfig(config) {
+  if (!config || typeof config !== 'object') return {};
+  const out = {};
+  for (const k of PUBLIC_CONFIG_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(config, k)) out[k] = config[k];
+  }
+  return out;
+}
+
+function isLoggedIn(req) {
+  return !!(req.session && req.session.user);
+}
+
 // 获取配置
+// 已登录：返回完整配置（减去 _lock_ 键）；匿名：只返回公开子集，避免泄露
+// monitoringConfig(webhookUrl/telegramToken) 等敏感配置。
 router.get('/config', async (req, res) => {
     try {
         const config = await configServiceDB.getConfig();
-        
-        // 如果配置为空，使用默认配置
-        if (!config || Object.keys(config).length === 0) {
-            const defaultConfig = configServiceDB.getDefaultConfig();
-            res.json(defaultConfig);
-        } else {
-            // 合并默认配置和数据库配置，数据库配置优先
-            const defaultConfig = configServiceDB.getDefaultConfig();
-            const mergedConfig = stripLocked({ ...defaultConfig, ...config });
-            res.json(mergedConfig);
-        }
+        const defaultConfig = configServiceDB.getDefaultConfig();
+        // 如果配置为空，使用默认配置；否则合并默认配置和数据库配置，数据库配置优先
+        const mergedConfig = stripLocked(
+            (!config || Object.keys(config).length === 0) ? defaultConfig : { ...defaultConfig, ...config }
+        );
+        res.json(isLoggedIn(req) ? mergedConfig : publicConfig(mergedConfig));
     } catch (error) {
         logger.error('获取配置失败:', error);
         // 只在真正出错时返回默认配置
         const defaultConfig = configServiceDB.getDefaultConfig();
-        res.json(defaultConfig);
+        res.json(isLoggedIn(req) ? defaultConfig : publicConfig(defaultConfig));
     }
 });
 
-// 保存配置
-router.post('/config', async (req, res) => {
+// 保存配置（需登录）
+router.post('/config', requireLogin, async (req, res) => {
     try {
         const newConfig = req.body;
         
@@ -73,16 +88,17 @@ router.post('/config', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const config = await configServiceDB.getConfig();
-    res.json(stripLocked(config));
+    const safeConfig = stripLocked(config);
+    res.json(isLoggedIn(req) ? safeConfig : publicConfig(safeConfig));
   } catch (error) {
     logger.error('读取配置失败:', error);
     const defaultConfig = configServiceDB.getDefaultConfig();
-    res.json(defaultConfig);
+    res.json(isLoggedIn(req) ? defaultConfig : publicConfig(defaultConfig));
   }
 });
 
-// 保存配置 - 兼容旧路由
-router.post('/', async (req, res) => {
+// 保存配置 - 兼容旧路由（需登录）
+router.post('/', requireLogin, async (req, res) => {
   try {
     const newConfig = req.body;
     

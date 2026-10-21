@@ -41,12 +41,13 @@ function requireFreshPassword(req, res, next) {
 function requireLogin(req, res, next) {
     // 使用 originalUrl（完整路径）：挂载子路由中 req.url 为相对路径，直接用 '/api/' 前缀匹配不到
     const url = req.originalUrl || req.url;
-    // 放开session检查，不强制要求登录
+    // 放开session检查，不强制要求登录（仅限只读、无敏感的接口）
+    // 注意：/api/monitoring-config 与 /api/toggle-monitoring 已移出白名单——
+    // 前者会下发 webhookUrl / telegramToken，后者可开关告警，匿名访问属于越权
+    // （与 issue #109 同类）；二者仅由后台监控页使用，登录后可正常调用。
     if (        url.startsWith('/api/documentation') ||
         url.startsWith('/api/system-resources') ||
         url.startsWith('/api/metrics/history') ||
-        url.startsWith('/api/monitoring-config') ||
-        url.startsWith('/api/toggle-monitoring') ||
         url.includes('/docker/status')) {
         return next(); // 这些API路径不需要登录
     }
